@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head><meta charset="UTF-8"><title>باغچهٔ درس</title></head>
+<body>
+<script>
+  const raw = sessionStorage.getItem('hw_user');
+  const user = raw ? JSON.parse(raw) : null;
+  const dest = user ? ({ admin: 'admin.html', teacher: 'teacher.html', student: 'student.html' }[user.role] || 'login.html') : 'login.html';
+  window.location.replace(dest);
+</script>
+</body>
+</html>

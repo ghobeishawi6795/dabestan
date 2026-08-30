@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ورود — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-box { max-width: 420px; width: 100%; background: var(--surface); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow); border: 1px solid var(--line); }
+  .auth-box .logo-badge { width: 56px; height: 56px; border-radius: 16px; background: var(--leaf); display: grid; place-items: center; font-size: 1.6rem; margin: 0 auto 14px; }
+  .auth-box h1 { text-align: center; font-size: 1.3rem; margin-bottom: 4px; }
+  .auth-box p.sub { text-align: center; margin-bottom: 22px; font-size: .85rem; }
+  .tabs { display: flex; gap: 6px; background: var(--bg-soft); padding: 5px; border-radius: 14px; margin-bottom: 20px; }
+  .tabs button { flex: 1; padding: 9px; border: none; border-radius: 10px; background: transparent; font-weight: 700; color: var(--ink-soft); }
+  .tabs button.active { background: var(--surface); color: var(--leaf-dark); box-shadow: var(--shadow-sm); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: .82rem; font-weight: 700; margin-bottom: 6px; color: var(--ink-soft); }
+  .field input, .field select { width: 100%; padding: 11px 13px; border-radius: 12px; border: 1px solid var(--line); font-family: inherit; font-size: .92rem; background: var(--bg-soft); }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--leaf); background: var(--surface); }
+  .school-results { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .school-opt { text-align: right; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); font-size: .85rem; }
+  .school-opt.selected { border-color: var(--leaf); background: var(--leaf-pale); font-weight: 700; }
+  .msg { font-size: .82rem; padding: 10px 12px; border-radius: 10px; margin-bottom: 14px; }
+  .msg-err { background: #FDECD8; color: var(--coral-dark); }
+  .msg-ok { background: var(--leaf-pale); color: var(--leaf-dark); }
+  .btn-full { width: 100%; padding: 13px; }
+  .hint { font-size: .74rem; color: var(--ink-soft); margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="auth-box">
+  <div class="logo-badge">🌱</div>
+  <h1>باغچهٔ درس</h1>
+  <p class="sub">ورود به حساب کاربری</p>
+
+  <div class="tabs">
+    <button id="tabLogin" class="active" onclick="switchTab('login')">ورود</button>
+    <button id="tabRegister" onclick="switchTab('register')">ثبت مدرسهٔ جدید</button>
+  </div>
+
+  <div id="msgBox"></div>
+
+  <!-- ===== فرم ورود ===== -->
+  <form id="loginForm">
+    <div class="field">
+      <label>نام مدرسه</label>
+      <input type="text" id="schoolSearch" placeholder="مثلاً: دبستان امید" autocomplete="off" required>
+      <div class="school-results" id="schoolResults"></div>
+      <div class="hint" id="schoolPickedHint"></div>
+    </div>
+    <div class="field">
+      <label>نام کاربری</label>
+      <input type="text" id="loginUsername" required>
+    </div>
+    <div class="field">
+      <label>رمز عبور</label>
+      <input type="password" id="loginPassword" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-full">ورود</button>
+  </form>
+
+  <!-- ===== فرم ثبت مدرسهٔ جدید ===== -->
+  <form id="registerForm" style="display:none;">
+    <div class="field">
+      <label>نام مدرسه</label>
+      <input type="text" id="regSchoolName" required>
+    </div>
+    <div class="field">
+      <label>نام و نام‌خانوادگی مدیر</label>
+      <input type="text" id="regFullName" required>
+    </div>
+    <div class="field">
+      <label>نام کاربری مدیر</label>
+      <input type="text" id="regUsername" required>
+    </div>
+    <div class="field">
+      <label>رمز عبور (حداقل ۸ کاراکتر)</label>
+      <input type="password" id="regPassword" minlength="8" required>
+    </div>
+    <button type="submit" class="btn btn-sun btn-full">ساخت مدرسه و ورود</button>
+  </form>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  let selectedSchoolId = null;
+
+  function switchTab(which) {
+    document.getElementById('tabLogin').classList.toggle('active', which === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', which === 'register');
+    document.getElementById('loginForm').style.display = which === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = which === 'register' ? 'block' : 'none';
+    document.getElementById('msgBox').innerHTML = '';
+  }
+
+  function showMsg(text, ok = false) {
+    document.getElementById('msgBox').innerHTML = `<div class="msg ${ok ? 'msg-ok' : 'msg-err'}">${text}</div>`;
+  }
+
+  // جست‌وجوی زندهٔ نام مدرسه
+  let searchTimer;
+  document.getElementById('schoolSearch').addEventListener('input', (e) => {
+    selectedSchoolId = null;
+    document.getElementById('schoolPickedHint').textContent = '';
+    clearTimeout(searchTimer);
+    const q = e.target.value.trim();
+    const resultsBox = document.getElementById('schoolResults');
+    if (q.length < 2) { resultsBox.innerHTML = ''; return; }
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/auth/find-school?name=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        resultsBox.innerHTML = (data.schools || []).map(s =>
+          `<button type="button" class="school-opt" data-id="${s.id}" data-name="${s.name}">${s.name}</button>`
+        ).join('') || '<div class="hint">مدرسه‌ای پیدا نشد</div>';
+        resultsBox.querySelectorAll('.school-opt').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectedSchoolId = btn.dataset.id;
+            document.getElementById('schoolSearch').value = btn.dataset.name;
+            document.getElementById('schoolPickedHint').textContent = `کد مدرسه انتخاب‌شد: ${selectedSchoolId}`;
+            resultsBox.innerHTML = '';
+          });
+        });
+      } catch { /* silent — search is best-effort */ }
+    }, 300);
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedSchoolId) return showMsg('لطفاً مدرسه رو از لیست نتایج انتخاب کن.');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schoolId: Number(selectedSchoolId),
+          username: document.getElementById('loginUsername').value,
+          password: document.getElementById('loginPassword').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error === 'invalid credentials' ? 'نام کاربری یا رمز عبور اشتباهه.' : data.error);
+      Auth.save({ token: data.token, user: data.user, schoolId: selectedSchoolId });
+      const dest = { admin: 'admin.html', teacher: 'teacher.html', student: 'student.html' }[data.user.role] || 'index.html';
+      window.location.href = dest;
+    } catch (err) {
+      showMsg('خطا در برقراری ارتباط با سرور.');
+    }
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/auth/register-school', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schoolName: document.getElementById('regSchoolName').value,
+          adminFullName: document.getElementById('regFullName').value,
+          adminUsername: document.getElementById('regUsername').value,
+          adminPassword: document.getElementById('regPassword').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) return showMsg(data.error);
+      // ثبت موفق بود؛ حالا خودکار وارد می‌شیم
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          schoolId: data.schoolId,
+          username: document.getElementById('regUsername').value,
+          password: document.getElementById('regPassword').value,
+        }),
+      });
+      const loginData = await loginRes.json();
+      if (!loginRes.ok) return showMsg('مدرسه ساخته شد ولی ورود خودکار ناموفق بود — از تب «ورود» وارد شو.');
+      Auth.save({ token: loginData.token, user: loginData.user, schoolId: data.schoolId });
+      window.location.href = 'admin.html';
+    } catch (err) {
+      showMsg('خطا در برقراری ارتباط با سرور.');
+    }
+  });
+</script>
+</body>
+</html>
