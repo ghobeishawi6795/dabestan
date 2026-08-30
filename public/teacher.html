@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد معلم — باغچهٔ درس</title>
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#3F7A52">
-<link rel="icon" href="/icons/icon-192.png">
-<link rel="apple-touch-icon" href="/icons/icon-180.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
-<script src="assets/pwa.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -267,10 +259,9 @@
 <!-- ===== مودال ویرایش سؤال ===== -->
 <div class="modal-backdrop" id="modalEditQuestion">
   <div class="modal">
-    <h3 id="eqModalTitle" style="margin-bottom:14px;">ویرایش سؤال</h3>
-    <div id="eqReadOnlyNote" class="hint" style="display:none; margin-bottom:10px;">این سؤال متعلق به یکی دیگه از معلم‌هاست — فقط قابل مشاهده‌ست.</div>
+    <h3 style="margin-bottom:14px;">ویرایش سؤال</h3>
     <div id="msgEditQuestion"></div>
-    <form id="editQuestionForm" onsubmit="submitEditQuestion(event)">
+    <form onsubmit="submitEditQuestion(event)">
       <input type="hidden" id="eqId">
       <div class="field"><label>عنوان سؤال</label><input type="text" id="eqTitle" required></div>
       <div class="field"><label>نوع سؤال</label>
@@ -289,7 +280,6 @@
         </select>
       </div>
       <div class="field"><label>موضوع (اختیاری)</label><input type="text" id="eqSubject"></div>
-      <div class="field"><label>پایه (اختیاری)</label><input type="number" id="eqGrade" min="1" max="6"></div>
       <div class="field"><label>متن سؤال</label><textarea id="eqPrompt" required></textarea></div>
 
       <div id="efMultipleChoice" class="dyn-field">
@@ -318,8 +308,8 @@
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('editQuestion')">بستن</button>
-        <button type="submit" id="eqSubmitBtn" class="btn btn-primary">ذخیره</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editQuestion')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
       </div>
     </form>
   </div>
@@ -589,9 +579,9 @@
           <span>📊 ${toFa(q.usage_count || 0)} بار استفاده</span>
         </div>
         <div class="bank-card-actions">
-          ${isMine ? `<button onclick="openEditQuestion(${q.id})">✏️ ویرایش</button>` : `<button onclick="openEditQuestion(${q.id}, true)">👁️ مشاهده</button>`}
+          <button onclick="openEditQuestion(${q.id})">✏️ ویرایش</button>
           <button onclick="useQuestionInNewAssignment(${q.id})">📋 استفاده در تکلیف</button>
-          ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف</button>` : ''}
+          ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف</button>` : '<button disabled style="opacity:.4">—</button>'}
         </div>
       </div>`;
     }).join('');
@@ -750,7 +740,7 @@
     if (type === 'custom_html') document.getElementById('efCustomHtml').classList.add('show');
   }
 
-  function openEditQuestion(id, readOnly) {
+  function openEditQuestion(id) {
     const q = bankAllQuestions.find(x => x.id === id) || bankQuestions.find(x => x.id === id);
     if (!q) return;
     let content;
@@ -759,7 +749,6 @@
     document.getElementById('eqTitle').value = q.title;
     document.getElementById('eqType').value = q.question_type;
     document.getElementById('eqSubject').value = q.subject || '';
-    document.getElementById('eqGrade').value = q.grade || '';
     document.getElementById('eqPrompt').value = content.prompt || '';
     document.getElementById('eqOptions').value = (content.options || []).join('\n');
     document.getElementById('eqCorrectIndex').value = content.correctIndex !== undefined ? content.correctIndex + 1 : '';
@@ -768,13 +757,6 @@
     document.getElementById('eqPairs').value = (content.pairs || []).map(p => `${p.left} = ${p.right}`).join('\n');
     document.getElementById('eqCustomHtml').value = q.custom_html || '';
     document.getElementById('msgEditQuestion').innerHTML = '';
-
-    const form = document.getElementById('editQuestionForm');
-    form.querySelectorAll('input, textarea, select').forEach(el => { el.disabled = !!readOnly; });
-    document.getElementById('eqModalTitle').textContent = readOnly ? 'مشاهدهٔ سؤال' : 'ویرایش سؤال';
-    document.getElementById('eqReadOnlyNote').style.display = readOnly ? 'block' : 'none';
-    document.getElementById('eqSubmitBtn').style.display = readOnly ? 'none' : '';
-
     renderEditTypeFields();
     openModal('editQuestion');
   }
@@ -803,7 +785,6 @@
         title: document.getElementById('eqTitle').value,
         questionType: type,
         subject: document.getElementById('eqSubject').value || null,
-        grade: document.getElementById('eqGrade').value ? Number(document.getElementById('eqGrade').value) : null,
         content: buildEditContentJson(type, document.getElementById('eqPrompt').value),
         customHtml: type === 'custom_html' ? document.getElementById('eqCustomHtml').value : null,
       }});
