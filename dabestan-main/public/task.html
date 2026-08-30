@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>انجام تکلیف — باغچهٔ درس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { padding-bottom: 90px; }
+  .runtime-head { padding: 20px 18px 8px; }
+  .runtime-progress { height: 8px; background: var(--bg-soft); border-radius: 999px; overflow: hidden; margin: 10px 0 4px; }
+  .runtime-progress > div { height: 100%; background: var(--leaf); transition: width .3s; }
+  .q-wrap { max-width: 620px; margin: 0 auto; padding: 10px 18px 20px; }
+  .q-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-sm); }
+  .q-prompt { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin-bottom: 18px; }
+  .opt-btn { display: block; width: 100%; text-align: right; padding: 14px 16px; margin-bottom: 10px; border-radius: 14px; border: 2px solid var(--line); background: var(--bg-soft); font-weight: 700; font-size: .95rem; }
+  .opt-btn.selected { border-color: var(--leaf); background: var(--leaf-pale); }
+  .tf-row { display: flex; gap: 12px; }
+  .tf-row .opt-btn { text-align: center; }
+  .fill-input { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid var(--line); font-size: 1rem; font-family: inherit; background: var(--bg-soft); }
+  .order-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  .order-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--bg-soft); border: 1px solid var(--line); font-weight: 700; }
+  .order-item .mv { display: flex; gap: 4px; margin-inline-start: auto; }
+  .order-item button { border: none; background: var(--surface); border-radius: 8px; width: 30px; height: 30px; font-size: 1rem; }
+  .match-cols { display: flex; gap: 16px; }
+  .match-col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .match-item { padding: 11px; border-radius: 12px; border: 2px solid var(--line); background: var(--bg-soft); text-align: center; font-weight: 700; font-size: .88rem; cursor: pointer; }
+  .match-item.picked { border-color: var(--sun); background: #FFF7E0; }
+  .match-item.linked { border-color: var(--leaf); background: var(--leaf-pale); }
+  canvas { touch-action: none; border-radius: 14px; border: 2px solid var(--line); background: #fff; width: 100%; max-width: 480px; display: block; margin: 0 auto; }
+  .tool-row { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .color-dot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); }
+  .color-dot.active { border-color: var(--ink); }
+  .rec-btn { width: 84px; height: 84px; border-radius: 50%; background: var(--coral); color: #fff; font-size: 1.8rem; border: none; margin: 10px auto; display: block; }
+  .rec-btn.recording { background: var(--coral-dark); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  .rec-status { text-align: center; font-size: .85rem; color: var(--ink-soft); }
+  .photo-drop { border: 2px dashed var(--line); border-radius: 14px; padding: 30px; text-align: center; color: var(--ink-soft); cursor: pointer; }
+  .photo-preview { max-width: 100%; border-radius: 12px; margin-top: 10px; }
+  .runtime-nav { position: fixed; bottom: 0; right: 0; left: 0; background: var(--surface); border-top: 1px solid var(--line); padding: 12px 18px calc(env(safe-area-inset-bottom,0px) + 12px); display: flex; gap: 10px; }
+  .runtime-nav .btn { flex: 1; }
+  .result-panel { text-align: center; padding: 40px 20px; }
+  .result-panel .big { font-size: 3rem; }
+</style>
+</head>
+<body>
+<div class="runtime-head q-wrap" style="padding-bottom:0;">
+  <a href="student.html" style="font-size:.85rem; font-weight:700; color:var(--leaf);">← بازگشت</a>
+  <h1 id="assignmentTitle" style="margin-top:8px; font-size:1.2rem;">در حال بارگذاری...</h1>
+  <div class="runtime-progress"><div id="progressBar" style="width:0%"></div></div>
+  <div class="hint" id="progressLabel"></div>
+</div>
+
+<div class="q-wrap" id="questionArea"></div>
+
+<div class="runtime-nav" id="navBar" style="display:none;">
+  <button class="btn btn-ghost" id="prevBtn" onclick="goPrev()">قبلی</button>
+  <button class="btn btn-primary" id="nextBtn" onclick="goNext()">بعدی</button>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  const user = requireAuth(['student']);
+  const params = new URLSearchParams(location.search);
+  const assignmentId = params.get('id');
+  let questions = [];
+  let current = 0;
+  const responses = {}; // questionId -> answer
+
+  if (user && assignmentId) load();
+  else if (user) document.getElementById('questionArea').innerHTML = '<div class="q-card">شناسهٔ تکلیف پیدا نشد.</div>';
+
+  async function load() {
+    try {
+      const data = await apiFetch(`/student/get-task?id=${assignmentId}`);
+      document.getElementById('assignmentTitle').textContent = data.assignment.title;
+      questions = data.questions;
+      if (data.submission && (data.submission.status === 'submitted' || data.submission.status === 'reviewed')) {
+        renderAlreadyDone(data.submission);
+        return;
+      }
+      document.getElementById('navBar').style.display = 'flex';
+      renderQuestion();
+    } catch (e) {
+      document.getElementById('questionArea').innerHTML = `<div class="q-card">خطا: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  function renderAlreadyDone(submission) {
+    document.getElementById('questionArea').innerHTML = `
+      <div class="q-card result-panel">
+        <div class="big">✅</div>
+        <h2 style="margin:10px 0;">این تکلیف قبلاً ارسال شده</h2>
+        <p>${submission.score !== null ? `نمرهٔ خودکار: ٪${toFa(submission.score)}` : 'در انتظار بررسی معلم است.'}</p>
+        <a class="btn btn-primary" style="margin-top:16px; display:inline-flex;" href="student.html">بازگشت به خانه</a>
+      </div>`;
+  }
+
+  function renderQuestion() {
+    const q = questions[current];
+    document.getElementById('progressLabel').textContent = `سؤال ${toFa(current + 1)} از ${toFa(questions.length)}`;
+    document.getElementById('progressBar').style.width = `${((current) / questions.length) * 100}%`;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('prevBtn').style.opacity = current === 0 ? .4 : 1;
+    document.getElementById('nextBtn').textContent = current === questions.length - 1 ? 'ارسال تکلیف' : 'بعدی';
+
+    const area = document.getElementById('questionArea');
+    area.innerHTML = `<div class="q-card"><div class="q-prompt">${escapeHtml(q.prompt || q.title)}</div><div id="qBody"></div></div>`;
+    const body = document.getElementById('qBody');
+
+    const renderers = {
+      multiple_choice: renderMultipleChoice, true_false: renderTrueFalse, fill_blank: renderFillBlank,
+      ordering: renderOrdering, matching: renderMatching, drag_connect: renderMatching,
+      drawing: renderDrawing, coloring: renderColoring, audio_record: renderAudio, photo_upload: renderPhoto,
+      custom_html: renderCustomHtml,
+    };
+    (renderers[q.type] || renderFallback)(body, q);
+  }
+
+  function goNext() {
+    if (!(questions[current].id in responses)) return alert('لطفاً اول به این سؤال پاسخ بده.');
+    if (current < questions.length - 1) { current++; renderQuestion(); }
+    else submitAll();
+  }
+  function goPrev() { if (current > 0) { current--; renderQuestion(); } }
+
+  // ===== چندگزینه‌ای =====
+  function renderMultipleChoice(body, q) {
+    body.innerHTML = q.options.map((opt, i) => `<button type="button" class="opt-btn" data-i="${i}">${escapeHtml(opt)}</button>`).join('');
+    body.querySelectorAll('.opt-btn').forEach(btn => btn.addEventListener('click', () => {
+      body.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      responses[q.id] = Number(btn.dataset.i);
+    }));
+    if (responses[q.id] !== undefined) body.querySelectorAll('.opt-btn')[responses[q.id]]?.classList.add('selected');
+  }
+
+  // ===== درست/نادرست =====
+  function renderTrueFalse(body, q) {
+    body.innerHTML = `<div class="tf-row">
+      <button type="button" class="opt-btn" data-v="true">✅ درست</button>
+      <button type="button" class="opt-btn" data-v="false">❌ نادرست</button>
+    </div>`;
+    body.querySelectorAll('.opt-btn').forEach(btn => btn.addEventListener('click', () => {
+      body.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      responses[q.id] = btn.dataset.v === 'true';
+    }));
+  }
+
+  // ===== جای‌خالی =====
+  function renderFillBlank(body, q) {
+    body.innerHTML = `<input type="text" class="fill-input" id="fillInput" placeholder="پاسخت رو بنویس...">`;
+    const input = document.getElementById('fillInput');
+    if (responses[q.id]) input.value = responses[q.id];
+    input.addEventListener('input', () => { responses[q.id] = input.value; });
+  }
+
+  // ===== ترتیبی =====
+  function renderOrdering(body, q) {
+    const order = responses[q.id] ? [...responses[q.id]] : [...q.items];
+    function draw() {
+      body.innerHTML = `<ul class="order-list">${order.map((item, i) => `
+        <li class="order-item">${escapeHtml(item)}
+          <span class="mv">
+            <button type="button" data-dir="up" data-i="${i}">▲</button>
+            <button type="button" data-dir="down" data-i="${i}">▼</button>
+          </span>
+        </li>`).join('')}</ul>`;
+      body.querySelectorAll('button[data-dir]').forEach(btn => btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.i);
+        const j = btn.dataset.dir === 'up' ? i - 1 : i + 1;
+        if (j < 0 || j >= order.length) return;
+        [order[i], order[j]] = [order[j], order[i]];
+        responses[q.id] = order;
+        draw();
+      }));
+    }
+    responses[q.id] = order;
+    draw();
+  }
+
+  // ===== جورکردنی / اتصالی =====
+  function renderMatching(body, q) {
+    const links = responses[q.id] ? [...responses[q.id]] : [];
+    let pickedLeft = null;
+    function draw() {
+      body.innerHTML = `<div class="match-cols">
+        <div class="match-col">${q.leftItems.map(l => `<div class="match-item" data-side="left" data-v="${escapeHtml(l)}">${escapeHtml(l)}</div>`).join('')}</div>
+        <div class="match-col">${q.rightItems.map(r => `<div class="match-item" data-side="right" data-v="${escapeHtml(r)}">${escapeHtml(r)}</div>`).join('')}</div>
+      </div><div class="hint" style="text-align:center; margin-top:10px;">یکی از سمت راست و یکی از سمت چپ رو لمس کن تا وصل بشن</div>`;
+
+      body.querySelectorAll('.match-item').forEach(el => {
+        const v = el.dataset.v, side = el.dataset.side;
+        if (links.some(l => (side === 'left' ? l.left : l.right) === v)) el.classList.add('linked');
+        el.addEventListener('click', () => {
+          if (links.some(l => (side === 'left' ? l.left : l.right) === v)) return; // already linked
+          if (side === 'left') { pickedLeft = v; body.querySelectorAll('[data-side="left"]').forEach(x => x.classList.remove('picked')); el.classList.add('picked'); }
+          else if (pickedLeft) {
+            links.push({ left: pickedLeft, right: v });
+            responses[q.id] = links;
+            pickedLeft = null;
+            draw();
+          }
+        });
+      });
+    }
+    responses[q.id] = links;
+    draw();
+  }
+
+  // ===== کشیدنی (نقاشی) =====
+  function renderDrawing(body, q) { setupCanvas(body, q, false); }
+  function renderColoring(body, q) { setupCanvas(body, q, true); }
+
+  function setupCanvas(body, q, isColoring) {
+    const colors = ['#21351F', '#E8734A', '#F6C453', '#3F7A52', '#5B93A0', '#C85A34'];
+    body.innerHTML = `<canvas id="draw" width="440" height="320"></canvas>
+      <div class="tool-row" id="colorRow"></div>
+      <div class="tool-row"><button type="button" class="btn btn-ghost" id="clearBtn">پاک کردن</button></div>`;
+    const canvas = document.getElementById('draw');
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = isColoring ? 18 : 4;
+    ctx.lineCap = 'round';
+    let color = colors[isColoring ? 1 : 0];
+    ctx.strokeStyle = color;
+
+    document.getElementById('colorRow').innerHTML = colors.map((c, i) =>
+      `<button type="button" class="color-dot ${i === (isColoring?1:0) ? 'active' : ''}" style="background:${c}" data-c="${c}"></button>`).join('');
+    document.querySelectorAll('.color-dot').forEach(btn => btn.addEventListener('click', () => {
+      color = btn.dataset.c; ctx.strokeStyle = color;
+      document.querySelectorAll('.color-dot').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }));
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      saveCanvas();
+    });
+
+    let drawing = false;
+    function pos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      return { x: (t.clientX - rect.left) * (canvas.width / rect.width), y: (t.clientY - rect.top) * (canvas.height / rect.height) };
+    }
+    function start(e) { drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }
+    function move(e) { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }
+    function end() { if (drawing) { drawing = false; saveCanvas(); } }
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', end);
+
+    function saveCanvas() {
+      // فشرده‌سازی به JPEG با کیفیت متوسط تا حجم محدود بمونه (چون بدون R2 در D1 ذخیره می‌شه)
+      responses[q.id] = canvas.toDataURL('image/jpeg', 0.6);
+    }
+    saveCanvas();
+  }
+
+  // ===== صوتی =====
+  function renderAudio(body, q) {
+    body.innerHTML = `<button type="button" class="rec-btn" id="recBtn">🎤</button>
+      <div class="rec-status" id="recStatus">برای ضبط لمس کن (حداکثر ۱۵ ثانیه)</div>
+      <audio id="playback" controls style="display:none; width:100%; margin-top:10px;"></audio>`;
+    const recBtn = document.getElementById('recBtn');
+    const status = document.getElementById('recStatus');
+    let mediaRecorder, chunks = [], timer;
+
+    recBtn.addEventListener('click', async () => {
+      if (recBtn.classList.contains('recording')) { mediaRecorder.stop(); return; }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        chunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          clearTimeout(timer);
+          recBtn.classList.remove('recording');
+          status.textContent = 'در حال آماده‌سازی...';
+          const blob = new Blob(chunks, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onload = () => {
+            responses[q.id] = reader.result;
+            const player = document.getElementById('playback');
+            player.src = reader.result; player.style.display = 'block';
+            status.textContent = 'ضبط شد ✅ — دوباره لمس کن تا از نو ضبط کنی';
+          };
+          reader.readAsDataURL(blob);
+        };
+        mediaRecorder.start();
+        recBtn.classList.add('recording');
+        status.textContent = 'در حال ضبط... (حداکثر ۱۵ ثانیه)';
+        timer = setTimeout(() => mediaRecorder.state === 'recording' && mediaRecorder.stop(), 15000);
+      } catch (e) {
+        status.textContent = 'اجازهٔ دسترسی به میکروفون داده نشد.';
+      }
+    });
+  }
+
+  // ===== آپلود عکس =====
+  function renderPhoto(body, q) {
+    body.innerHTML = `<div class="photo-drop" id="photoDrop">📷 برای انتخاب عکس لمس کن</div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;">
+      <img class="photo-preview" id="photoPreview" style="display:none;">`;
+    const drop = document.getElementById('photoDrop');
+    const input = document.getElementById('photoInput');
+    drop.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = () => {
+        img.onload = () => {
+          // تغییر اندازه + فشرده‌سازی روی canvas تا حجم برای D1 مناسب بمونه
+          const maxW = 700;
+          const scale = Math.min(1, maxW / img.width);
+          const c = document.createElement('canvas');
+          c.width = img.width * scale; c.height = img.height * scale;
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const dataUrl = c.toDataURL('image/jpeg', 0.6);
+          responses[q.id] = dataUrl;
+          const preview = document.getElementById('photoPreview');
+          preview.src = dataUrl; preview.style.display = 'block';
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderFallback(body) { body.innerHTML = '<div class="hint">این نوع سؤال هنوز پشتیبانی نمی‌شود.</div>'; }
+
+  // ===== HTML سفارشی — داخل iframe ایزوله، بدون دسترسی به نشست یا داده‌های سایت =====
+  let currentCustomHtmlHandler = null;
+  function renderCustomHtml(body, q) {
+    body.innerHTML = `
+      <iframe id="customFrame" sandbox="allow-scripts" style="width:100%; min-height:360px; border:2px solid var(--line); border-radius:14px; background:#fff; display:block;"></iframe>
+      <div class="hint" id="customStatus" style="text-align:center; margin-top:8px;">منتظر پاسخ از محتوای تعاملی...</div>`;
+
+    const iframe = document.getElementById('customFrame');
+    // srcdoc به‌صورت پراپرتی ست می‌شه (نه توی تمپلیت رشته‌ای) تا مشکل escape کوتیشن‌ها پیش نیاد
+    iframe.srcdoc = q.customHtml && q.customHtml.trim()
+      ? q.customHtml
+      : '<p style="font-family:sans-serif;padding:20px;color:#888;">این سؤال محتوایی ندارد.</p>';
+
+    if (currentCustomHtmlHandler) window.removeEventListener('message', currentCustomHtmlHandler);
+    currentCustomHtmlHandler = function (e) {
+      if (e.source !== iframe.contentWindow) return;
+      if (!e.data || e.data.type !== 'homeworkAnswer') return;
+      responses[q.id] = e.data.value;
+      const status = document.getElementById('customStatus');
+      if (status) status.textContent = 'پاسخ دریافت شد ✅';
+    };
+    window.addEventListener('message', currentCustomHtmlHandler);
+  }
+
+  async function submitAll() {
+    document.getElementById('navBar').style.display = 'none';
+    document.getElementById('questionArea').innerHTML = '<div class="q-card result-panel"><div class="big">⏳</div><p>در حال ارسال...</p></div>';
+    try {
+      const answers = Object.entries(responses).map(([questionId, answer]) => ({ questionId: Number(questionId), answer }));
+      const result = await apiFetch('/student/submit-task', { method: 'POST', body: { assignmentId: Number(assignmentId), answers } });
+      Auth.updateUser({ growthPoints: result.growthPoints });
+      if (result.newlyEarnedBadges && result.newlyEarnedBadges.length) {
+        sessionStorage.setItem('hw_pending_badges', JSON.stringify(result.newlyEarnedBadges));
+      }
+      document.getElementById('questionArea').innerHTML = `
+        <div class="q-card result-panel">
+          <div class="big">🎉</div>
+          <h2 style="margin:10px 0;">تکلیف ارسال شد!</h2>
+          <p>${result.score !== null ? `نمرهٔ خودکار: ٪${toFa(result.score)}` : 'بخشی از این تکلیف دستی نمره‌دهی می‌شود.'}</p>
+          <p style="margin-top:6px;">${toFa(result.pointsEarned)} امتیاز رشد گرفتی 🌱</p>
+          <a class="btn btn-primary" style="margin-top:16px; display:inline-flex;" href="student.html">بازگشت به خانه</a>
+        </div>`;
+    } catch (e) {
+      document.getElementById('questionArea').innerHTML = `<div class="q-card">خطا در ارسال: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+</script>
+</body>
+</html>

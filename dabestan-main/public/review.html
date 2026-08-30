@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مرور تکلیف — باغچهٔ درس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 60px; }
+  .sub-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+  .ans-row { padding: 12px 0; border-top: 1px solid var(--line); }
+  .ans-row:first-child { border-top: none; }
+  .ans-media img, .ans-media audio { max-width: 100%; border-radius: 10px; margin-top: 6px; }
+  .grade-btns { display: flex; gap: 8px; margin-top: 8px; }
+  .grade-btns button { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid var(--line); background: var(--bg-soft); font-weight: 700; font-size: .85rem; }
+  .grade-btns button.sel-correct.active { border-color: var(--leaf); background: var(--leaf-pale); }
+  .grade-btns button.sel-wrong.active { border-color: var(--coral); background: #FDECD8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="teacher.html" style="font-size:.85rem; font-weight:700; color:var(--leaf);">← بازگشت</a>
+  <h1 id="title" style="margin:10px 0 18px;">در حال بارگذاری...</h1>
+  <div id="list"></div>
+</div>
+
+<script src="assets/api.js"></script>
+<script>
+  const user = requireAuth(['teacher']);
+  const assignmentId = new URLSearchParams(location.search).get('assignmentId');
+  const TYPE_LABEL = { multiple_choice: 'چندگزینه‌ای', true_false: 'درست/نادرست', fill_blank: 'جای‌خالی', matching: 'جورکردنی', ordering: 'ترتیبی', drag_connect: 'اتصالی', drawing: 'نقاشی', coloring: 'رنگ‌آمیزی', audio_record: 'صوتی', photo_upload: 'عکس' };
+  const MANUAL_TYPES = new Set(['drawing', 'coloring', 'audio_record', 'photo_upload']);
+  const pendingGrades = {}; // submissionId -> { answerId: bool }
+
+  if (user && assignmentId) load();
+
+  async function load() {
+    try {
+      const data = await apiFetch(`/teacher/list-submissions?assignmentId=${assignmentId}`);
+      document.getElementById('title').textContent = data.assignmentTitle;
+      document.getElementById('list').innerHTML = data.submissions.length
+        ? data.submissions.map(renderSubmission).join('')
+        : '<p>هنوز کسی این تکلیف رو ارسال نکرده.</p>';
+      data.submissions.forEach(attachHandlers);
+    } catch (e) {
+      document.getElementById('list').innerHTML = `<p>خطا: ${escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  function renderSubmission(sub) {
+    pendingGrades[sub.id] = {};
+    const needsReview = sub.status === 'submitted' && sub.answers.some(a => MANUAL_TYPES.has(a.question_type));
+    return `<div class="sub-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>${escapeHtml(sub.student_name)}</h3>
+        <span class="pill ${sub.status === 'reviewed' ? 'pill-ok' : 'pill-warn'}">${sub.status === 'reviewed' ? `بررسی‌شده — ٪${toFa(sub.score ?? 0)}` : (sub.score !== null ? `خودکار: ٪${toFa(sub.score)}` : 'در انتظار بررسی')}</span>
+      </div>
+      ${sub.answers.map(a => renderAnswer(sub.id, a)).join('')}
+      ${needsReview ? `<button class="btn btn-primary" style="width:100%; margin-top:10px;" data-finalize="${sub.id}">ثبت نمرهٔ نهایی</button>` : ''}
+    </div>`;
+  }
+
+  function renderAnswer(subId, a) {
+    let answer;
+    try { answer = JSON.parse(a.answer_json); } catch { answer = a.answer_json; }
+    const label = TYPE_LABEL[a.question_type] || a.question_type;
+
+    let mediaHtml = '';
+    if (a.question_type === 'audio_record') mediaHtml = `<div class="ans-media"><audio controls src="${answer}"></audio></div>`;
+    else if (a.question_type === 'photo_upload' || a.question_type === 'drawing' || a.question_type === 'coloring') mediaHtml = `<div class="ans-media"><img src="${answer}"></div>`;
+    else if (a.question_type === 'fill_blank' || a.question_type === 'ordering') mediaHtml = `<p style="font-size:.85rem; margin-top:4px;">${escapeHtml(JSON.stringify(answer))}</p>`;
+
+    const isManual = MANUAL_TYPES.has(a.question_type);
+    const autoBadge = !isManual ? `<span class="pill ${a.is_correct ? 'pill-ok' : 'pill-idle'}" style="margin-right:6px;">${a.is_correct ? 'درست' : 'نادرست'}</span>` : '';
+
+    return `<div class="ans-row">
+      <div><span class="type-tag" style="background:var(--bg-soft); padding:2px 8px; border-radius:999px; font-size:.7rem;">${label}</span> ${autoBadge} ${escapeHtml(a.title)}</div>
+      ${mediaHtml}
+      ${isManual ? `<div class="grade-btns" data-answer-row="${a.id}">
+        <button type="button" class="sel-correct ${a.is_correct === 1 ? 'active' : ''}" data-sub="${subId}" data-ans="${a.id}" data-val="1">✅ درست</button>
+        <button type="button" class="sel-wrong ${a.is_correct === 0 ? 'active' : ''}" data-sub="${subId}" data-ans="${a.id}" data-val="0">❌ نادرست</button>
+      </div>` : ''}
+    </div>`;
+  }
+
+  function attachHandlers(sub) {
+    document.querySelectorAll(`[data-sub="${sub.id}"]`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('[data-answer-row]');
+        row.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        pendingGrades[sub.id][btn.dataset.ans] = btn.dataset.val === '1';
+      });
+    });
+    const finalizeBtn = document.querySelector(`[data-finalize="${sub.id}"]`);
+    if (finalizeBtn) finalizeBtn.addEventListener('click', () => finalize(sub.id));
+  }
+
+  async function finalize(subId) {
+    const grades = Object.entries(pendingGrades[subId] || {}).map(([answerId, correct]) => ({ answerId: Number(answerId), correct }));
+    try {
+      const result = await apiFetch('/teacher/review-submission', { method: 'POST', body: { submissionId: subId, manualGrades: grades } });
+      if (result.newlyEarnedBadges && result.newlyEarnedBadges.length) {
+        alert(`🏅 نشان جدید گرفتی! (${result.newlyEarnedBadges.length} مورد — توی داشبورد خانه ببین)`);
+      }
+      load();
+    } catch (e) { alert(e.message); }
+  }
+
+  function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+</script>
+</body>
+</html>

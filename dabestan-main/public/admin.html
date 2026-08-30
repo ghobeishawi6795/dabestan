@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد مدیر — باغچهٔ درس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(33,53,31,.45); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; max-width: 380px; width: 100%; box-shadow: var(--shadow); }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: .8rem; font-weight: 700; margin-bottom: 5px; color: var(--ink-soft); }
+  .field input, .field select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-family: inherit; background: var(--bg-soft); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-actions .btn { flex: 1; }
+  .msg { font-size: .8rem; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; }
+  .msg-err { background: #FDECD8; color: var(--coral-dark); }
+  .row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .icon-btn { border: none; background: var(--bg-soft); border-radius: 8px; width: 30px; height: 30px; font-size: .9rem; cursor: pointer; }
+  .icon-btn:hover { background: var(--leaf-pale); }
+  .quick-card { text-align: center; cursor: pointer; transition: transform .15s; }
+  .quick-card:hover { transform: translateY(-3px); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="leaf-badge">🌱</span> باغچهٔ درس</div>
+    <ul class="nav-list">
+      <li><a class="nav-item active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span> خانه</a></li>
+      <li><a class="nav-item" href="#classesSection" onclick="scrollToId('classesSection')"><span class="ic">🏫</span> کلاس‌ها</a></li>
+      <li><a class="nav-item" href="#teachersSection" onclick="scrollToId('teachersSection')"><span class="ic">🍎</span> معلم‌ها</a></li>
+      <li><a class="nav-item" href="#studentsSection" onclick="scrollToId('studentsSection')"><span class="ic">🧒</span> دانش‌آموزان</a></li>
+      <li><a class="nav-item" href="#reportSection" onclick="scrollToId('reportSection')"><span class="ic">📊</span> گزارش مدرسه</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <div class="role-switch">
+        <span id="whoami"></span>
+        <a href="#" onclick="logout()">خروج از حساب ←</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="top">
+    <div class="topbar">
+      <div class="greeting">
+        <div class="avatar-circle">🗂️</div>
+        <div>
+          <h1 id="schoolName">در حال بارگذاری...</h1>
+          <p>پنل مدیریت مدرسه</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('class')">＋ افزودن کلاس</button>
+    </div>
+
+    <div class="grid grid-4" id="statsGrid">
+      <div class="card card-stat"><div class="num">—</div><div class="label">کلاس</div></div>
+      <div class="card card-stat"><div class="num">—</div><div class="label">معلم</div></div>
+      <div class="card card-stat"><div class="num">—</div><div class="label">دانش‌آموز</div></div>
+      <div class="card card-stat"><div class="num">—</div><div class="label">میانگین تحویل تکالیف</div></div>
+    </div>
+
+    <div class="section-head"><h2>افزودن سریع</h2></div>
+    <div class="grid grid-3">
+      <div class="card quick-card" onclick="openModal('class')">
+        <div style="font-size:1.6rem; margin-bottom:8px;">🏫</div>
+        <h3 style="margin-bottom:6px;">کلاس جدید</h3>
+        <p>ساخت کلاس و انتخاب معلم</p>
+      </div>
+      <div class="card quick-card" onclick="openModal('teacher')">
+        <div style="font-size:1.6rem; margin-bottom:8px;">🍎</div>
+        <h3 style="margin-bottom:6px;">معلم جدید</h3>
+        <p>ساخت حساب کاربری معلم</p>
+      </div>
+      <div class="card quick-card" onclick="openModal('student')">
+        <div style="font-size:1.6rem; margin-bottom:8px;">🧒</div>
+        <h3 style="margin-bottom:6px;">دانش‌آموز جدید</h3>
+        <p>افزودن به یک کلاس</p>
+      </div>
+    </div>
+
+    <div class="section-head" id="classesSection"><h2>کلاس‌ها</h2></div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="simple-table">
+        <thead><tr><th>کلاس</th><th>پایه</th><th>معلم</th><th>تعداد دانش‌آموز</th><th></th></tr></thead>
+        <tbody id="classesTbody">
+          <tr><td colspan="5">در حال بارگذاری...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head" id="teachersSection"><h2>معلم‌ها</h2></div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="simple-table">
+        <thead><tr><th>نام</th><th>نام کاربری</th><th>تعداد کلاس</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody id="teachersTbody">
+          <tr><td colspan="5">در حال بارگذاری...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head" id="studentsSection"><h2>دانش‌آموزان</h2></div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="simple-table">
+        <thead><tr><th>نام</th><th>نام کاربری</th><th>کلاس</th><th>وضعیت</th><th></th></tr></thead>
+        <tbody id="studentsTbody">
+          <tr><td colspan="5">در حال بارگذاری...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head" id="reportSection"><h2>گزارش مدرسه</h2></div>
+    <div class="card">
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card-stat"><div class="num" id="repHealth">—</div><div class="label">سلامت کلی مدرسه (از ۱۰۰)</div></div>
+        <div class="card-stat"><div class="num" id="repAvgScore">—</div><div class="label">میانگین نمرهٔ مدرسه</div></div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:6px;"><span>درصد تحویل تکالیف</span><span id="repSubmissionRate">—</span></div>
+        <div class="progress-bar"><div id="repSubmissionBar" style="width:0%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:6px;"><span>رضایت والدین</span><span id="repSatisfaction">—</span></div>
+        <div class="progress-bar"><div id="repSatisfactionBar" style="width:0%"></div></div>
+      </div>
+      <p style="margin-top:12px; font-size:.78rem;" id="repWeekNote"></p>
+    </div>
+  </main>
+</div>
+
+<!-- ===== مودال‌های افزودن ===== -->
+<div class="modal-backdrop" id="modalClass">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">افزودن کلاس جدید</h3>
+    <div id="msgClass"></div>
+    <form onsubmit="submitClass(event)">
+      <div class="field"><label>نام کلاس</label><input type="text" id="classNameInput" placeholder="مثلاً: دوم ب" required></div>
+      <div class="field"><label>پایه</label><input type="number" id="classGradeInput" min="1" max="6"></div>
+      <div class="field"><label>معلم (اختیاری)</label><select id="classTeacherSelect"><option value="">— بدون معلم —</option></select></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('class')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ثبت کلاس</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalTeacher">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">افزودن معلم جدید</h3>
+    <div id="msgTeacher"></div>
+    <form onsubmit="submitTeacher(event)">
+      <div class="field"><label>نام و نام‌خانوادگی</label><input type="text" id="teacherFullName" required></div>
+      <div class="field"><label>نام کاربری</label><input type="text" id="teacherUsername" required></div>
+      <div class="field"><label>رمز عبور (حداقل ۸ کاراکتر)</label><input type="password" id="teacherPassword" minlength="8" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('teacher')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ثبت معلم</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalStudent">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">افزودن دانش‌آموز جدید</h3>
+    <div id="msgStudent"></div>
+    <form onsubmit="submitStudent(event)">
+      <div class="field"><label>نام و نام‌خانوادگی</label><input type="text" id="studentFullName" required></div>
+      <div class="field"><label>نام کاربری</label><input type="text" id="studentUsername" required></div>
+      <div class="field"><label>رمز عبور (حداقل ۸ کاراکتر)</label><input type="password" id="studentPassword" minlength="8" required></div>
+      <div class="field"><label>کلاس</label><select id="studentClassSelect" required></select></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('student')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ثبت دانش‌آموز</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalEditClass">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">ویرایش کلاس</h3>
+    <div id="msgEditClass"></div>
+    <form onsubmit="submitEditClass(event)">
+      <input type="hidden" id="editClassId">
+      <div class="field"><label>نام کلاس</label><input type="text" id="editClassName" required></div>
+      <div class="field"><label>پایه</label><input type="number" id="editClassGrade" min="1" max="6"></div>
+      <div class="field"><label>معلم</label><select id="editClassTeacher"><option value="">— بدون معلم —</option></select></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editClass')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalEditTeacher">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">ویرایش معلم</h3>
+    <div id="msgEditTeacher"></div>
+    <form onsubmit="submitEditTeacher(event)">
+      <input type="hidden" id="editTeacherId">
+      <div class="field"><label>نام و نام‌خانوادگی</label><input type="text" id="editTeacherFullName" required></div>
+      <div class="field"><label>نام کاربری</label><input type="text" id="editTeacherUsername" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editTeacher')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalEditStudent">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">ویرایش دانش‌آموز</h3>
+    <div id="msgEditStudent"></div>
+    <form onsubmit="submitEditStudent(event)">
+      <input type="hidden" id="editStudentId">
+      <div class="field"><label>نام و نام‌خانوادگی</label><input type="text" id="editStudentFullName" required></div>
+      <div class="field"><label>نام کاربری</label><input type="text" id="editStudentUsername" required></div>
+      <div class="field"><label>کلاس</label><select id="editStudentClass" required></select></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editStudent')">انصراف</button>
+        <button type="submit" class="btn btn-primary">ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span>خانه</a>
+  <a href="#classesSection" onclick="scrollToId('classesSection')"><span class="ic">🏫</span>کلاس‌ها</a>
+  <a href="#studentsSection" onclick="scrollToId('studentsSection')"><span class="ic">🧒</span>دانش‌آموزان</a>
+  <a href="#reportSection" onclick="scrollToId('reportSection')"><span class="ic">📊</span>گزارش</a>
+</nav>
+
+<script src="assets/api.js"></script>
+<script>
+  const user = requireAuth(['admin']);
+  if (user) {
+    document.getElementById('whoami').textContent = `${user.fullName} (مدیر)`;
+    loadAll();
+  }
+
+  function logout() { Auth.clear(); window.location.href = 'login.html'; }
+  function scrollToId(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+  async function loadAll() {
+    await Promise.all([loadOverview(), loadClasses(), loadTeachers(), loadStudents()]);
+  }
+
+  async function loadOverview() {
+    try {
+      const data = await apiFetch('/admin/overview');
+      document.getElementById('schoolName').textContent = data.schoolName;
+      const cells = document.querySelectorAll('#statsGrid .num');
+      cells[0].textContent = toFa(data.classCount);
+      cells[1].textContent = toFa(data.teacherCount);
+      cells[2].textContent = toFa(data.studentCount);
+      cells[3].textContent = `٪${toFa(data.submissionRate)}`;
+
+      document.getElementById('repHealth').textContent = toFa(data.healthScore);
+      document.getElementById('repAvgScore').textContent = data.avgScore !== null ? `٪${toFa(data.avgScore)}` : '—';
+      document.getElementById('repSubmissionRate').textContent = `٪${toFa(data.submissionRate)}`;
+      document.getElementById('repSubmissionBar').style.width = data.submissionRate + '%';
+      document.getElementById('repSatisfaction').textContent = data.satisfactionPct !== null ? `٪${toFa(data.satisfactionPct)}` : 'هنوز نظری ثبت نشده';
+      document.getElementById('repSatisfactionBar').style.width = (data.satisfactionPct || 0) + '%';
+      document.getElementById('repWeekNote').textContent = `این هفته ${toFa(data.weekSubmittedCount)} تکلیف تحویل داده شده — از ${toFa(data.activeTaskCount)} تکلیف فعال.`;
+    } catch (e) { console.error(e); }
+  }
+
+  let classesCache = [];
+  async function loadClasses() {
+    try {
+      const data = await apiFetch('/admin/list-classes');
+      classesCache = data.classes;
+      const tbody = document.getElementById('classesTbody');
+      tbody.innerHTML = data.classes.length ? data.classes.map(c => `
+        <tr>
+          <td>${escapeHtml(c.name)}</td>
+          <td>${c.grade ? toFa(c.grade) : '—'}</td>
+          <td>${c.teacher_name ? escapeHtml(c.teacher_name) : '<span class="pill pill-idle">بدون معلم</span>'}</td>
+          <td>${toFa(c.student_count)}</td>
+          <td><div class="row-actions">
+            <button type="button" class="icon-btn" onclick="openEditClass(${c.id})" title="ویرایش">✏️</button>
+            <button type="button" class="icon-btn" onclick="deleteClass(${c.id})" title="حذف">🗑️</button>
+          </div></td>
+        </tr>`).join('') : '<tr><td colspan="5">هنوز کلاسی ثبت نشده.</td></tr>';
+
+      document.getElementById('studentClassSelect').innerHTML = data.classes.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')
+        || '<option value="">ابتدا یک کلاس بساز</option>';
+    } catch (e) { console.error(e); }
+  }
+
+  let teachersCache = [];
+  async function loadTeachers() {
+    try {
+      const data = await apiFetch('/admin/list-teachers');
+      teachersCache = data.teachers;
+      const tbody = document.getElementById('teachersTbody');
+      tbody.innerHTML = data.teachers.length ? data.teachers.map(t => `
+        <tr>
+          <td>${escapeHtml(t.full_name)}</td>
+          <td>${escapeHtml(t.username)}</td>
+          <td>${toFa(t.class_count)}</td>
+          <td><span class="pill ${t.is_active ? 'pill-ok' : 'pill-idle'}">${t.is_active ? 'فعال' : 'غیرفعال'}</span></td>
+          <td><div class="row-actions">
+            <button type="button" class="icon-btn" onclick="openEditTeacher(${t.id})" title="ویرایش">✏️</button>
+            <button type="button" class="icon-btn" onclick="toggleTeacherActive(${t.id}, ${t.is_active ? 'false' : 'true'})" title="${t.is_active ? 'غیرفعال کردن' : 'فعال کردن'}">${t.is_active ? '⏸️' : '▶️'}</button>
+          </div></td>
+        </tr>`).join('') : '<tr><td colspan="5">هنوز معلمی ثبت نشده.</td></tr>';
+
+      const teacherSelect = document.getElementById('classTeacherSelect');
+      teacherSelect.innerHTML = '<option value="">— بدون معلم —</option>' +
+        data.teachers.map(t => `<option value="${t.id}">${escapeHtml(t.full_name)}</option>`).join('');
+    } catch (e) { console.error(e); }
+  }
+
+  let studentsCache = [];
+  async function loadStudents() {
+    try {
+      const data = await apiFetch('/admin/list-students');
+      studentsCache = data.students;
+      const tbody = document.getElementById('studentsTbody');
+      tbody.innerHTML = data.students.length ? data.students.map(s => `
+        <tr>
+          <td>${escapeHtml(s.full_name)}</td>
+          <td>${escapeHtml(s.username)}</td>
+          <td>${s.class_name ? escapeHtml(s.class_name) : '—'}</td>
+          <td><span class="pill ${s.is_active ? 'pill-ok' : 'pill-idle'}">${s.is_active ? 'فعال' : 'غیرفعال'}</span></td>
+          <td><div class="row-actions">
+            <button type="button" class="icon-btn" onclick="openEditStudent(${s.id})" title="ویرایش">✏️</button>
+            <button type="button" class="icon-btn" onclick="toggleStudentActive(${s.id}, ${s.is_active ? 'false' : 'true'})" title="${s.is_active ? 'غیرفعال کردن' : 'فعال کردن'}">${s.is_active ? '⏸️' : '▶️'}</button>
+          </div></td>
+        </tr>`).join('') : '<tr><td colspan="5">هنوز دانش‌آموزی ثبت نشده.</td></tr>';
+    } catch (e) { console.error(e); }
+  }
+
+  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); }
+  function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
+  function cap(s) { return s[0].toUpperCase() + s.slice(1); }
+
+  async function submitClass(e) {
+    e.preventDefault();
+    try {
+      await apiFetch('/admin/add-class', { method: 'POST', body: {
+        name: document.getElementById('classNameInput').value,
+        grade: document.getElementById('classGradeInput').value ? Number(document.getElementById('classGradeInput').value) : null,
+        teacherId: document.getElementById('classTeacherSelect').value ? Number(document.getElementById('classTeacherSelect').value) : null,
+      }});
+      closeModal('class');
+      e.target.reset();
+      loadAll();
+    } catch (err) { showModalMsg('Class', err.message); }
+  }
+
+  async function submitTeacher(e) {
+    e.preventDefault();
+    try {
+      await apiFetch('/admin/add-teacher', { method: 'POST', body: {
+        fullName: document.getElementById('teacherFullName').value,
+        username: document.getElementById('teacherUsername').value,
+        password: document.getElementById('teacherPassword').value,
+      }});
+      closeModal('teacher');
+      e.target.reset();
+      loadAll();
+    } catch (err) { showModalMsg('Teacher', err.message); }
+  }
+
+  async function submitStudent(e) {
+    e.preventDefault();
+    try {
+      const result = await apiFetch('/admin/add-student', { method: 'POST', body: {
+        fullName: document.getElementById('studentFullName').value,
+        username: document.getElementById('studentUsername').value,
+        password: document.getElementById('studentPassword').value,
+        classId: Number(document.getElementById('studentClassSelect').value),
+      }});
+      closeModal('student');
+      e.target.reset();
+      loadAll();
+      alert(`دانش‌آموز ثبت شد.\nکد والدین (برای مشاهدهٔ وضعیت فرزند): ${result.parentCode}`);
+    } catch (err) { showModalMsg('Student', err.message); }
+  }
+
+  function openEditClass(id) {
+    const c = classesCache.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('editClassId').value = c.id;
+    document.getElementById('editClassName').value = c.name;
+    document.getElementById('editClassGrade').value = c.grade || '';
+    const sel = document.getElementById('editClassTeacher');
+    sel.innerHTML = '<option value="">— بدون معلم —</option>' +
+      teachersCache.map(t => `<option value="${t.id}" ${c.teacher_name === t.full_name ? 'selected' : ''}>${escapeHtml(t.full_name)}</option>`).join('');
+    document.getElementById('msgEditClass').innerHTML = '';
+    openModal('editClass');
+  }
+  async function submitEditClass(e) {
+    e.preventDefault();
+    try {
+      await apiFetch('/admin/update-class', { method: 'POST', body: {
+        classId: Number(document.getElementById('editClassId').value),
+        name: document.getElementById('editClassName').value,
+        grade: document.getElementById('editClassGrade').value ? Number(document.getElementById('editClassGrade').value) : null,
+        teacherId: document.getElementById('editClassTeacher').value ? Number(document.getElementById('editClassTeacher').value) : null,
+      }});
+      closeModal('editClass'); loadClasses();
+    } catch (err) { document.getElementById('msgEditClass').innerHTML = `<div class="msg msg-err">${escapeHtml(err.message)}</div>`; }
+  }
+  async function deleteClass(id) {
+    if (!confirm('این کلاس حذف بشه؟')) return;
+    try {
+      await apiFetch('/admin/delete-class', { method: 'POST', body: { classId: id } });
+      loadClasses(); loadOverview();
+    } catch (err) { alert(err.message); }
+  }
+
+  function openEditTeacher(id) {
+    const t = teachersCache.find(x => x.id === id);
+    if (!t) return;
+    document.getElementById('editTeacherId').value = t.id;
+    document.getElementById('editTeacherFullName').value = t.full_name;
+    document.getElementById('editTeacherUsername').value = t.username;
+    document.getElementById('msgEditTeacher').innerHTML = '';
+    openModal('editTeacher');
+  }
+  async function submitEditTeacher(e) {
+    e.preventDefault();
+    try {
+      await apiFetch('/admin/update-teacher', { method: 'POST', body: {
+        teacherId: Number(document.getElementById('editTeacherId').value),
+        fullName: document.getElementById('editTeacherFullName').value,
+        username: document.getElementById('editTeacherUsername').value,
+      }});
+      closeModal('editTeacher'); loadTeachers();
+    } catch (err) { document.getElementById('msgEditTeacher').innerHTML = `<div class="msg msg-err">${escapeHtml(err.message)}</div>`; }
+  }
+  async function toggleTeacherActive(id, makeActive) {
+    try {
+      await apiFetch('/admin/toggle-teacher-active', { method: 'POST', body: { teacherId: id, isActive: makeActive } });
+      loadTeachers();
+    } catch (err) { alert(err.message); }
+  }
+
+  function openEditStudent(id) {
+    const s = studentsCache.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('editStudentId').value = s.id;
+    document.getElementById('editStudentFullName').value = s.full_name;
+    document.getElementById('editStudentUsername').value = s.username;
+    const sel = document.getElementById('editStudentClass');
+    sel.innerHTML = classesCache.map(c => `<option value="${c.id}" ${c.name === s.class_name ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+    document.getElementById('msgEditStudent').innerHTML = '';
+    openModal('editStudent');
+  }
+  async function submitEditStudent(e) {
+    e.preventDefault();
+    try {
+      await apiFetch('/admin/update-student', { method: 'POST', body: {
+        studentId: Number(document.getElementById('editStudentId').value),
+        fullName: document.getElementById('editStudentFullName').value,
+        username: document.getElementById('editStudentUsername').value,
+        classId: Number(document.getElementById('editStudentClass').value),
+      }});
+      closeModal('editStudent'); loadStudents(); loadClasses();
+    } catch (err) { document.getElementById('msgEditStudent').innerHTML = `<div class="msg msg-err">${escapeHtml(err.message)}</div>`; }
+  }
+  async function toggleStudentActive(id, makeActive) {
+    try {
+      await apiFetch('/admin/toggle-student-active', { method: 'POST', body: { studentId: id, isActive: makeActive } });
+      loadStudents();
+    } catch (err) { alert(err.message); }
+  }
+
+  function showModalMsg(which, text) {
+    document.getElementById(`msg${which}`).innerHTML = `<div class="msg msg-err">${escapeHtml(text)}</div>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function toFa(n) {
+    return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+</script>
+</body>
+</html>
