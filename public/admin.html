@@ -2,8 +2,19 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="assets/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد مدیر — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<script src="assets/date-fa.js"></script>
+<script src="assets/photo-upload.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -23,6 +34,10 @@
   .icon-btn:hover { background: var(--leaf-pale); }
   .quick-card { text-align: center; cursor: pointer; transition: transform .15s; }
   .quick-card:hover { transform: translateY(-3px); }
+  .avatar-circle img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
+  .avatar-grid{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .avatar-grid button{font-size:1.4rem; width:46px; height:46px; border-radius:50%; border:2px solid var(--line); background:var(--surface); cursor:pointer;}
+  .avatar-grid button.active{border-color:var(--leaf); background:var(--leaf-pale);}
 </style>
 </head>
 <body>
@@ -36,6 +51,7 @@
       <li><a class="nav-item" href="#teachersSection" onclick="scrollToId('teachersSection')"><span class="ic">🍎</span> معلم‌ها</a></li>
       <li><a class="nav-item" href="#studentsSection" onclick="scrollToId('studentsSection')"><span class="ic">🧒</span> دانش‌آموزان</a></li>
       <li><a class="nav-item" href="#reportSection" onclick="scrollToId('reportSection')"><span class="ic">📊</span> گزارش مدرسه</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
     <div class="sidebar-foot">
       <div class="role-switch">
@@ -48,13 +64,14 @@
   <main class="main" id="top">
     <div class="topbar">
       <div class="greeting">
-        <div class="avatar-circle">🗂️</div>
+        <div class="avatar-circle" id="avatarCircle" onclick="openProfileModal()" style="cursor:pointer;">🗂️</div>
         <div>
           <h1 id="schoolName">در حال بارگذاری...</h1>
           <p>پنل مدیریت مدرسه</p>
         </div>
       </div>
       <button class="btn btn-primary" onclick="openModal('class')">＋ افزودن کلاس</button>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن" style="margin-right:8px;">🌙</button>
     </div>
 
     <div class="grid grid-4" id="statsGrid">
@@ -130,6 +147,33 @@
       <p style="margin-top:12px; font-size:.78rem;" id="repWeekNote"></p>
     </div>
   </main>
+</div>
+
+<!-- ===== مودال پروفایل ===== -->
+<div class="modal-backdrop" id="modalProfile">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">👤 پروفایل من</h3>
+    <div style="text-align:center; margin-bottom:14px;">
+      <div class="avatar-circle" id="profileAvatarPreview" style="width:84px; height:84px; font-size:2.2rem; margin:0 auto 10px;">🗂️</div>
+      <label class="btn btn-ghost" style="display:inline-block; cursor:pointer; font-size:.82rem;">
+        📷 آپلود عکس
+        <input type="file" accept="image/*" id="profilePhotoInput" style="display:none;">
+      </label>
+      <button type="button" class="btn btn-ghost" style="font-size:.82rem;" onclick="removeProfilePhoto()">حذف عکس</button>
+    </div>
+    <div class="field"><label>یا یک شخصیت انتخاب کن</label>
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+    <div class="field"><label>🎨 رنگ اصلی مدرسه (برای همهٔ کاربرا اعمال می‌شه)</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="color" id="schoolThemeColorInput" value="#3F7A52" style="width:52px; height:38px; padding:2px; border-radius:8px; border:1px solid var(--line); cursor:pointer;">
+        <button type="button" class="btn btn-ghost" style="font-size:.8rem;" onclick="saveSchoolThemeColor()">ذخیره</button>
+        <button type="button" class="btn btn-ghost" style="font-size:.8rem;" onclick="resetSchoolThemeColor()">پیش‌فرض</button>
+      </div>
+    </div>
+    <div id="msgProfile"></div>
+    <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="closeModal('profile')">بستن</button>
+  </div>
 </div>
 
 <!-- ===== مودال‌های افزودن ===== -->
@@ -245,6 +289,7 @@
   if (user) {
     document.getElementById('whoami').textContent = `${user.fullName} (مدیر)`;
     loadAll();
+    loadProfile();
   }
 
   function logout() { Auth.clear(); window.location.href = 'login.html'; }
@@ -487,6 +532,89 @@
   }
   function toFa(n) {
     return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  // ===== پروفایل: عکس / آواتار =====
+  const ALLOWED_AVATARS = ['🦊', '🐼', '🐱', '🐶', '🐰', '🦁', '🐯', '🐨'];
+  let currentProfile = { avatar: '🗂️', avatarPhoto: null };
+
+  function renderAvatarEverywhere() {
+    const html = currentProfile.avatarPhoto
+      ? `<img src="${currentProfile.avatarPhoto}" alt="عکس پروفایل">`
+      : (currentProfile.avatar || '🗂️');
+    document.getElementById('avatarCircle').innerHTML = html;
+    document.getElementById('profileAvatarPreview').innerHTML = html;
+  }
+
+  async function loadProfile() {
+    try {
+      const p = await apiFetch('/account/get-profile');
+      currentProfile = { avatar: p.avatar || '🗂️', avatarPhoto: p.avatarPhoto || null };
+      applySchoolThemeColor(p.schoolThemeColor);
+      if (p.schoolThemeColor) document.getElementById('schoolThemeColorInput').value = p.schoolThemeColor;
+      renderAvatarEverywhere();
+    } catch (e) { console.error(e); }
+  }
+
+  function renderAvatarGrid() {
+    document.getElementById('avatarGrid').innerHTML = ALLOWED_AVATARS.map(a =>
+      `<button type="button" class="${!currentProfile.avatarPhoto && currentProfile.avatar === a ? 'active' : ''}" onclick="chooseAvatar('${a}')">${a}</button>`
+    ).join('');
+  }
+
+  async function chooseAvatar(a) {
+    try {
+      await apiFetch('/student/update-avatar', { method: 'POST', body: { avatar: a } });
+      currentProfile.avatar = a;
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  function openProfileModal() {
+    renderAvatarGrid();
+    document.getElementById('msgProfile').textContent = '';
+    openModal('profile');
+  }
+
+  document.getElementById('profilePhotoInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file, 256, 0.72);
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: dataUrl } });
+      currentProfile.avatarPhoto = dataUrl;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (err) {
+      document.getElementById('msgProfile').textContent = err.message || 'خطا در آپلود عکس';
+    }
+    e.target.value = '';
+  });
+
+  async function removeProfilePhoto() {
+    try {
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: null } });
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  async function saveSchoolThemeColor() {
+    const hex = document.getElementById('schoolThemeColorInput').value;
+    try {
+      await apiFetch('/admin/update-school-theme', { method: 'POST', body: { themeColor: hex } });
+      applySchoolThemeColor(hex);
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  async function resetSchoolThemeColor() {
+    try {
+      await apiFetch('/admin/update-school-theme', { method: 'POST', body: { themeColor: null } });
+      location.reload();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
   }
 </script>
 </body>

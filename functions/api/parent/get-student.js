@@ -8,7 +8,7 @@ export async function onRequestGet({ request, env }) {
   if (!parentCode) return err('code query param is required');
 
   const student = await env.DB.prepare(
-    `SELECT u.id, u.full_name, u.growth_points, c.name AS class_name, s.name AS school_name
+    `SELECT u.id, u.full_name, u.growth_points, c.name AS class_name, s.name AS school_name, s.theme_color AS school_theme_color
      FROM users u LEFT JOIN classes c ON c.id = u.class_id LEFT JOIN schools s ON s.id = u.school_id
      WHERE u.parent_code = ? AND u.role = 'student'`
   ).bind(parentCode).first();
@@ -30,7 +30,7 @@ export async function onRequestGet({ request, env }) {
   ).bind(student.id, student.id).first();
 
   return json({
-    student: { fullName: student.full_name, className: student.class_name, schoolName: student.school_name, growthPoints: student.growth_points },
+    student: { fullName: student.full_name, className: student.class_name, schoolName: student.school_name, growthPoints: student.growth_points, schoolThemeColor: student.school_theme_color },
     recentSubmissions: recent,
     pendingCount: pending.n,
   });

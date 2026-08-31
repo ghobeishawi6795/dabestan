@@ -15,6 +15,8 @@ export async function onRequestPost({ request, env, data }) {
     return err('questionId, title, questionType, content are required');
   }
   if (!VALID_TYPES.includes(body.questionType)) return err('invalid questionType');
+  if (body.difficulty && !['easy', 'medium', 'hard'].includes(body.difficulty)) return err('invalid difficulty');
+  const tagsStr = Array.isArray(body.tags) ? body.tags.map((t) => String(t).trim()).filter(Boolean).join(',') : (body.tags || null);
 
   if (body.questionType === 'custom_html') {
     if (!body.customHtml || !body.customHtml.trim()) return err('customHtml is required for this question type');
@@ -34,8 +36,11 @@ export async function onRequestPost({ request, env, data }) {
   }
 
   await env.DB.prepare(
-    'UPDATE question_bank SET title = ?, question_type = ?, subject = ?, grade = ?, content_json = ?, custom_html = ? WHERE id = ?'
-  ).bind(body.title, body.questionType, body.subject || null, body.grade || null, contentJson, body.customHtml || null, body.questionId).run();
+    'UPDATE question_bank SET title = ?, question_type = ?, subject = ?, grade = ?, content_json = ?, custom_html = ?, tags = ?, difficulty = ? WHERE id = ?'
+  ).bind(
+    body.title, body.questionType, body.subject || null, body.grade || null, contentJson, body.customHtml || null,
+    tagsStr || null, body.difficulty || null, body.questionId
+  ).run();
 
   return json({ ok: true });
 }

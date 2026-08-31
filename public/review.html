@@ -2,8 +2,18 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="assets/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مرور تکلیف — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<script src="assets/date-fa.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -17,12 +27,20 @@
   .grade-btns button { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid var(--line); background: var(--bg-soft); font-weight: 700; font-size: .85rem; }
   .grade-btns button.sel-correct.active { border-color: var(--leaf); background: var(--leaf-pale); }
   .grade-btns button.sel-wrong.active { border-color: var(--coral); background: #FDECD8; }
+  @media print {
+    a, .grade-btns, [data-finalize], .btn { display: none !important; }
+    body { background: #fff; }
+    .sub-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <a href="teacher.html" style="font-size:.85rem; font-weight:700; color:var(--leaf);">← بازگشت</a>
-  <h1 id="title" style="margin:10px 0 18px;">در حال بارگذاری...</h1>
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+    <h1 id="title" style="margin:10px 0 18px;">در حال بارگذاری...</h1>
+    <button class="btn btn-ghost" onclick="window.print()" style="white-space:nowrap;">🖨️ چاپ / PDF</button>
+  </div>
   <div id="list"></div>
 </div>
 

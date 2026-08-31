@@ -14,9 +14,11 @@ export async function onRequestPost({ request, env, data }) {
   const body = await request.json().catch(() => null);
   if (!body) return err('invalid json');
 
-  const { title, questionType, subject, grade, content, customHtml } = body;
+  const { title, questionType, subject, grade, content, customHtml, tags, difficulty } = body;
   if (!title || !questionType || !content) return err('title, questionType, content are required');
   if (!VALID_TYPES.includes(questionType)) return err('invalid questionType');
+  if (difficulty && !['easy', 'medium', 'hard'].includes(difficulty)) return err('invalid difficulty');
+  const tagsStr = Array.isArray(tags) ? tags.map((t) => String(t).trim()).filter(Boolean).join(',') : (tags || null);
 
   if (questionType === 'custom_html') {
     if (!customHtml || !customHtml.trim()) return err('customHtml is required for this question type');
@@ -33,10 +35,11 @@ export async function onRequestPost({ request, env, data }) {
   }
 
   const result = await env.DB.prepare(
-    `INSERT INTO question_bank (school_id, teacher_id, question_type, subject, grade, title, content_json, custom_html)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
+    `INSERT INTO question_bank (school_id, teacher_id, question_type, subject, grade, title, content_json, custom_html, tags, difficulty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
   ).bind(
-    teacher.school_id, teacher.id, questionType, subject || null, grade || null, title, contentJson, customHtml || null
+    teacher.school_id, teacher.id, questionType, subject || null, grade || null, title, contentJson, customHtml || null,
+    tagsStr || null, difficulty || null
   ).first();
 
   const newlyEarnedBadges = await checkAndAwardTeacherBadges(env, teacher.id);

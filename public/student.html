@@ -2,8 +2,20 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="assets/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد دانش‌آموز — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<script src="assets/date-fa.js"></script>
+<script src="assets/photo-upload.js"></script>
+<script src="assets/line-chart.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -11,6 +23,15 @@
   .toast-mini { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: .82rem; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 60; }
   .toast-mini.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
   @media (max-width: 900px) { .toast-mini { bottom: 84px; } }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(33,53,31,.45); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; overflow-y: auto; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; max-width: 420px; width: 100%; box-shadow: var(--shadow); margin: auto; }
+  .avatar-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .notif-item { padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; background: var(--bg-soft); font-size: .85rem; }
+  .notif-item.unread { border-right: 3px solid var(--coral); font-weight: 700; }
+  .avatar-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .avatar-grid button { font-size: 1.4rem; width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); cursor: pointer; }
+  .avatar-grid button.active { border-color: var(--leaf); background: var(--leaf-pale); }
 </style>
 </head>
 <body>
@@ -23,7 +44,7 @@
       <li><a class="nav-item" href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span> تکالیف من</a></li>
       <li><a class="nav-item" href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span> باغچهٔ من</a></li>
       <li><a class="nav-item" href="#" onclick="comingSoon(event)"><span class="ic">🏆</span> نشان‌ها</a></li>
-      <li><a class="nav-item" href="#" onclick="comingSoon(event)"><span class="ic">👤</span> پروفایل</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
     <div class="sidebar-foot">
       <div class="role-switch">
@@ -36,10 +57,16 @@
   <main class="main" id="top">
     <div class="topbar">
       <div class="greeting">
-        <div class="avatar-circle">🐣</div>
+        <div class="avatar-circle" id="avatarCircle" onclick="openProfileModal()" style="cursor:pointer;">🐣</div>
         <div><h1 id="greetTitle">سلام!</h1><p id="greetSub"></p></div>
       </div>
-      <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن">🌙</button>
+        <button id="notifBellBtn" onclick="openNotifPanel()" style="position:relative; background:var(--surface); border:1px solid var(--line); border-radius:12px; width:42px; height:42px; font-size:1.1rem; cursor:pointer;">
+          🔔<span id="notifBadge" style="display:none; position:absolute; top:-4px; left:-4px; background:var(--coral); color:#fff; font-size:.62rem; font-weight:800; border-radius:999px; min-width:16px; height:16px; align-items:center; justify-content:center; padding:0 3px;"></span>
+        </button>
+        <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
+      </div>
     </div>
 
     <section class="sprout-panel" id="sproutSection">
@@ -73,6 +100,11 @@
       <div class="card card-stat"><div class="num" id="statScore">—</div><div class="label">میانگین درصد</div></div>
       <div class="card card-stat"><div class="num" id="statStreak">۰</div><div class="label">روز پیاپی</div></div>
     </div>
+
+    <div class="section-head"><h2>📈 روند نمره‌ها</h2></div>
+    <div class="card" id="progressChartCard">
+      <div id="progressChartBox" style="min-height:140px; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:.85rem;">در حال بارگذاری...</div>
+    </div>
   </main>
 </div>
 
@@ -80,10 +112,49 @@
   <a class="active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span>خانه</a>
   <a href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span>تکالیف</a>
   <a href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span>باغچه</a>
-  <a href="#" onclick="comingSoon(event)"><span class="ic">👤</span>پروفایل</a>
+  <a href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span>پروفایل</a>
 </nav>
 
 <div class="toast-mini" id="toastMini"></div>
+
+<!-- ===== مودال پروفایل ===== -->
+<div class="modal-backdrop" id="modalProfile">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">👤 پروفایل من</h3>
+    <div style="text-align:center; margin-bottom:14px;">
+      <div class="avatar-circle" id="profileAvatarPreview" style="width:84px; height:84px; font-size:2.2rem; margin:0 auto 10px;">🐣</div>
+      <label class="btn btn-ghost" style="display:inline-block; cursor:pointer; font-size:.82rem;">
+        📷 آپلود عکس
+        <input type="file" accept="image/*" id="profilePhotoInput" style="display:none;">
+      </label>
+      <button type="button" class="btn btn-ghost" style="font-size:.82rem;" onclick="removeProfilePhoto()">حذف عکس</button>
+    </div>
+    <div class="field"><label>یا یک شخصیت انتخاب کن</label>
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+    <div id="msgProfile"></div>
+    <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="closeModal('profile')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال اعلان‌ها ===== -->
+<div class="modal-backdrop" id="modalNotif">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">🔔 اعلان‌ها</h3>
+    <div id="notifList"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('notif')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال جشن نشان جدید ===== -->
+<div class="modal-backdrop" id="modalBadgeCelebrate">
+  <div class="modal" style="text-align:center;">
+    <div id="badgeCelebrateIcon" style="font-size:3.4rem; margin-bottom:6px;">🏅</div>
+    <h3 style="margin-bottom:6px;">نشان جدید گرفتی!</h3>
+    <div id="badgeCelebrateBody" style="color:var(--ink-soft); font-size:.9rem; margin-bottom:16px;"></div>
+    <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeModal('badgeCelebrate'); showNextBadgeCelebration();">عالیه! 🎉</button>
+  </div>
+</div>
 
 <script src="assets/api.js"></script>
 <script>
@@ -92,6 +163,10 @@
     document.getElementById('whoami').textContent = `${user.fullName} (دانش‌آموز)`;
     document.getElementById('greetTitle').textContent = `سلام ${user.fullName}!`;
     loadAll();
+    loadProfile();
+    loadNotifications();
+    celebratePendingBadges();
+    loadProgressChart();
   }
 
   function logout() { Auth.clear(); window.location.href = 'login.html'; }
@@ -167,6 +242,19 @@
       document.getElementById('sproutSub').textContent = 'به بالاترین مرحله رسیدی! 🎉';
       document.getElementById('sproutBar').style.width = '100%';
     }
+
+    const lastSeen = Number(localStorage.getItem('hw_last_points') || 0);
+    if (points > lastSeen) {
+      const wrap = document.querySelector('.sprout-wrap');
+      const diff = points - lastSeen;
+      const float = document.createElement('div');
+      float.className = 'growth-float';
+      float.textContent = `+${toFa(diff)} ⭐`;
+      wrap.appendChild(float);
+      wrap.classList.add('sprout-grow');
+      setTimeout(() => { wrap.classList.remove('sprout-grow'); float.remove(); }, 1600);
+    }
+    localStorage.setItem('hw_last_points', String(points));
   }
 
   function renderTasks(assignments) {
@@ -181,7 +269,7 @@
         <div class="task-type-icon ${cls}">${icon}</div>
         <span class="task-badge ${done ? 'badge-done' : 'badge-new'}">${done ? 'انجام شد' : 'جدید'}</span>
         <div class="subject">${escapeHtml(a.title)}</div>
-        <div class="due">${a.due_at ? 'تا ' + toFa(a.due_at) : 'بدون موعد'}</div>
+        <div class="due">${a.due_at ? 'تا ' + formatJalali(a.due_at) : 'بدون موعد'}</div>
       </a>`;
     }).join('');
   }
@@ -190,6 +278,145 @@
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+  // ===== مودال‌های عمومی =====
+  function cap(s) { return s[0].toUpperCase() + s.slice(1); }
+  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); }
+  function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
+
+  // ===== پروفایل: عکس / آواتار =====
+  const ALLOWED_AVATARS = ['🦊', '🐼', '🐱', '🐶', '🐰', '🦁', '🐯', '🐨'];
+  let currentProfile = { avatar: '🐣', avatarPhoto: null };
+
+  function renderAvatarEverywhere() {
+    const html = currentProfile.avatarPhoto
+      ? `<img src="${currentProfile.avatarPhoto}" alt="عکس پروفایل">`
+      : (currentProfile.avatar || '🐣');
+    document.getElementById('avatarCircle').innerHTML = html;
+    document.getElementById('profileAvatarPreview').innerHTML = html;
+  }
+
+  async function loadProfile() {
+    try {
+      const p = await apiFetch('/account/get-profile');
+      currentProfile = { avatar: p.avatar || '🐣', avatarPhoto: p.avatarPhoto || null };
+      applySchoolThemeColor(p.schoolThemeColor);
+      renderAvatarEverywhere();
+    } catch (e) { console.error(e); }
+  }
+
+  function renderAvatarGrid() {
+    document.getElementById('avatarGrid').innerHTML = ALLOWED_AVATARS.map(a =>
+      `<button type="button" class="${!currentProfile.avatarPhoto && currentProfile.avatar === a ? 'active' : ''}" onclick="chooseAvatar('${a}')">${a}</button>`
+    ).join('');
+  }
+
+  async function chooseAvatar(a) {
+    try {
+      await apiFetch('/student/update-avatar', { method: 'POST', body: { avatar: a } });
+      currentProfile.avatar = a;
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  function openProfileModal() {
+    renderAvatarGrid();
+    document.getElementById('msgProfile').textContent = '';
+    openModal('profile');
+  }
+
+  document.getElementById('profilePhotoInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file, 256, 0.72);
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: dataUrl } });
+      currentProfile.avatarPhoto = dataUrl;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (err) {
+      document.getElementById('msgProfile').textContent = err.message || 'خطا در آپلود عکس';
+    }
+    e.target.value = '';
+  });
+
+  async function removeProfilePhoto() {
+    try {
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: null } });
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  // ===== اعلان‌ها =====
+  const NOTIF_ICON = { new_assignment: '📋', grade_ready: '🎉', parent_message: '💬', due_soon: '⏰' };
+
+  async function loadNotifications() {
+    try {
+      const data = await apiFetch('/student/list-notifications');
+      const badge = document.getElementById('notifBadge');
+      if (data.unreadCount > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = toFa(data.unreadCount > 9 ? '9+' : data.unreadCount);
+      } else {
+        badge.style.display = 'none';
+      }
+      window.__notifCache = data.notifications;
+    } catch (e) { console.error(e); }
+  }
+
+  function openNotifPanel() {
+    const list = window.__notifCache || [];
+    const box = document.getElementById('notifList');
+    box.innerHTML = list.length ? list.map(n => `
+      <div class="notif-item ${n.is_read ? '' : 'unread'}">
+        <div>${NOTIF_ICON[n.type] || '🔔'} ${escapeHtml(n.title)}</div>
+        ${n.body ? `<div style="opacity:.75; margin-top:3px;">${escapeHtml(n.body)}</div>` : ''}
+        <div style="opacity:.55; margin-top:4px; font-size:.72rem;">${formatJalali(n.created_at, { time: true })}</div>
+      </div>`).join('') : '<div style="text-align:center; opacity:.6; padding:20px 0;">اعلانی نداری.</div>';
+    openModal('notif');
+    if (list.some(n => !n.is_read)) {
+      apiFetch('/student/mark-notifications-read', { method: 'POST' }).then(() => {
+        document.getElementById('notifBadge').style.display = 'none';
+      }).catch(() => {});
+    }
+  }
+
+  // ===== جشن نشان جدید =====
+  let badgeCelebrateQueue = [];
+  function celebratePendingBadges() {
+    const raw = sessionStorage.getItem('hw_pending_badges');
+    if (!raw) return;
+    sessionStorage.removeItem('hw_pending_badges');
+    try {
+      const codes = JSON.parse(raw);
+      if (!codes || !codes.length) return;
+      apiFetch('/student/get-overview').then((overview) => {
+        badgeCelebrateQueue = codes.map(code => overview.badges.find(b => b.code === code)).filter(Boolean);
+        showNextBadgeCelebration();
+      }).catch(() => {});
+    } catch { /* ignore */ }
+  }
+
+  function showNextBadgeCelebration() {
+    const b = badgeCelebrateQueue.shift();
+    if (!b) return;
+    document.getElementById('badgeCelebrateIcon').textContent = b.icon || '🏅';
+    document.getElementById('badgeCelebrateBody').innerHTML = `<b>${escapeHtml(b.name)}</b><br>${escapeHtml(b.description || '')}`;
+    openModal('badgeCelebrate');
+  }
+
+  // ===== نمودار روند نمره‌ها =====
+  async function loadProgressChart() {
+    try {
+      const data = await apiFetch('/student/get-progress');
+      const points = data.history.map(h => ({ y: Math.round(h.score), label: `${h.title}: ${Math.round(h.score)}٪` }));
+      renderLineChart(document.getElementById('progressChartBox'), points, { color: 'var(--leaf)', emptyText: 'هنوز نمره‌ای ثبت نشده — بعد از اولین تکلیف نمره‌دارت این‌جا روند رو می‌بینی.' });
+    } catch (e) { console.error(e); }
+  }
 </script>
 </body>
 </html>

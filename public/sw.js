@@ -2,7 +2,7 @@
 // فقط پوستهٔ برنامه (HTML/CSS/JS استاتیک + آیکون‌ها) کش می‌شه.
 // همهٔ درخواست‌های /api/ همیشه از شبکه می‌رن — هرگز کش/آفلاین نمی‌شن،
 // چون داده‌ها زنده و وابسته به نشست کاربرن و کش کردنشون باعث باگ می‌شه.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `baghche-shell-${CACHE_VERSION}`;
 
 const SHELL_FILES = [
@@ -44,19 +44,21 @@ self.addEventListener('fetch', (event) => {
   // API calls: always network, never cached/served from cache.
   if (url.pathname.startsWith('/api/')) return;
 
-  // App shell: cache-first, falling back to network, and refreshing the cache in background.
+  // App shell: if cached, serve immediately and refresh the cache in the background.
+  // If not cached, this NEVER swallows a network failure into an invalid/undefined
+  // response — it always returns the real fetch() promise, so a failed request
+  // behaves exactly as if there were no service worker at all (no ERR_FAILED trap).
   event.respondWith(
     caches.match(req).then((cached) => {
-      const network = fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || network;
+      if (cached) {
+        fetch(req)
+          .then((res) => {
+            if (res && res.ok) caches.open(CACHE_NAME).then((cache) => cache.put(req, res.clone()));
+          })
+          .catch(() => {});
+        return cached;
+      }
+      return fetch(req);
     })
   );
 });

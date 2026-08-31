@@ -1,5 +1,6 @@
 import { json, err } from '../_lib/http.js';
 import { checkAndAwardTeacherBadges } from '../_lib/teacher-badges.js';
+import { notify } from '../_lib/notify.js';
 
 const POINTS_PER_CORRECT = 10;
 
@@ -14,7 +15,7 @@ export async function onRequestPost({ request, env, data }) {
 
   // Ownership check: the submission's assignment must belong to this teacher.
   const submission = await env.DB.prepare(
-    `SELECT sub.id, sub.student_id FROM submissions sub
+    `SELECT sub.id, sub.student_id, a.title AS assignment_title FROM submissions sub
      JOIN assignments a ON a.id = sub.assignment_id
      WHERE sub.id = ? AND a.teacher_id = ? AND a.school_id = ?`
   ).bind(body.submissionId, teacher.id, teacher.school_id).first();
@@ -44,6 +45,8 @@ export async function onRequestPost({ request, env, data }) {
     await env.DB.prepare('UPDATE users SET growth_points = growth_points + ? WHERE id = ?')
       .bind(newlyCorrectCount * POINTS_PER_CORRECT, submission.student_id).run();
   }
+
+  await notify(env, submission.student_id, 'grade_ready', 'نمره‌ت آماده شد! 🎉', submission.assignment_title, body.submissionId);
 
   const newlyEarnedBadges = await checkAndAwardTeacherBadges(env, teacher.id);
   return json({ ok: true, finalScore, newlyEarnedBadges });

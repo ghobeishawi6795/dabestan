@@ -1,5 +1,6 @@
 import { json, err } from '../_lib/http.js';
 import { checkAndAwardTeacherBadges } from '../_lib/teacher-badges.js';
+import { notifyClass } from '../_lib/notify.js';
 
 export async function onRequestPost({ request, env, data }) {
   const teacher = data.user;
@@ -38,6 +39,8 @@ export async function onRequestPost({ request, env, data }) {
       .bind(assignment.id, qid, i)
   );
   await env.DB.batch(inserts);
+
+  await notifyClass(env, classId, 'new_assignment', 'تکلیف جدید', `${title}`, assignment.id);
 
   const newlyEarnedBadges = await checkAndAwardTeacherBadges(env, teacher.id);
   return json({ ok: true, assignmentId: assignment.id, newlyEarnedBadges });

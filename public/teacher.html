@@ -2,8 +2,20 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="assets/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد معلم — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<script src="assets/date-fa.js"></script>
+<script src="assets/photo-upload.js"></script>
+<script src="assets/line-chart.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -48,13 +60,29 @@
   .bank-card-prompt{font-size:.83rem; color:var(--ink); line-height:1.6; margin-bottom:10px; padding:8px 10px; background:var(--bg-soft); border-radius:10px;}
   .bank-card-stats{display:flex; gap:14px; padding-top:8px; border-top:1px dashed var(--line); font-size:.76rem; color:var(--ink-soft);}
   .bank-card-stats span{display:flex; align-items:center; gap:4px;}
-  .bank-card-actions{display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:10px;}
+  .bank-card-actions{display:grid; grid-template-columns:repeat(auto-fit, minmax(70px, 1fr)); gap:6px; margin-top:10px;}
   .bank-card-actions button{padding:7px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:.75rem; cursor:pointer; font-weight:600;}
   .bank-card-actions button:hover{background:var(--leaf-pale);}
   .bank-card-actions .del{color:var(--coral-dark); border-color:#f5d5b8;}
   .bank-card-actions .del:hover{background:#FDECD8;}
   .bank-empty{text-align:center; padding:40px 20px; color:var(--ink-soft); font-size:.9rem; background:var(--surface); border-radius:16px;}
   .bank-empty-icon{font-size:3rem; margin-bottom:10px; opacity:.4;}
+  @media (max-width:480px){
+    .bank-card{padding:12px;}
+    .bank-card-actions{grid-template-columns:1fr 1fr;}
+    .bank-card-title{font-size:.88rem;}
+  }
+  .avatar-circle img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
+  .avatar-grid{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .avatar-grid button{font-size:1.4rem; width:46px; height:46px; border-radius:50%; border:2px solid var(--line); background:var(--surface); cursor:pointer;}
+  .avatar-grid button.active{border-color:var(--leaf); background:var(--leaf-pale);}
+  .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 14px; font-size: .85rem; line-height: 1.5; }
+  .chat-bubble.from-parent { align-self: flex-start; background: var(--bg-soft); border-bottom-left-radius: 4px; }
+  .chat-bubble.from-teacher { align-self: flex-end; background: var(--leaf-pale); color: var(--leaf-dark); border-bottom-right-radius: 4px; }
+  .chat-bubble .time { display: block; font-size: .68rem; opacity: .6; margin-top: 3px; }
+  .conv-row { display:flex; justify-content:space-between; align-items:center; padding:10px 4px; border-top:1px solid var(--line); cursor:pointer; }
+  .conv-row:first-child { border-top:none; }
+  .conv-row:hover { background: var(--bg-soft); }
 </style>
 </head>
 <body>
@@ -69,6 +97,8 @@
       <li><a class="nav-item" href="#" onclick="openModal('upload')"><span class="ic">📄</span> آپلود فایل سؤال</a></li>
       <li><a class="nav-item" href="#tasksSection" onclick="reviewHint()"><span class="ic">✅</span> مرور و نمره‌دهی</a></li>
       <li><a class="nav-item" href="#classReportSection" onclick="scrollToId('classReportSection')"><span class="ic">📊</span> گزارش کلاس</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openParentChatList();"><span class="ic">👪</span> پیام‌های والدین</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
     <div class="sidebar-foot">
       <div class="role-switch">
@@ -81,12 +111,16 @@
   <main class="main" id="top">
     <div class="topbar">
       <div class="greeting">
-        <div class="avatar-circle">🍎</div>
+        <div class="avatar-circle" id="avatarCircle" onclick="openProfileModal()" style="cursor:pointer;">🍎</div>
         <div><h1 id="teacherName">در حال بارگذاری...</h1><p id="classSummary"></p></div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن">🌙</button>
         <button type="button" class="btn btn-ghost" onclick="openModal('inbox')" style="position:relative;">
           ✉️ <span id="inboxBub" style="display:none; position:absolute; top:-6px; left:-6px; background:var(--coral); color:#fff; border-radius:999px; min-width:18px; height:18px; font-size:.65rem; align-items:center; justify-content:center; display:flex;"></span>
+        </button>
+        <button type="button" class="btn btn-ghost" onclick="openParentChatList()" style="position:relative;">
+          👪 <span id="parentChatBub" style="display:none; position:absolute; top:-6px; left:-6px; background:var(--coral); color:#fff; border-radius:999px; min-width:18px; height:18px; font-size:.65rem; align-items:center; justify-content:center; display:flex;"></span>
         </button>
         <button class="btn btn-primary" onclick="openModal('assignment')">＋ تکلیف جدید</button>
       </div>
@@ -155,9 +189,19 @@
       </select>
     </div>
 
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+      <select id="bankDifficultyFilter" style="padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:.85rem;">
+        <option value="">همه سطح‌ها</option>
+        <option value="easy">🟢 آسان</option>
+        <option value="medium">🟡 متوسط</option>
+        <option value="hard">🔴 سخت</option>
+      </select>
+      <button type="button" id="bankFavToggle" style="padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:.85rem; font-weight:700; cursor:pointer;">⭐ فقط موردعلاقه‌ها</button>
+    </div>
+
     <div style="position:relative; margin-bottom:10px;">
       <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:.9rem; opacity:.5;">🔍</span>
-      <input type="text" id="bankSearch" placeholder="جستجو در عنوان و متن سؤال..." style="width:100%; padding:11px 36px 11px 12px; border-radius:12px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:.88rem;">
+      <input type="text" id="bankSearch" placeholder="جستجو در عنوان، متن و برچسب سؤال..." style="width:100%; padding:11px 36px 11px 12px; border-radius:12px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:.88rem;">
     </div>
 
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.85rem;">
@@ -165,6 +209,7 @@
       <select id="bankSort" style="padding:7px 10px; border-radius:10px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:.82rem;">
         <option value="newest">جدیدترین</option>
         <option value="popular">پراستفاده‌ترین</option>
+        <option value="favorite">موردعلاقه‌ها اول</option>
         <option value="title">عنوان (الفبا)</option>
       </select>
     </div>
@@ -197,6 +242,10 @@
       </div>
       <div class="field"><label>موضوع (اختیاری)</label><input type="text" id="qSubject" placeholder="مثلاً: فارسی"></div>
       <div class="field"><label>پایه (اختیاری)</label><input type="number" id="qGrade" min="1" max="6"></div>
+      <div class="field"><label>سطح سختی (اختیاری)</label>
+        <select id="qDifficulty"><option value="">—</option><option value="easy">🟢 آسان</option><option value="medium">🟡 متوسط</option><option value="hard">🔴 سخت</option></select>
+      </div>
+      <div class="field"><label>برچسب‌ها (اختیاری، با ویرگول جدا کن)</label><input type="text" id="qTags" placeholder="مثلاً: جمع, اعداد دورقمی"></div>
       <div class="field"><label>متن سؤال / توضیح برای دانش‌آموز</label><textarea id="qPrompt" required></textarea></div>
 
       <div id="fMultipleChoice" class="dyn-field">
@@ -245,8 +294,15 @@
       <div class="field"><label>عنوان تکلیف</label><input type="text" id="aTitle" required></div>
       <div class="field"><label>کلاس</label><select id="aClass" required></select></div>
       <div class="field"><label>موعد تحویل (اختیاری)</label><input type="date" id="aDue"></div>
+      <div class="field" id="templateLoadField" style="display:none;">
+        <label>📦 یا از یک الگوی ذخیره‌شده شروع کن</label>
+        <select id="aTemplateSelect" onchange="applyTemplateSelection()"><option value="">— انتخاب الگو —</option></select>
+      </div>
       <div class="field"><label>سؤالات (از بانک انتخاب کن)</label>
         <div class="bank-list" id="aBankPicker"></div>
+      </div>
+      <div class="field">
+        <button type="button" class="btn btn-ghost" style="font-size:.8rem;" onclick="saveCurrentAsTemplate()">📦 ذخیره به‌عنوان الگو</button>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" onclick="closeModal('assignment')">انصراف</button>
@@ -259,9 +315,10 @@
 <!-- ===== مودال ویرایش سؤال ===== -->
 <div class="modal-backdrop" id="modalEditQuestion">
   <div class="modal">
-    <h3 style="margin-bottom:14px;">ویرایش سؤال</h3>
+    <h3 id="eqModalTitle" style="margin-bottom:14px;">ویرایش سؤال</h3>
+    <div id="eqReadOnlyNote" class="hint" style="display:none; margin-bottom:10px;">این سؤال متعلق به یکی دیگه از معلم‌هاست — فقط قابل مشاهده‌ست.</div>
     <div id="msgEditQuestion"></div>
-    <form onsubmit="submitEditQuestion(event)">
+    <form id="editQuestionForm" onsubmit="submitEditQuestion(event)">
       <input type="hidden" id="eqId">
       <div class="field"><label>عنوان سؤال</label><input type="text" id="eqTitle" required></div>
       <div class="field"><label>نوع سؤال</label>
@@ -280,6 +337,11 @@
         </select>
       </div>
       <div class="field"><label>موضوع (اختیاری)</label><input type="text" id="eqSubject"></div>
+      <div class="field"><label>پایه (اختیاری)</label><input type="number" id="eqGrade" min="1" max="6"></div>
+      <div class="field"><label>سطح سختی (اختیاری)</label>
+        <select id="eqDifficulty"><option value="">—</option><option value="easy">🟢 آسان</option><option value="medium">🟡 متوسط</option><option value="hard">🔴 سخت</option></select>
+      </div>
+      <div class="field"><label>برچسب‌ها (اختیاری، با ویرگول جدا کن)</label><input type="text" id="eqTags"></div>
       <div class="field"><label>متن سؤال</label><textarea id="eqPrompt" required></textarea></div>
 
       <div id="efMultipleChoice" class="dyn-field">
@@ -308,8 +370,8 @@
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('editQuestion')">انصراف</button>
-        <button type="submit" class="btn btn-primary">ذخیره</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editQuestion')">بستن</button>
+        <button type="submit" id="eqSubmitBtn" class="btn btn-primary">ذخیره</button>
       </div>
     </form>
   </div>
@@ -329,6 +391,66 @@
         <button type="submit" class="btn btn-primary">ذخیره</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ===== مودال پروفایل ===== -->
+<div class="modal-backdrop" id="modalProfile">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">👤 پروفایل من</h3>
+    <div style="text-align:center; margin-bottom:14px;">
+      <div class="avatar-circle" id="profileAvatarPreview" style="width:84px; height:84px; font-size:2.2rem; margin:0 auto 10px;">🍎</div>
+      <label class="btn btn-ghost" style="display:inline-block; cursor:pointer; font-size:.82rem;">
+        📷 آپلود عکس
+        <input type="file" accept="image/*" id="profilePhotoInput" style="display:none;">
+      </label>
+      <button type="button" class="btn btn-ghost" style="font-size:.82rem;" onclick="removeProfilePhoto()">حذف عکس</button>
+    </div>
+    <div class="field"><label>یا یک شخصیت انتخاب کن</label>
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+    <div id="msgProfile"></div>
+    <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="closeModal('profile')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال نقاط ضعف بر اساس موضوع ===== -->
+<div class="modal-backdrop" id="modalTagPerformance">
+  <div class="modal">
+    <h3 id="tagPerfTitle" style="margin-bottom:14px;">🎯 نقاط ضعف کلاس</h3>
+    <div id="tagPerfBody">در حال بارگذاری...</div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('tagPerformance')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال روند نمرهٔ یک دانش‌آموز ===== -->
+<div class="modal-backdrop" id="modalStudentProgress">
+  <div class="modal">
+    <h3 id="studentProgressTitle" style="margin-bottom:14px;">📈 روند نمره‌ها</h3>
+    <div id="studentProgressBox" style="min-height:140px;"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('studentProgress')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال لیست گفتگوهای والدین ===== -->
+<div class="modal-backdrop" id="modalParentChatList">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">👪 پیام‌های والدین</h3>
+    <div id="parentChatListBody"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('parentChatList')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال گفتگوی یک دانش‌آموز ===== -->
+<div class="modal-backdrop" id="modalParentChatThread">
+  <div class="modal">
+    <h3 id="parentChatThreadTitle" style="margin-bottom:14px;">💬 گفتگو</h3>
+    <div id="parentChatThreadList" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="parentChatThreadInput" placeholder="پیامت رو بنویس..." style="flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--line); font-family:inherit;">
+      <button class="btn btn-primary" onclick="sendTeacherParentMessage()">ارسال</button>
+    </div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('parentChatThread')">بستن</button>
   </div>
 </div>
 
@@ -401,6 +523,8 @@
     loadAll();
     loadBadges();
     loadInbox();
+    loadProfile();
+    loadParentChatBadge();
     renderTypeFields();
   }
 
@@ -442,6 +566,7 @@
           </div>
           <div class="progress-bar"><div style="width:${c.progress}%"></div></div>
           <div style="font-size:.75rem; color:var(--ink-soft); margin-top:6px;">٪${toFa(c.progress)} تحویل تکالیف</div>
+          <button type="button" class="btn btn-ghost" style="width:100%; margin-top:10px; font-size:.8rem;" onclick="openTagPerformance(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">🎯 نقاط ضعف کلاس بر اساس موضوع</button>
         </div>`).join('') : '<div class="card">هنوز کلاسی نداری.</div>';
     } catch (e) { console.error(e); }
   }
@@ -455,7 +580,7 @@
         <tr>
           <td><a href="review.html?assignmentId=${a.id}" style="color:var(--leaf-dark); font-weight:700;">${escapeHtml(a.title)}</a></td>
           <td>${escapeHtml(a.class_name)}</td>
-          <td>${a.due_at ? toFa(a.due_at) : '—'}</td>
+          <td>${a.due_at ? formatJalali(a.due_at) : '—'}</td>
           <td><span class="pill ${a.submitted_count === a.class_size ? 'pill-ok' : 'pill-warn'}">${toFa(a.submitted_count)} از ${toFa(a.class_size)}</span></td>
           <td><div class="row-actions">
             <button type="button" class="icon-btn" onclick="openEditAssignment(${a.id})" title="ویرایش">✏️</button>
@@ -501,7 +626,8 @@
     photo_upload:'📷', custom_html:'🧪'
   };
 
-  let bankState = { own:'me', subject:'', grade:'', type:'', search:'', sort:'newest' };
+  const DIFFICULTY_LABEL = { easy: '🟢 آسان', medium: '🟡 متوسط', hard: '🔴 سخت' };
+  let bankState = { own:'me', subject:'', grade:'', type:'', difficulty:'', favorite:false, search:'', sort:'newest' };
   let bankAllQuestions = [];
 
   async function loadBank() {
@@ -511,14 +637,17 @@
       if (bankState.subject) params.set('subject', bankState.subject);
       if (bankState.grade) params.set('grade', bankState.grade.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
       if (bankState.type) params.set('type', bankState.type);
+      if (bankState.difficulty) params.set('difficulty', bankState.difficulty);
+      if (bankState.favorite) params.set('favorite', '1');
       if (bankState.search) params.set('search', bankState.search);
       params.set('sort', bankState.sort);
 
+      const noFilters = !bankState.subject && !bankState.grade && !bankState.type && !bankState.difficulty && !bankState.favorite && !bankState.search;
       const data = await apiFetch('/teacher/list-questions?' + params.toString());
       bankAllQuestions = data.questions;
-      if (bankState.own === 'me' && !bankState.subject && !bankState.grade && !bankState.type && !bankState.search) {
+      if (bankState.own === 'me' && noFilters) {
         bankQuestions = bankAllQuestions;
-      } else if (!bankState.subject && !bankState.grade && !bankState.type && !bankState.search) {
+      } else if (noFilters) {
         const fullData = await apiFetch('/teacher/list-questions?own=' + bankState.own);
         bankQuestions = fullData.questions;
       }
@@ -564,27 +693,64 @@
       const typeLabel = BANK_TYPE_LABEL[q.question_type] || q.question_type;
       const typeIcon = BANK_TYPE_ICON[q.question_type] || '📋';
 
+      const tagList = (q.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+
       return `
       <div class="bank-card">
         <div class="bank-card-top">
           <div class="bank-card-title">${escapeHtml(q.title)}</div>
-          <span class="bank-card-type">${typeIcon} ${typeLabel}</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button onclick="toggleFavoriteQuestion(${q.id})" title="موردعلاقه" style="background:none; border:none; cursor:pointer; font-size:1.05rem; padding:0; line-height:1;">${q.is_favorite ? '⭐' : '☆'}</button>
+            <span class="bank-card-type">${typeIcon} ${typeLabel}</span>
+          </div>
         </div>
         <div class="bank-card-meta">
           ${bankState.own === 'school' ? `<span class="owner-pill ${isMine ? 'me' : 'other'}">${isMine ? '👤 من' : '👤 ' + escapeHtml(q.author_name || '')}</span>` : ''}
           📚 ${escapeHtml(q.subject || '—')} · پایه ${q.grade ? toFa(q.grade) : '—'}
+          ${q.difficulty ? `· ${DIFFICULTY_LABEL[q.difficulty] || ''}` : ''}
         </div>
+        ${tagList.length ? `<div class="bank-card-meta" style="margin-top:-4px;">${tagList.map(t => `<span style="background:var(--leaf-pale); color:var(--leaf-dark); padding:2px 8px; border-radius:999px; font-size:.72rem;">#${escapeHtml(t)}</span>`).join(' ')}</div>` : ''}
         ${promptText ? `<div class="bank-card-prompt">${escapeHtml(promptText.slice(0, 120))}${promptText.length > 120 ? '...' : ''}</div>` : ''}
         <div class="bank-card-stats">
           <span>📊 ${toFa(q.usage_count || 0)} بار استفاده</span>
         </div>
         <div class="bank-card-actions">
-          <button onclick="openEditQuestion(${q.id})">✏️ ویرایش</button>
+          ${isMine ? `<button onclick="openEditQuestion(${q.id})">✏️ ویرایش</button>` : `<button onclick="openEditQuestion(${q.id}, true)">👁️ مشاهده</button>`}
           <button onclick="useQuestionInNewAssignment(${q.id})">📋 استفاده در تکلیف</button>
-          ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف</button>` : '<button disabled style="opacity:.4">—</button>'}
+          <button onclick="duplicateQuestion(${q.id})">📄 کپی</button>
+          ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف</button>` : ''}
         </div>
       </div>`;
     }).join('');
+  }
+
+  async function toggleFavoriteQuestion(qid) {
+    try {
+      await apiFetch('/teacher/toggle-favorite-question', { method: 'POST', body: { questionId: qid } });
+      loadBank();
+    } catch (e) { console.error(e); }
+  }
+
+  function duplicateQuestion(qid) {
+    const q = bankAllQuestions.find(x => x.id === qid) || bankQuestions.find(x => x.id === qid);
+    if (!q) return;
+    let content;
+    try { content = JSON.parse(q.content_json); } catch { content = {}; }
+    openModal('addQuestion');
+    document.getElementById('qTitle').value = q.title + ' (کپی)';
+    document.getElementById('qType').value = q.question_type;
+    document.getElementById('qSubject').value = q.subject || '';
+    document.getElementById('qGrade').value = q.grade || '';
+    document.getElementById('qDifficulty').value = q.difficulty || '';
+    document.getElementById('qTags').value = q.tags || '';
+    document.getElementById('qPrompt').value = content.prompt || '';
+    if (document.getElementById('qOptions')) document.getElementById('qOptions').value = (content.options || []).join('\n');
+    if (document.getElementById('qCorrectIndex')) document.getElementById('qCorrectIndex').value = content.correctIndex !== undefined ? content.correctIndex + 1 : '';
+    if (document.getElementById('qTrueFalse')) document.getElementById('qTrueFalse').value = content.correct ? 'true' : 'false';
+    if (document.getElementById('qFillAnswer')) document.getElementById('qFillAnswer').value = content.answer || '';
+    if (document.getElementById('qPairs')) document.getElementById('qPairs').value = (content.pairs || []).map(p => `${p.left} = ${p.right}`).join('\n');
+    if (document.getElementById('qCustomHtml')) document.getElementById('qCustomHtml').value = q.custom_html || '';
+    if (typeof renderTypeFields === 'function') renderTypeFields();
   }
 
   function useQuestionInNewAssignment(qid) {
@@ -607,6 +773,14 @@
     });
     document.getElementById('bankGradeFilter').onchange = e => { bankState.grade = e.target.value; loadBank(); };
     document.getElementById('bankTypeFilter').onchange = e => { bankState.type = e.target.value; loadBank(); };
+    document.getElementById('bankDifficultyFilter').onchange = e => { bankState.difficulty = e.target.value; loadBank(); };
+    document.getElementById('bankFavToggle').onclick = () => {
+      bankState.favorite = !bankState.favorite;
+      const btn = document.getElementById('bankFavToggle');
+      btn.style.background = bankState.favorite ? 'var(--sun)' : 'var(--surface)';
+      btn.style.borderColor = bankState.favorite ? 'var(--sun-dark)' : 'var(--line)';
+      loadBank();
+    };
     let searchTimer;
     document.getElementById('bankSearch').oninput = e => {
       clearTimeout(searchTimer);
@@ -661,7 +835,7 @@
     } catch (e) { console.error(e); }
   }
 
-  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') renderBankPicker(); }
+  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') { renderBankPicker(); loadTemplatesIntoAssignmentModal(); } }
   function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
   function cap(s) { return s[0].toUpperCase() + s.slice(1); }
 
@@ -703,6 +877,8 @@
         grade: document.getElementById('qGrade').value ? Number(document.getElementById('qGrade').value) : null,
         content: buildContentJson(type, prompt),
         customHtml: type === 'custom_html' ? document.getElementById('qCustomHtml').value : null,
+        difficulty: document.getElementById('qDifficulty').value || null,
+        tags: document.getElementById('qTags').value || null,
       }});
       closeModal('question');
       e.target.reset();
@@ -730,6 +906,47 @@
     } catch (err) { showModalMsg('Assignment', err.message); }
   }
 
+  // ===== الگوی تکلیف =====
+  let assignmentTemplatesCache = [];
+  async function loadTemplatesIntoAssignmentModal() {
+    try {
+      const data = await apiFetch('/teacher/list-assignment-templates');
+      assignmentTemplatesCache = data.templates;
+      const field = document.getElementById('templateLoadField');
+      const select = document.getElementById('aTemplateSelect');
+      if (!data.templates.length) { field.style.display = 'none'; return; }
+      field.style.display = 'block';
+      select.innerHTML = '<option value="">— انتخاب الگو —</option>' +
+        data.templates.map(t => `<option value="${t.id}">${escapeHtml(t.title)} (${toFa(t.questionCount)} سؤال)</option>`).join('');
+    } catch (e) { console.error(e); }
+  }
+
+  function applyTemplateSelection() {
+    const id = Number(document.getElementById('aTemplateSelect').value);
+    if (!id) return;
+    const tpl = assignmentTemplatesCache.find(t => t.id === id);
+    if (!tpl) return;
+    document.querySelectorAll('.bank-check').forEach(cb => { cb.checked = tpl.questionIds.includes(Number(cb.value)); });
+    const matchedCount = [...document.querySelectorAll('.bank-check:checked')].length;
+    if (matchedCount < tpl.questionIds.length) {
+      showModalMsg('Assignment', `${toFa(tpl.questionIds.length - matchedCount)} سؤال این الگو توی لیست فعلی بانک نیست (شاید فیلتر یا تب «بانک مدرسه» فعاله) — بقیه انتخاب شدن.`);
+    } else {
+      document.getElementById('msgAssignment').innerHTML = '';
+    }
+  }
+
+  async function saveCurrentAsTemplate() {
+    const questionIds = [...document.querySelectorAll('.bank-check:checked')].map(el => Number(el.value));
+    if (!questionIds.length) return showModalMsg('Assignment', 'اول حداقل یک سؤال انتخاب کن، بعد به‌عنوان الگو ذخیره کن.');
+    const title = prompt('اسم این الگو چی باشه؟', document.getElementById('aTitle').value || '');
+    if (!title) return;
+    try {
+      await apiFetch('/teacher/save-assignment-template', { method: 'POST', body: { title, questionIds } });
+      loadTemplatesIntoAssignmentModal();
+      showToast('الگو ذخیره شد ✅');
+    } catch (e) { showModalMsg('Assignment', e.message); }
+  }
+
   function renderEditTypeFields() {
     const type = document.getElementById('eqType').value;
     ['efMultipleChoice','efTrueFalse','efFillBlank','efPairs','efCustomHtml'].forEach(id => document.getElementById(id).classList.remove('show'));
@@ -740,7 +957,7 @@
     if (type === 'custom_html') document.getElementById('efCustomHtml').classList.add('show');
   }
 
-  function openEditQuestion(id) {
+  function openEditQuestion(id, readOnly) {
     const q = bankAllQuestions.find(x => x.id === id) || bankQuestions.find(x => x.id === id);
     if (!q) return;
     let content;
@@ -749,6 +966,9 @@
     document.getElementById('eqTitle').value = q.title;
     document.getElementById('eqType').value = q.question_type;
     document.getElementById('eqSubject').value = q.subject || '';
+    document.getElementById('eqGrade').value = q.grade || '';
+    document.getElementById('eqDifficulty').value = q.difficulty || '';
+    document.getElementById('eqTags').value = q.tags || '';
     document.getElementById('eqPrompt').value = content.prompt || '';
     document.getElementById('eqOptions').value = (content.options || []).join('\n');
     document.getElementById('eqCorrectIndex').value = content.correctIndex !== undefined ? content.correctIndex + 1 : '';
@@ -757,6 +977,13 @@
     document.getElementById('eqPairs').value = (content.pairs || []).map(p => `${p.left} = ${p.right}`).join('\n');
     document.getElementById('eqCustomHtml').value = q.custom_html || '';
     document.getElementById('msgEditQuestion').innerHTML = '';
+
+    const form = document.getElementById('editQuestionForm');
+    form.querySelectorAll('input, textarea, select').forEach(el => { el.disabled = !!readOnly; });
+    document.getElementById('eqModalTitle').textContent = readOnly ? 'مشاهدهٔ سؤال' : 'ویرایش سؤال';
+    document.getElementById('eqReadOnlyNote').style.display = readOnly ? 'block' : 'none';
+    document.getElementById('eqSubmitBtn').style.display = readOnly ? 'none' : '';
+
     renderEditTypeFields();
     openModal('editQuestion');
   }
@@ -785,6 +1012,9 @@
         title: document.getElementById('eqTitle').value,
         questionType: type,
         subject: document.getElementById('eqSubject').value || null,
+        grade: document.getElementById('eqGrade').value ? Number(document.getElementById('eqGrade').value) : null,
+        difficulty: document.getElementById('eqDifficulty').value || null,
+        tags: document.getElementById('eqTags').value || null,
         content: buildEditContentJson(type, document.getElementById('eqPrompt').value),
         customHtml: type === 'custom_html' ? document.getElementById('eqCustomHtml').value : null,
       }});
@@ -928,6 +1158,196 @@
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
   function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+  // ===== پروفایل: عکس / آواتار =====
+  const ALLOWED_AVATARS = ['🦊', '🐼', '🐱', '🐶', '🐰', '🦁', '🐯', '🐨'];
+  let currentProfile = { avatar: '🍎', avatarPhoto: null };
+
+  function renderAvatarEverywhere() {
+    const html = currentProfile.avatarPhoto
+      ? `<img src="${currentProfile.avatarPhoto}" alt="عکس پروفایل">`
+      : (currentProfile.avatar || '🍎');
+    document.getElementById('avatarCircle').innerHTML = html;
+    document.getElementById('profileAvatarPreview').innerHTML = html;
+  }
+
+  async function loadProfile() {
+    try {
+      const p = await apiFetch('/account/get-profile');
+      currentProfile = { avatar: p.avatar || '🍎', avatarPhoto: p.avatarPhoto || null };
+      applySchoolThemeColor(p.schoolThemeColor);
+      renderAvatarEverywhere();
+    } catch (e) { console.error(e); }
+  }
+
+  function renderAvatarGrid() {
+    document.getElementById('avatarGrid').innerHTML = ALLOWED_AVATARS.map(a =>
+      `<button type="button" class="${!currentProfile.avatarPhoto && currentProfile.avatar === a ? 'active' : ''}" onclick="chooseAvatar('${a}')">${a}</button>`
+    ).join('');
+  }
+
+  async function chooseAvatar(a) {
+    try {
+      await apiFetch('/student/update-avatar', { method: 'POST', body: { avatar: a } });
+      currentProfile.avatar = a;
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  function openProfileModal() {
+    renderAvatarGrid();
+    document.getElementById('msgProfile').textContent = '';
+    openModal('profile');
+  }
+
+  document.getElementById('profilePhotoInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file, 256, 0.72);
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: dataUrl } });
+      currentProfile.avatarPhoto = dataUrl;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (err) {
+      document.getElementById('msgProfile').textContent = err.message || 'خطا در آپلود عکس';
+    }
+    e.target.value = '';
+  });
+
+  async function removeProfilePhoto() {
+    try {
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: null } });
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  // ===== پیام‌های والدین =====
+  let parentChatCurrentStudentId = null;
+
+  async function loadParentChatBadge() {
+    try {
+      const data = await apiFetch('/teacher/list-parent-conversations');
+      const totalUnread = data.conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+      const bub = document.getElementById('parentChatBub');
+      if (totalUnread > 0) { bub.style.display = 'flex'; bub.textContent = toFa(totalUnread > 9 ? '9+' : totalUnread); }
+      else { bub.style.display = 'none'; }
+    } catch (e) { console.error(e); }
+  }
+
+  async function openParentChatList() {
+    openModal('parentChatList');
+    const box = document.getElementById('parentChatListBody');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const [convData, rosterData] = await Promise.all([
+        apiFetch('/teacher/list-parent-conversations'),
+        apiFetch('/teacher/list-students'),
+      ]);
+      const convStudentIds = new Set(convData.conversations.map(c => c.studentId));
+      const others = rosterData.students.filter(s => !convStudentIds.has(s.id));
+
+      let html = convData.conversations.length ? convData.conversations.map(c => `
+        <div class="conv-row" onclick="openParentChatThread(${c.studentId}, '${escapeHtml(c.studentName).replace(/'/g, "\\'")}')">
+          <div>
+            <div style="font-weight:700;">${escapeHtml(c.studentName)}</div>
+            <div style="font-size:.78rem; color:var(--ink-soft); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.lastMessage || '')}</div>
+          </div>
+          ${c.unreadCount ? `<span class="pill pill-warn">${toFa(c.unreadCount)}</span>` : ''}
+        </div>`).join('') : '';
+
+      if (!convData.conversations.length && !others.length) {
+        html = '<div style="text-align:center; color:var(--ink-soft); padding:20px 0;">هنوز والدینی پیام نفرستادن.</div>';
+      }
+      if (others.length) {
+        html += `<div style="margin-top:14px; font-size:.8rem; font-weight:700; color:var(--ink-soft);">شروع گفتگوی جدید:</div>` +
+          others.map(s => `
+          <div class="conv-row">
+            <div style="font-weight:600; cursor:pointer;" onclick="openParentChatThread(${s.id}, '${escapeHtml(s.fullName).replace(/'/g, "\\'")}')">${escapeHtml(s.fullName)}</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:.75rem; color:var(--ink-soft);">${escapeHtml(s.className || '')}</span>
+              <button type="button" onclick="event.stopPropagation(); openStudentProgress(${s.id}, '${escapeHtml(s.fullName).replace(/'/g, "\\'")}')" style="background:none; border:none; cursor:pointer; font-size:.95rem;" title="روند نمره">📈</button>
+            </div>
+          </div>`).join('');
+      }
+      box.innerHTML = html;
+    } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
+  }
+
+  async function openParentChatThread(studentId, studentName) {
+    parentChatCurrentStudentId = studentId;
+    document.getElementById('parentChatThreadTitle').textContent = `💬 گفتگو با والدین ${studentName}`;
+    closeModal('parentChatList');
+    openModal('parentChatThread');
+    const box = document.getElementById('parentChatThreadList');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch(`/teacher/get-parent-conversation?studentId=${studentId}`);
+      renderTeacherChat(data.messages);
+      loadParentChatBadge();
+    } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
+  }
+
+  function renderTeacherChat(messages) {
+    const box = document.getElementById('parentChatThreadList');
+    box.innerHTML = messages.length ? messages.map(m => `
+      <div class="chat-bubble from-${m.sender}">${escapeHtml(m.body)}<span class="time">${formatJalali(m.created_at, { time: true })}</span></div>
+    `).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.82rem; padding:10px 0;">هنوز پیامی رد و بدل نشده.</div>';
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendTeacherParentMessage() {
+    const input = document.getElementById('parentChatThreadInput');
+    const body = input.value.trim();
+    if (!body || !parentChatCurrentStudentId) return;
+    input.value = '';
+    try {
+      await apiFetch('/teacher/send-parent-message', { method: 'POST', body: { studentId: parentChatCurrentStudentId, body } });
+      const data = await apiFetch(`/teacher/get-parent-conversation?studentId=${parentChatCurrentStudentId}`);
+      renderTeacherChat(data.messages);
+    } catch (e) { alert(e.message); }
+  }
+
+  // ===== نقاط ضعف بر اساس موضوع (تگ) =====
+  async function openTagPerformance(classId, className) {
+    document.getElementById('tagPerfTitle').textContent = `🎯 نقاط ضعف «${className}» بر اساس موضوع`;
+    const box = document.getElementById('tagPerfBody');
+    box.innerHTML = 'در حال بارگذاری...';
+    openModal('tagPerformance');
+    try {
+      const data = await apiFetch(`/teacher/get-tag-performance?classId=${classId}`);
+      if (!data.tags.length) {
+        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); padding:20px 0;">هنوز داده‌ای برای تحلیل نیست — سؤالات باید تگ داشته باشن و حداقل چندبار جواب داده شده باشن.</div>';
+        return;
+      }
+      box.innerHTML = data.tags.map(t => `
+        <div style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:4px;">
+            <span style="font-weight:700;">#${escapeHtml(t.tag)}</span>
+            <span style="color:${t.pct < 50 ? 'var(--coral-dark)' : t.pct < 75 ? 'var(--sun-dark)' : 'var(--leaf-dark)'}; font-weight:700;">٪${toFa(t.pct)}</span>
+          </div>
+          <div class="progress-bar"><div style="width:${t.pct}%; background:${t.pct < 50 ? 'var(--coral)' : t.pct < 75 ? 'var(--sun)' : 'var(--leaf)'};"></div></div>
+          <div style="font-size:.72rem; color:var(--ink-soft); margin-top:2px;">${toFa(t.correct)} درست از ${toFa(t.total)} پاسخ</div>
+        </div>`).join('');
+    } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
+  }
+
+  // ===== روند نمرهٔ یک دانش‌آموز =====
+  async function openStudentProgress(studentId, studentName) {
+    document.getElementById('studentProgressTitle').textContent = `📈 روند نمره‌های ${studentName}`;
+    openModal('studentProgress');
+    const box = document.getElementById('studentProgressBox');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch(`/teacher/get-student-progress?studentId=${studentId}`);
+      const points = data.history.map(h => ({ y: Math.round(h.score), label: `${h.title}: ${Math.round(h.score)}٪` }));
+      renderLineChart(box, points, { color: 'var(--leaf)', emptyText: 'این دانش‌آموز هنوز نمرهٔ ثبت‌شده‌ای نداره.' });
+    } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
+  }
 </script>
 </body>
   </html>

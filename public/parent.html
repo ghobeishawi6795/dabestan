@@ -2,8 +2,18 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="assets/theme.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نمای والدین — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<script src="assets/date-fa.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
@@ -13,9 +23,17 @@
   .code-box { background: var(--surface); border-radius: var(--radius-lg); padding: 26px; box-shadow: var(--shadow); border: 1px solid var(--line); text-align: center; }
   .code-box input { width: 100%; text-align: center; letter-spacing: 4px; font-size: 1.3rem; padding: 14px; border-radius: 12px; border: 2px solid var(--line); font-family: inherit; margin: 14px 0; }
   .msg-err { background: #FDECD8; color: var(--coral-dark); font-size: .85rem; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; }
+  .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 14px; font-size: .85rem; line-height: 1.5; }
+  .chat-bubble.from-parent { align-self: flex-start; background: var(--leaf-pale); color: var(--leaf-dark); border-bottom-left-radius: 4px; }
+  .chat-bubble.from-teacher { align-self: flex-end; background: var(--bg-soft); border-bottom-right-radius: 4px; }
+  .chat-bubble .time { display: block; font-size: .68rem; opacity: .6; margin-top: 3px; }
+  @media print {
+    #chatCard, #codeScreen, .btn { display: none !important; }
+  }
 </style>
 </head>
 <body>
+<button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن" style="position:fixed; top:14px; left:14px; z-index:10;">🌙</button>
 <div class="wrap">
   <div id="codeScreen" class="code-box">
     <div style="font-size:2rem;">💛</div>
@@ -56,6 +74,22 @@
         <tbody id="pTbody"></tbody>
       </table>
     </div>
+
+    <div class="section-head" style="margin-top:16px;"><h2>💬 گفتگو با معلم<span id="pTeacherName"></span></h2></div>
+    <div class="card" id="chatCard" style="display:none;">
+      <div id="chatList" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="chatInput" placeholder="پیامت رو بنویس..." style="flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--line); font-family:inherit;">
+        <button class="btn btn-primary" onclick="sendParentMessage()">ارسال</button>
+      </div>
+    </div>
+    <div class="card" id="chatUnavailable" style="display:none; text-align:center; color:var(--ink-soft); font-size:.85rem;">
+      هنوز معلمی به کلاس این دانش‌آموز اختصاص داده نشده.
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+      <button class="btn btn-ghost" onclick="window.print()">🖨️ چاپ کارنامه</button>
+    </div>
   </div>
 </div>
 
@@ -89,6 +123,7 @@
   function render(data) {
     document.getElementById('codeScreen').style.display = 'none';
     document.getElementById('resultScreen').style.display = 'block';
+    applySchoolThemeColor(data.student.schoolThemeColor);
     const stage = stageFor(data.student.growthPoints);
     document.getElementById('pStage').textContent = `نهال ${data.student.fullName}: «${stage.name}» ${stage.icon}`;
     document.getElementById('pSub').textContent = `${data.student.schoolName} — ${data.student.className || ''}`;
@@ -99,6 +134,45 @@
     tbody.innerHTML = data.recentSubmissions.length ? data.recentSubmissions.map(s => `
       <tr><td>${escapeHtml(s.title)}<br><span style="font-size:.75em;color:var(--ink-soft);">معلم: ${escapeHtml(s.teacherName)}</span></td>
       <td>${statusPill(s)}${s.status === 'reviewed' ? ratingWidget(s) : ''}</td></tr>`).join('') : '<tr><td colspan="2">هنوز تکلیفی ثبت نشده.</td></tr>';
+    loadChat();
+  }
+
+  async function loadChat() {
+    try {
+      const res = await fetch(`/api/parent/list-messages?code=${encodeURIComponent(parentCode)}`);
+      const data = await res.json();
+      if (!res.ok) return;
+      if (!data.teacherName) {
+        document.getElementById('chatUnavailable').style.display = 'block';
+        document.getElementById('chatCard').style.display = 'none';
+        return;
+      }
+      document.getElementById('pTeacherName').textContent = ` (${data.teacherName})`;
+      document.getElementById('chatCard').style.display = 'block';
+      renderChat(data.messages);
+    } catch { /* best-effort */ }
+  }
+
+  function renderChat(messages) {
+    const box = document.getElementById('chatList');
+    box.innerHTML = messages.length ? messages.map(m => `
+      <div class="chat-bubble from-${m.sender}">${escapeHtml(m.body)}<span class="time">${formatJalali(m.created_at, { time: true })}</span></div>
+    `).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.82rem; padding:10px 0;">هنوز پیامی رد و بدل نشده.</div>';
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendParentMessage() {
+    const input = document.getElementById('chatInput');
+    const body = input.value.trim();
+    if (!body) return;
+    input.value = '';
+    try {
+      await fetch('/api/parent/send-message', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: parentCode, body }),
+      });
+      loadChat();
+    } catch { alert('خطا در ارسال پیام.'); }
   }
 
   function ratingWidget(s) {
