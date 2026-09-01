@@ -1,8 +1,7 @@
-import { hashPassword } from '../_lib/auth.js';
 import { json, err } from '../_lib/http.js';
+import { hashPassword } from '../_lib/auth.js';
 
-// Each call creates a brand-new school + its admin — correctly multi-tenant from the start
-// (earlier project's bug: single global admin check with no school_id scoping).
+// Each call creates a brand-new school + its admin — correctly multi-tenant from the start.
 export async function onRequestPost({ request, env }) {
   const body = await request.json().catch(() => null);
   if (!body) return err('invalid json');
@@ -18,6 +17,8 @@ export async function onRequestPost({ request, env }) {
     .first();
 
   const { hash, salt } = await hashPassword(adminPassword);
+
+  // ✅ اصلاح: بررسی تکراری بودن فقط داخل همین مدرسه (با school_id)
   const existing = await env.DB.prepare('SELECT id FROM users WHERE school_id = ? AND username = ?')
     .bind(school.id, adminUsername)
     .first();
