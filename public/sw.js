@@ -2,7 +2,7 @@
 // فقط پوستهٔ برنامه (HTML/CSS/JS استاتیک + آیکون‌ها) کش می‌شه.
 // همهٔ درخواست‌های /api/ همیشه از شبکه می‌رن — هرگز کش/آفلاین نمی‌شن،
 // چون داده‌ها زنده و وابسته به نشست کاربرن و کش کردنشون باعث باگ می‌شه.
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `baghche-shell-${CACHE_VERSION}`;
 
 const SHELL_FILES = [
@@ -44,21 +44,21 @@ self.addEventListener('fetch', (event) => {
   // API calls: always network, never cached/served from cache.
   if (url.pathname.startsWith('/api/')) return;
 
-  // App shell: if cached, serve immediately and refresh the cache in the background.
-  // If not cached, this NEVER swallows a network failure into an invalid/undefined
-  // response — it always returns the real fetch() promise, so a failed request
-  // behaves exactly as if there were no service worker at all (no ERR_FAILED trap).
+  // App shell: NETWORK-FIRST. Always try the network so a fresh deploy is visible
+  // on the very next load — no manual "clear site data" needed. The cache is only
+  // a fallback for when there's no network at all (real offline use). This also
+  // keeps the old ERR_FAILED trap closed: cache lookups here never produce an
+  // undefined response — caches.match() resolves to a real Response or undefined,
+  // and we only ever return a Response or let the browser's own network error show.
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) {
-        fetch(req)
-          .then((res) => {
-            if (res && res.ok) caches.open(CACHE_NAME).then((cache) => cache.put(req, res.clone()));
-          })
-          .catch(() => {});
-        return cached;
-      }
-      return fetch(req);
-    })
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() => caches.match(req).then((cached) => cached || Response.error()))
   );
 });
