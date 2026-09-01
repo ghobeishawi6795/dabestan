@@ -95,6 +95,7 @@
       <li><a class="nav-item" href="#" onclick="openModal('assignment')"><span class="ic">📤</span> ارسال تکلیف</a></li>
       <li><a class="nav-item" href="#bankSection" onclick="scrollToId('bankSection')"><span class="ic">📚</span> بانک سؤال</a></li>
       <li><a class="nav-item" href="#" onclick="openModal('upload')"><span class="ic">📄</span> آپلود فایل سؤال</a></li>
+      <li><a class="nav-item" href="#" onclick="openModal('packs')"><span class="ic">📦</span> قالب‌های آماده</a></li>
       <li><a class="nav-item" href="#tasksSection" onclick="reviewHint()"><span class="ic">✅</span> مرور و نمره‌دهی</a></li>
       <li><a class="nav-item" href="#classReportSection" onclick="scrollToId('classReportSection')"><span class="ic">📊</span> گزارش کلاس</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openParentChatList();"><span class="ic">👪</span> پیام‌های والدین</a></li>
@@ -154,6 +155,7 @@
     <div class="section-head" id="bankSection" style="display:flex; justify-content:space-between; align-items:center;">
       <h2 style="margin:0">📚 بانک سؤال</h2>
       <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-ghost" onclick="openModal('packs')" style="font-size:.78rem; padding:8px 12px;">📦 قالب‌های آماده</button>
         <button type="button" class="btn btn-ghost" onclick="openModal('upload')" style="font-size:.78rem; padding:8px 12px;">📄 آپلود فایل</button>
         <button type="button" class="btn btn-primary" onclick="openModal('question')" style="font-size:.78rem; padding:8px 12px;">+ سؤال جدید</button>
       </div>
@@ -464,6 +466,21 @@
   </div>
 </div>
 
+<!-- ===== مودال قالب‌های آماده ===== -->
+<div class="modal-backdrop" id="modalPacks">
+  <div class="modal" style="max-width:560px;">
+    <h3 style="margin-bottom:6px;">📦 قالب‌های آماده</h3>
+    <p style="font-size:.83rem; color:var(--ink-soft); margin-bottom:14px;">
+      چند بستهٔ نمونه سؤال به تفکیک پایه/درس — هرکدوم رو که بخوای می‌تونی با یه کلیک به بانک خودت اضافه کنی
+      و بعداً هر سؤالش رو مثل بقیه ویرایش/حذف کنی.
+    </p>
+    <div id="packsList"><p style="font-size:.85rem; color:var(--ink-soft);">در حال بارگذاری...</p></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('packs')">بستن</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== مودال آپلود فایل سؤال ===== -->
 <div class="modal-backdrop" id="modalUpload">
   <div class="modal" style="max-width:560px;">
@@ -605,6 +622,48 @@
   }
 
   const TYPE_LABEL = { multiple_choice: 'چندگزینه‌ای', true_false: 'درست/نادرست', fill_blank: 'جای‌خالی', matching: 'جور کردنی', ordering: 'ترتیبی', drag_connect: 'اتصالی', drawing: 'کشیدنی', coloring: 'رنگ‌آمیزی', audio_record: 'صوتی', photo_upload: 'عکس', custom_html: 'HTML سفارشی' };
+
+  // ===== قالب‌های آماده =====
+  let packsLoaded = false;
+  async function loadPacksIfNeeded() {
+    if (packsLoaded) return;
+    try {
+      const data = await apiFetch('/teacher/list-question-templates');
+      renderPacks(data.packs);
+      packsLoaded = true;
+    } catch (e) {
+      document.getElementById('packsList').innerHTML = `<p style="font-size:.85rem; color:var(--coral-dark);">${escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  function renderPacks(packs) {
+    document.getElementById('packsList').innerHTML = packs.map(p => `
+      <div class="card" style="margin-bottom:10px; padding:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div>
+            <div style="font-weight:800; font-size:.92rem;">${escapeHtml(p.name)}</div>
+            <div style="font-size:.78rem; color:var(--ink-soft); margin-top:2px;">${escapeHtml(p.description)}</div>
+            <div style="font-size:.72rem; color:var(--ink-soft); margin-top:6px;">${toFa(p.questionCount)} سؤال — ${p.types.map(t => TYPE_LABEL[t] || t).join('، ')}</div>
+          </div>
+          <button type="button" class="btn btn-primary" style="font-size:.76rem; padding:8px 12px; white-space:nowrap;" onclick="importPack('${p.id}', this)">افزودن به بانک</button>
+        </div>
+      </div>`).join('') || '<p style="font-size:.85rem; color:var(--ink-soft);">فعلاً قالبی موجود نیست.</p>';
+  }
+
+  async function importPack(packId, btn) {
+    btn.disabled = true;
+    btn.textContent = 'در حال افزودن...';
+    try {
+      const res = await apiFetch('/teacher/import-question-template', { method: 'POST', body: { packId } });
+      showToast(`${toFa(res.added)} سؤال به بانک اضافه شد ✅`);
+      loadBank();
+      btn.textContent = 'اضافه شد ✓';
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'افزودن به بانک';
+      showToast(e.message);
+    }
+  }
 
   // ===== بانک سؤال بازطراحی‌شده =====
   const BANK_SUBJECTS = [
@@ -836,7 +895,7 @@
     } catch (e) { console.error(e); }
   }
 
-  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') { renderBankPicker(); loadTemplatesIntoAssignmentModal(); } }
+  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') { renderBankPicker(); loadTemplatesIntoAssignmentModal(); } if (name === 'packs') loadPacksIfNeeded(); }
   function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
   function cap(s) { return s[0].toUpperCase() + s.slice(1); }
 

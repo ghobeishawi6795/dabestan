@@ -276,6 +276,23 @@ p { margin: 0; color: var(--ink-soft); line-height: 1.9; }
 }
 .sprout-progress > div { height: 100%; background: linear-gradient(90deg, var(--leaf), var(--sun)); border-radius: 999px; }
 
+.garden-weather {
+  position: absolute; top: 14px; left: 14px; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 6px 10px; box-shadow: var(--shadow-sm);
+}
+.gw-icon { font-size: 1.35rem; display: inline-block; line-height: 1; }
+.gw-label { font-size: .6rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.gw-sunny .gw-icon { animation: gw-pulse 2.4s ease-in-out infinite; }
+.gw-partly .gw-icon { animation: gw-float 3.2s ease-in-out infinite; }
+.gw-cloudy .gw-icon { animation: gw-drift 5s ease-in-out infinite; }
+.gw-rainy .gw-icon { animation: gw-bounce 2.6s ease-in-out infinite; }
+@keyframes gw-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+@keyframes gw-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes gw-drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+@keyframes gw-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+
 /* ===== جدول‌های ساده (ادمین/معلم) ===== */
 .simple-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
 .simple-table th { text-align: right; color: var(--ink-soft); font-weight: 700; padding: 10px 12px; border-bottom: 1px solid var(--line); }

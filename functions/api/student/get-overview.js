@@ -1,6 +1,7 @@
 import { json, err } from '../_lib/http.js';
 import { getStreak } from '../_lib/badges.js';
 import { getActiveFestival } from '../_lib/festival.js';
+import { getGardenWeather } from '../_lib/garden-weather.js';
 
 const XP_PER_LEVEL = 100;
 
@@ -41,6 +42,7 @@ export async function onRequestGet({ env, data }) {
     .bind(student.id).first();
 
   const festival = getActiveFestival();
+  const gardenWeather = await getGardenWeather(env, student.id);
 
   return json({
     avatar: user.avatar,
@@ -56,5 +58,6 @@ export async function onRequestGet({ env, data }) {
     skipCredits: skipCreditsRow.n,
     pet: pet ? { species: pet.species, accessories: JSON.parse(pet.accessories || '[]'), lastFedAt: pet.last_fed_at } : null,
     festival,
+    gardenWeather,
   });
 }

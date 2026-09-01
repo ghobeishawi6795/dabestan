@@ -96,6 +96,10 @@ button:active, .btn:active { transform: scale(.95); }
     <div class="festival-banner" id="festivalBanner" style="display:none;"></div>
 
     <section class="sprout-panel" id="sproutSection">
+      <div class="garden-weather" id="gardenWeather" title="حال‌وهوای این‌هفتهٔ باغچه">
+        <span class="gw-icon" id="gwIcon">🌱</span>
+        <span class="gw-label" id="gwLabel"></span>
+      </div>
       <div class="sprout-wrap" title="نهالت رو لمس کن">
         <svg viewBox="0 0 128 128" fill="none">
           <ellipse cx="64" cy="116" rx="34" ry="7" fill="#2A5238" opacity=".25"/>
@@ -589,7 +593,18 @@ button:active, .btn:active { transform: scale(.95); }
       } else {
         renderPet();
       }
+
+      renderGardenWeather(overview.gardenWeather);
     } catch (e) { console.error(e); }
+  }
+
+  function renderGardenWeather(weather) {
+    if (!weather) return;
+    const box = document.getElementById('gardenWeather');
+    box.className = `garden-weather gw-${weather.code}`;
+    box.title = weather.label;
+    document.getElementById('gwIcon').textContent = weather.icon;
+    document.getElementById('gwLabel').textContent = weather.code === 'new' ? '' : weather.label.split('—')[0].trim();
   }
 
   function renderPetChoiceGrid() {
