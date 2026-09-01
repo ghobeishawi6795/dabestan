@@ -75,6 +75,22 @@ const BADGE_CHECKS = {
       .bind(studentId).first();
     return r.n >= 3;
   },
+  yalda_1405: async (env, studentId) => {
+    const festival = getActiveFestival();
+    if (!festival || festival.code !== 'yalda_1405') return false;
+    const r = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM submissions WHERE student_id = ? AND date(submitted_at) BETWEEN ? AND ?`
+    ).bind(studentId, festival.start, festival.end).first();
+    return r.n >= 1;
+  },
+  noruz_1406: async (env, studentId) => {
+    const festival = getActiveFestival();
+    if (!festival || festival.code !== 'noruz_1406') return false;
+    const r = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM submissions WHERE student_id = ? AND date(submitted_at) BETWEEN ? AND ?`
+    ).bind(studentId, festival.start, festival.end).first();
+    return r.n >= 1;
+  },
 };
 
 // نشان‌های تازه‌کسب‌شده رو برمی‌گردونه (برای نمایش جشن‌گرفتن توی رابط کاربری)
