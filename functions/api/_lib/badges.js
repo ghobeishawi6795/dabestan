@@ -1,4 +1,5 @@
 // محاسبهٔ روز پیاپی + بررسی و اعطای نشان — سمت سرور، تا با هر بار ارسال تکلیف به‌روز بمونه.
+import { getActiveFestival } from './festival.js';
 
 // روزهای پیاپی فعالیت را از تاریخ‌های submitted_at حساب می‌کند (امروز یا دیروز باید جزوشون باشه تا زنجیره نشکنه).
 export async function getStreak(env, studentId) {
@@ -59,6 +60,14 @@ const BADGE_CHECKS = {
        JOIN question_bank q ON q.id = sa.question_id
        WHERE sub.student_id = ? AND q.question_type = 'audio_record'`
     ).bind(studentId).first();
+    return r.n >= 1;
+  },
+  mehregan_1405: async (env, studentId) => {
+    const festival = getActiveFestival();
+    if (!festival || festival.code !== 'mehregan_1405') return false;
+    const r = await env.DB.prepare(
+      `SELECT COUNT(*) AS n FROM submissions WHERE student_id = ? AND date(submitted_at) BETWEEN ? AND ?`
+    ).bind(studentId, festival.start, festival.end).first();
     return r.n >= 1;
   },
 };

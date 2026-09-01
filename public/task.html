@@ -375,7 +375,7 @@
     try {
       const answers = Object.entries(responses).map(([questionId, answer]) => ({ questionId: Number(questionId), answer }));
       const result = await apiFetch('/student/submit-task', { method: 'POST', body: { assignmentId: Number(assignmentId), answers } });
-      Auth.updateUser({ growthPoints: result.growthPoints });
+      Auth.updateUser({ growthPoints: result.growthPoints, coins: result.coins });
       if (result.newlyEarnedBadges && result.newlyEarnedBadges.length) {
         sessionStorage.setItem('hw_pending_badges', JSON.stringify(result.newlyEarnedBadges));
       }
@@ -384,7 +384,7 @@
           <div class="big">🎉</div>
           <h2 style="margin:10px 0;">تکلیف ارسال شد!</h2>
           <p>${result.score !== null ? `نمرهٔ خودکار: ٪${toFa(result.score)}` : 'بخشی از این تکلیف دستی نمره‌دهی می‌شود.'}</p>
-          <p style="margin-top:6px;">${toFa(result.pointsEarned)} امتیاز رشد گرفتی 🌱</p>
+          <p style="margin-top:6px;">${toFa(result.pointsEarned)} امتیاز رشد و ${toFa(result.pointsEarned)} سکه گرفتی 🌱🪙</p>
           <a class="btn btn-primary" style="margin-top:16px; display:inline-flex;" href="student.html">بازگشت به خانه</a>
         </div>`;
     } catch (e) {

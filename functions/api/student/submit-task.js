@@ -83,11 +83,17 @@ export async function onRequestPost({ request, env, data }) {
   await env.DB.batch(answerInserts);
 
   const pointsEarned = correctCount * POINTS_PER_CORRECT + manualCount * POINTS_PER_MANUAL_SUBMISSION;
-  await env.DB.prepare('UPDATE users SET growth_points = growth_points + ? WHERE id = ?')
-    .bind(pointsEarned, student.id).run();
+  // سکه هم به همون نرخ امتیاز رشد اضافه می‌شه — ولی جدا نگه داشته می‌شه چون خرج‌شدنی توی فروشگاهه
+  // و نباید روی مرحلهٔ رشد نهال (که فقط از growth_points می‌خونه) اثر بذاره.
+  await env.DB.prepare('UPDATE users SET growth_points = growth_points + ?, coins = coins + ? WHERE id = ?')
+    .bind(pointsEarned, pointsEarned, student.id).run();
 
-  const updatedUser = await env.DB.prepare('SELECT growth_points FROM users WHERE id = ?').bind(student.id).first();
+  // تغذیهٔ حیوان خانگی (اگر دانش‌آموز قبلاً یکی انتخاب کرده باشه) — هر ارسال موفق = یک وعده غذا.
+  await env.DB.prepare('UPDATE pets SET last_fed_at = ? WHERE student_id = ?')
+    .bind(now, student.id).run();
+
+  const updatedUser = await env.DB.prepare('SELECT growth_points, coins FROM users WHERE id = ?').bind(student.id).first();
   const newlyEarnedBadges = await checkAndAwardBadges(env, student.id);
 
-  return json({ ok: true, score, pointsEarned, growthPoints: updatedUser.growth_points, newlyEarnedBadges });
+  return json({ ok: true, score, pointsEarned, growthPoints: updatedUser.growth_points, coins: updatedUser.coins, newlyEarnedBadges });
 }

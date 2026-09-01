@@ -171,6 +171,12 @@
         <button type="button" class="btn btn-ghost" style="font-size:.8rem;" onclick="resetSchoolThemeColor()">پیش‌فرض</button>
       </div>
     </div>
+    <div class="field">
+      <label style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer;">
+        <span>🎫 کارت معافیت از تکلیف در فروشگاه امتیاز فعال باشه</span>
+        <input type="checkbox" id="skipCardsToggle" onchange="toggleSkipCards(this.checked)" style="width:20px; height:20px; cursor:pointer;">
+      </label>
+    </div>
     <div id="msgProfile"></div>
     <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="closeModal('profile')">بستن</button>
   </div>
@@ -552,6 +558,7 @@
       currentProfile = { avatar: p.avatar || '🗂️', avatarPhoto: p.avatarPhoto || null };
       applySchoolThemeColor(p.schoolThemeColor);
       if (p.schoolThemeColor) document.getElementById('schoolThemeColorInput').value = p.schoolThemeColor;
+      document.getElementById('skipCardsToggle').checked = !!p.skipCardsEnabled;
       renderAvatarEverywhere();
     } catch (e) { console.error(e); }
   }
@@ -615,6 +622,15 @@
       await apiFetch('/admin/update-school-theme', { method: 'POST', body: { themeColor: null } });
       location.reload();
     } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  async function toggleSkipCards(checked) {
+    try {
+      await apiFetch('/admin/update-school-theme', { method: 'POST', body: { skipCardsEnabled: checked } });
+    } catch (e) {
+      document.getElementById('skipCardsToggle').checked = !checked;
+      document.getElementById('msgProfile').textContent = e.message;
+    }
   }
 </script>
 </body>

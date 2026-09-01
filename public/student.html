@@ -43,6 +43,8 @@
       <li><a class="nav-item active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span> خانه</a></li>
       <li><a class="nav-item" href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span> تکالیف من</a></li>
       <li><a class="nav-item" href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span> باغچهٔ من</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openShopModal();"><span class="ic">🛍️</span> فروشگاه</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openCardsModal();"><span class="ic">🎴</span> کارت‌های من</a></li>
       <li><a class="nav-item" href="#" onclick="comingSoon(event)"><span class="ic">🏆</span> نشان‌ها</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
@@ -66,8 +68,11 @@
           🔔<span id="notifBadge" style="display:none; position:absolute; top:-4px; left:-4px; background:var(--coral); color:#fff; font-size:.62rem; font-weight:800; border-radius:999px; min-width:16px; height:16px; align-items:center; justify-content:center; padding:0 3px;"></span>
         </button>
         <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
+        <div class="streak-chip" style="background:var(--sun); color:#3a2c00;" id="coinsChip">🪙 ۰</div>
       </div>
     </div>
+
+    <div class="festival-banner" id="festivalBanner" style="display:none;"></div>
 
     <section class="sprout-panel" id="sproutSection">
       <div class="sprout-wrap" title="نهالت رو لمس کن">
@@ -87,6 +92,17 @@
       <div class="sprout-title" id="sproutStage">—</div>
       <div class="sprout-sub" id="sproutSub"></div>
       <div class="sprout-progress"><div id="sproutBar" style="width:0%"></div></div>
+    </section>
+
+    <section class="pet-panel" id="petPanel" style="display:none;">
+      <div class="pet-avatar" id="petAvatar">🐾</div>
+      <div class="pet-info">
+        <div class="pet-name" id="petMoodLabel">—</div>
+        <div class="pet-accessories" id="petAccessories"></div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn-ghost" style="font-size:.8rem;" onclick="openShopModal()">🛍️ فروشگاه</button>
+      </div>
     </section>
 
     <div class="section-head" id="tasksSection"><h2>کارهای امروز</h2><a class="see-all" href="#tasksSection">همه ↓</a></div>
@@ -156,6 +172,36 @@
   </div>
 </div>
 
+<!-- ===== مودال انتخاب حیوان خانگی ===== -->
+<div class="modal-backdrop" id="modalChoosePet">
+  <div class="modal" style="text-align:center;">
+    <h3 style="margin-bottom:6px;">یه همراه برای باغچه‌ت انتخاب کن 🌱</h3>
+    <div style="color:var(--ink-soft); font-size:.85rem; margin-bottom:14px;">این همراه کنار نهالت زندگی می‌کنه و با هر تکلیفی که بفرستی تغذیه می‌شه.</div>
+    <div class="pet-choice-grid" id="petChoiceGrid"></div>
+    <div id="msgChoosePet" style="margin-top:10px; color:var(--coral); font-size:.85rem;"></div>
+  </div>
+</div>
+
+<!-- ===== مودال فروشگاه امتیاز ===== -->
+<div class="modal-backdrop" id="modalShop">
+  <div class="modal" style="max-width:480px;">
+    <h3 style="margin-bottom:4px;">🛍️ فروشگاه امتیاز</h3>
+    <div style="color:var(--ink-soft); font-size:.85rem; margin-bottom:12px;">موجودی: <span id="shopCoins">۰</span> 🪙</div>
+    <div class="shop-grid" id="shopGrid">در حال بارگذاری...</div>
+    <div id="msgShop" style="margin-top:8px; color:var(--coral); font-size:.85rem;"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('shop')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال کارت‌های کلکسیونی ===== -->
+<div class="modal-backdrop" id="modalCards">
+  <div class="modal" style="max-width:480px;">
+    <h3 style="margin-bottom:12px;">🎴 کارت‌های من</h3>
+    <div class="card-grid" id="cardGrid">در حال بارگذاری...</div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('cards')">بستن</button>
+  </div>
+</div>
+
 <script src="assets/api.js"></script>
 <script>
   const user = requireAuth(['student']);
@@ -167,7 +213,11 @@
     loadNotifications();
     celebratePendingBadges();
     loadProgressChart();
+    loadPetAndFestival();
   }
+
+  // اعتبار کارت معافیت + فعال‌بودنش، از پاسخ get-tasks (نه get-overview) پر می‌شه — چون loadAll جدا صداش می‌زنه.
+  const state = { skipCredits: 0, skipCardsEnabled: false };
 
   function logout() { Auth.clear(); window.location.href = 'login.html'; }
 
@@ -218,6 +268,8 @@
     try {
       const tasksData = await apiFetch('/student/get-tasks');
       renderGrowth(user.growthPoints ?? 0);
+      state.skipCredits = tasksData.skipCredits || 0;
+      state.skipCardsEnabled = !!tasksData.skipCardsEnabled;
       renderTasks(tasksData.assignments);
       document.getElementById('streakNum').textContent = toFa(tasksData.streak);
       document.getElementById('statStreak').textContent = toFa(tasksData.streak);
@@ -262,14 +314,22 @@
     if (!assignments.length) { box.innerHTML = '<div class="task-card">فعلاً تکلیفی نداری 🎉</div>'; return; }
     box.innerHTML = assignments.map(a => {
       const done = a.submission_status === 'submitted' || a.submission_status === 'reviewed';
+      const excused = !!a.excused;
       const icon = TYPE_ICON[a.primary_type] || '📋';
       const cls = TYPE_CLASS[a.primary_type] || 't-match';
+      const badgeLabel = excused ? 'معاف شدی' : (done ? 'انجام شد' : 'جدید');
+      const badgeClass = excused ? 'badge-done' : (done ? 'badge-done' : 'badge-new');
+      const canSkip = !done && state.skipCardsEnabled && state.skipCredits > 0;
+      const skipBtn = canSkip
+        ? `<button type="button" class="btn btn-ghost task-skip-btn" onclick="event.preventDefault(); event.stopPropagation(); redeemSkip(${a.id});">🎫 معاف شدن (${toFa(state.skipCredits)})</button>`
+        : '';
       return `
       <a class="task-card" href="task.html?id=${a.id}" style="color:inherit;">
         <div class="task-type-icon ${cls}">${icon}</div>
-        <span class="task-badge ${done ? 'badge-done' : 'badge-new'}">${done ? 'انجام شد' : 'جدید'}</span>
+        <span class="task-badge ${badgeClass}">${badgeLabel}</span>
         <div class="subject">${escapeHtml(a.title)}</div>
         <div class="due">${a.due_at ? 'تا ' + formatJalali(a.due_at) : 'بدون موعد'}</div>
+        ${skipBtn}
       </a>`;
     }).join('');
   }
@@ -416,6 +476,166 @@
       const points = data.history.map(h => ({ y: Math.round(h.score), label: `${h.title}: ${Math.round(h.score)}٪` }));
       renderLineChart(document.getElementById('progressChartBox'), points, { color: 'var(--leaf)', emptyText: 'هنوز نمره‌ای ثبت نشده — بعد از اولین تکلیف نمره‌دارت این‌جا روند رو می‌بینی.' });
     } catch (e) { console.error(e); }
+  }
+
+  // ===== حیوان خانگی + جشنواره + سکه (از get-overview) =====
+  const PET_ICON = { cat: '🐱', rabbit: '🐰', bird: '🐦' };
+  const PET_NAME = { cat: 'گربه', rabbit: 'خرگوش', bird: 'جوجه‌تیغی' };
+  const ACCESSORY_ICON = { hat_party: '🎉', bow_tie: '🎀', glasses: '🕶️', crown: '👑', scarf: '🧣' };
+  let currentPet = null;
+
+  async function loadPetAndFestival() {
+    try {
+      const overview = await apiFetch('/student/get-overview');
+      document.getElementById('coinsChip').textContent = `🪙 ${toFa(overview.coins)}`;
+
+      if (overview.festival) {
+        const banner = document.getElementById('festivalBanner');
+        banner.style.display = 'flex';
+        banner.innerHTML = `<span style="font-size:1.4rem;">${overview.festival.icon}</span> <span>${escapeHtml(overview.festival.name)} شروع شده — با فرستادن تکلیف توی این بازه نشان ویژه می‌گیری!</span>`;
+      }
+
+      currentPet = overview.pet;
+      if (!currentPet) {
+        renderPetChoiceGrid();
+        openModal('choosePet');
+      } else {
+        renderPet();
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  function renderPetChoiceGrid() {
+    const species = [
+      { code: 'cat', name: 'گربه', icon: '🐱' },
+      { code: 'rabbit', name: 'خرگوش', icon: '🐰' },
+      { code: 'bird', name: 'جوجه‌تیغی', icon: '🐦' },
+    ];
+    document.getElementById('petChoiceGrid').innerHTML = species.map(s => `
+      <button type="button" class="pet-choice-btn" onclick="choosePet('${s.code}')">
+        <div style="font-size:2.4rem;">${s.icon}</div>
+        <div style="font-size:.82rem; font-weight:700; margin-top:4px;">${s.name}</div>
+      </button>`).join('');
+  }
+
+  async function choosePet(species) {
+    try {
+      await apiFetch('/student/choose-pet', { method: 'POST', body: { species } });
+      currentPet = { species, accessories: [], lastFedAt: new Date().toISOString() };
+      closeModal('choosePet');
+      renderPet();
+    } catch (e) { document.getElementById('msgChoosePet').textContent = e.message; }
+  }
+
+  function petMood() {
+    if (!currentPet?.lastFedAt) return { label: 'منتظرته 🌱', hungry: false };
+    const hoursSinceFed = (Date.now() - new Date(currentPet.lastFedAt).getTime()) / 3600000;
+    // بعد از ۴۸ ساعت بدون تکلیف جدید، همراهت دلتنگت می‌شه — نه «می‌میره»، فقط یادت می‌ندازه برگردی.
+    return hoursSinceFed > 48 ? { label: 'دلتنگته 🥺', hungry: true } : { label: 'خوشحاله 😊', hungry: false };
+  }
+
+  function renderPet() {
+    if (!currentPet) return;
+    const panel = document.getElementById('petPanel');
+    panel.style.display = 'flex';
+    document.getElementById('petAvatar').textContent = PET_ICON[currentPet.species] || '🐾';
+    const mood = petMood();
+    document.getElementById('petMoodLabel').textContent = `${PET_NAME[currentPet.species] || 'همراه'} — ${mood.label}`;
+    document.getElementById('petAccessories').textContent = currentPet.accessories.map(c => ACCESSORY_ICON[c] || '').join(' ');
+  }
+
+  // ===== فروشگاه امتیاز =====
+  async function openShopModal() {
+    openModal('shop');
+    document.getElementById('shopGrid').textContent = 'در حال بارگذاری...';
+    document.getElementById('msgShop').textContent = '';
+    try {
+      const data = await apiFetch('/student/get-shop');
+      document.getElementById('shopCoins').textContent = toFa(data.coins);
+      renderShop(data.items);
+    } catch (e) { document.getElementById('msgShop').textContent = e.message; }
+  }
+
+  function renderShop(items) {
+    document.getElementById('shopGrid').innerHTML = items.map(i => {
+      if (i.type === 'skip_card') {
+        return `
+        <div class="shop-item">
+          <div class="shop-item-icon">${i.icon}</div>
+          <div class="shop-item-name">${escapeHtml(i.name)}</div>
+          <div class="shop-item-cost">${toFa(i.cost)} 🪙</div>
+          <button type="button" class="btn btn-primary" style="font-size:.78rem;" onclick="buyItem('${i.code}')">خرید</button>
+        </div>`;
+      }
+      const equipped = currentPet && currentPet.accessories.includes(i.code);
+      return `
+      <div class="shop-item">
+        <div class="shop-item-icon">${i.icon}</div>
+        <div class="shop-item-name">${escapeHtml(i.name)}</div>
+        <div class="shop-item-cost">${toFa(i.cost)} 🪙</div>
+        ${i.owned
+          ? `<button type="button" class="btn ${equipped ? 'btn-primary' : 'btn-ghost'}" style="font-size:.78rem;" onclick="equipItem('${i.code}', ${!equipped})">${equipped ? 'پوشیده ✓' : 'پوشیدن'}</button>`
+          : `<button type="button" class="btn btn-primary" style="font-size:.78rem;" onclick="buyItem('${i.code}')">خرید</button>`}
+      </div>`;
+    }).join('');
+  }
+
+  async function buyItem(code) {
+    try {
+      await apiFetch('/student/buy-item', { method: 'POST', body: { itemCode: code } });
+      await openShopModal();
+      loadPetAndFestival();
+      loadAll();
+    } catch (e) { document.getElementById('msgShop').textContent = e.message; }
+  }
+
+  async function equipItem(code, equip) {
+    try {
+      const res = await apiFetch('/student/equip-item', { method: 'POST', body: { itemCode: code, equip } });
+      currentPet.accessories = res.accessories;
+      renderPet();
+      openShopModal();
+    } catch (e) { document.getElementById('msgShop').textContent = e.message; }
+  }
+
+  // ===== کارت‌های کلکسیونی =====
+  async function openCardsModal() {
+    openModal('cards');
+    document.getElementById('cardGrid').textContent = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/get-cards');
+      if (!data.cards.length) {
+        document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--ink-soft); font-size:.85rem;">هنوز کارتی نگرفتی — با جواب درست به سؤالای هر موضوع، کارتش رو می‌گیری 🎴</div>';
+        return;
+      }
+      document.getElementById('cardGrid').innerHTML = data.cards.map(c => `
+        <div class="collectible-card tier-${c.tier}">
+          <div class="collectible-card-tag">${escapeHtml(c.tag)}</div>
+          <div class="collectible-card-tier">${c.label}</div>
+          <div class="collectible-card-count">${toFa(c.count)} بار</div>
+        </div>`).join('');
+    } catch (e) { document.getElementById('cardGrid').textContent = e.message; }
+  }
+
+  // ===== معاف شدن با کارت =====
+  async function redeemSkip(assignmentId) {
+    if (!confirm('یک کارت معافیت مصرف بشه و این تکلیف بدون پاسخ بسته بشه؟')) return;
+    try {
+      const res = await apiFetch('/student/redeem-skip', { method: 'POST', body: { assignmentId } });
+      state.skipCredits = res.skipCredits;
+      const t = document.getElementById('toastMini');
+      t.textContent = 'معاف شدی 🎫';
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+      loadAll();
+    } catch (e) {
+      const t = document.getElementById('toastMini');
+      t.textContent = e.message;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
   }
 </script>
 </body>

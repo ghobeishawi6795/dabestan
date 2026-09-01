@@ -1,5 +1,6 @@
 import { json, err } from '../_lib/http.js';
 import { getStreak } from '../_lib/badges.js';
+import { getActiveFestival } from '../_lib/festival.js';
 
 const XP_PER_LEVEL = 100;
 
@@ -7,7 +8,7 @@ export async function onRequestGet({ env, data }) {
   const student = data.user;
   if (student.role !== 'student') return err('forbidden', 403);
 
-  const user = await env.DB.prepare('SELECT growth_points, avatar FROM users WHERE id = ?').bind(student.id).first();
+  const user = await env.DB.prepare('SELECT growth_points, avatar, coins FROM users WHERE id = ?').bind(student.id).first();
   const points = user.growth_points;
   const level = Math.floor(points / XP_PER_LEVEL) + 1;
   const xpProgress = points % XP_PER_LEVEL;
@@ -31,6 +32,16 @@ export async function onRequestGet({ env, data }) {
     `SELECT COUNT(*) AS n FROM submissions WHERE student_id = ? AND status IN ('submitted','reviewed')`
   ).bind(student.id).first();
 
+  // اعتبار کارت معافیت: تعداد ردیف‌های skip_card خریداری‌شده که هنوز مصرف نشدن.
+  const skipCreditsRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM shop_purchases WHERE student_id = ? AND item_type = 'skip_card' AND used_at IS NULL`
+  ).bind(student.id).first();
+
+  const pet = await env.DB.prepare('SELECT species, accessories, last_fed_at FROM pets WHERE student_id = ?')
+    .bind(student.id).first();
+
+  const festival = getActiveFestival();
+
   return json({
     avatar: user.avatar,
     stars: points,
@@ -41,5 +52,9 @@ export async function onRequestGet({ env, data }) {
     doneCount: doneCount.n,
     badges,
     luckyBoxAvailable: !!submittedToday && !rewardToday,
+    coins: user.coins,
+    skipCredits: skipCreditsRow.n,
+    pet: pet ? { species: pet.species, accessories: JSON.parse(pet.accessories || '[]'), lastFedAt: pet.last_fed_at } : null,
+    festival,
   });
 }
