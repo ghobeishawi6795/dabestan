@@ -61,3 +61,19 @@ function requireAuth(allowedRoles) {
   }
   return user;
 }
+
+// hardClear: پاک‌کردن کامل جلسه + کوکی‌ها برای خروج مطمئن
+(function () {
+  const orig = Auth.clear ? Auth.clear.bind(Auth) : null;
+  Auth.clear = function () {
+    if (orig) { try { orig(); } catch (e) {} }
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem('hw_last_points');
+      document.cookie.split(';').forEach(function (c) {
+        const name = c.trim().split('=')[0];
+        if (name) document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+      });
+    } catch (e) {}
+  };
+})();
