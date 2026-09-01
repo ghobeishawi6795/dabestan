@@ -299,7 +299,7 @@
     loadProfile();
   }
 
-  function logout() { Auth.clear(); window.location.href = 'login.html'; }
+  function logout() { try { Auth.clear(); } catch(e) { console.error('logout error:', e); } window.location.href = 'login.html'; }
   function scrollToId(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
   async function loadAll() {

@@ -306,7 +306,7 @@ button:active, .btn:active { transform: scale(.95); }
   // اعتبار کارت معافیت + فعال‌بودنش، از پاسخ get-tasks (نه get-overview) پر می‌شه — چون loadAll جدا صداش می‌زنه.
   const state = { skipCredits: 0, skipCardsEnabled: false };
 
-  function logout() { Auth.clear(); window.location.href = 'login.html'; }
+  function logout() { try { Auth.clear(); } catch(e) { console.error('logout error:', e); } window.location.href = 'login.html'; }
 
   function scrollToId(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
