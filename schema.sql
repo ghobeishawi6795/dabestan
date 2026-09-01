@@ -1,23 +1,17 @@
 PRAGMA foreign_keys = ON;
 
--- Homework App — D1 schema (v2, synced from live database)
--- این فایل دقیقاً منطبق با ساختار واقعی دیتابیس زنده است.
+-- Homework App — D1 schema (v4, fully synced with live database)
 -- No R2: audio/image submissions are stored as base64 TEXT, size-limited at the API layer.
 
--- ========================================
--- جدول مدارس (Schools)
--- ========================================
 CREATE TABLE IF NOT EXISTS schools (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   city TEXT,
   skip_cards_enabled INTEGER NOT NULL DEFAULT 1,
+  theme_color TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- نشان‌ها (Badges) — تعریف ثابت
--- ========================================
 CREATE TABLE IF NOT EXISTS badges (
   code TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -25,11 +19,6 @@ CREATE TABLE IF NOT EXISTS badges (
   description TEXT NOT NULL
 );
 
--- ========================================
--- جدول کاربران (Users)
--- نقش‌ها: admin | teacher | student
--- والدین با parent_code به student وصل می‌شن (نه لاگین جدا)
--- ========================================
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -41,6 +30,7 @@ CREATE TABLE IF NOT EXISTS users (
   class_id INTEGER REFERENCES classes(id),
   parent_code TEXT,
   avatar TEXT,
+  avatar_photo TEXT,
   growth_points INTEGER NOT NULL DEFAULT 0,
   coins INTEGER NOT NULL DEFAULT 0,
   is_active INTEGER NOT NULL DEFAULT 1,
@@ -49,9 +39,6 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE (school_id, username)
 );
 
--- ========================================
--- جدول کلاس‌ها (Classes)
--- ========================================
 CREATE TABLE IF NOT EXISTS classes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -61,9 +48,6 @@ CREATE TABLE IF NOT EXISTS classes (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- بانک سؤالات (Question Bank)
--- ========================================
 CREATE TABLE IF NOT EXISTS question_bank (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -74,12 +58,12 @@ CREATE TABLE IF NOT EXISTS question_bank (
   title TEXT NOT NULL,
   content_json TEXT NOT NULL,
   custom_html TEXT,
+  tags TEXT,
+  is_favorite INTEGER NOT NULL DEFAULT 0,
+  difficulty TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- تکالیف (Assignments)
--- ========================================
 CREATE TABLE IF NOT EXISTS assignments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -91,9 +75,6 @@ CREATE TABLE IF NOT EXISTS assignments (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- سؤالات هر تکلیف (Assignment Questions)
--- ========================================
 CREATE TABLE IF NOT EXISTS assignment_questions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   assignment_id INTEGER NOT NULL REFERENCES assignments(id),
@@ -101,10 +82,6 @@ CREATE TABLE IF NOT EXISTS assignment_questions (
   position INTEGER NOT NULL DEFAULT 0
 );
 
--- ========================================
--- ارسال‌ها (Submissions)
--- excused = 1 یعنی دانش‌آموز با کارت معافیت رد کرده
--- ========================================
 CREATE TABLE IF NOT EXISTS submissions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   assignment_id INTEGER NOT NULL REFERENCES assignments(id),
@@ -117,9 +94,6 @@ CREATE TABLE IF NOT EXISTS submissions (
   UNIQUE (assignment_id, student_id)
 );
 
--- ========================================
--- پاسخ‌های هر ارسال (Submission Answers)
--- ========================================
 CREATE TABLE IF NOT EXISTS submission_answers (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   submission_id INTEGER NOT NULL REFERENCES submissions(id),
@@ -129,9 +103,6 @@ CREATE TABLE IF NOT EXISTS submission_answers (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- نشان‌های کسب‌شده توسط کاربران (User Badges)
--- ========================================
 CREATE TABLE IF NOT EXISTS user_badges (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
@@ -140,9 +111,6 @@ CREATE TABLE IF NOT EXISTS user_badges (
   UNIQUE (user_id, badge_code)
 );
 
--- ========================================
--- جوایز روزانه (Daily Rewards)
--- ========================================
 CREATE TABLE IF NOT EXISTS daily_rewards (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL REFERENCES users(id),
@@ -153,9 +121,6 @@ CREATE TABLE IF NOT EXISTS daily_rewards (
   UNIQUE (user_id, reward_date)
 );
 
--- ========================================
--- درس‌ها (Lessons)
--- ========================================
 CREATE TABLE IF NOT EXISTS lessons (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -168,9 +133,6 @@ CREATE TABLE IF NOT EXISTS lessons (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- اتصال درس‌ها به تکالیف (Lesson Assignments)
--- ========================================
 CREATE TABLE IF NOT EXISTS lesson_assignments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   lesson_id INTEGER NOT NULL REFERENCES lessons(id),
@@ -178,9 +140,6 @@ CREATE TABLE IF NOT EXISTS lesson_assignments (
   position INTEGER NOT NULL DEFAULT 0
 );
 
--- ========================================
--- بازخورد والدین (Parent Feedback)
--- ========================================
 CREATE TABLE IF NOT EXISTS parent_feedback (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   student_id INTEGER NOT NULL REFERENCES users(id),
@@ -192,9 +151,6 @@ CREATE TABLE IF NOT EXISTS parent_feedback (
   UNIQUE (submission_id)
 );
 
--- ========================================
--- پیام‌های داخلی (Messages)
--- ========================================
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -206,10 +162,43 @@ CREATE TABLE IF NOT EXISTS messages (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- حیوان خانگی (Pets)
--- هر دانش‌آموز یک حیوان، با accessories به‌صورت JSON
--- ========================================
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT,
+  related_id INTEGER,
+  is_read INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS parent_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  student_id INTEGER NOT NULL REFERENCES users(id),
+  teacher_id INTEGER NOT NULL REFERENCES users(id),
+  sender TEXT NOT NULL CHECK (sender IN ('parent','teacher')),
+  body TEXT NOT NULL,
+  is_read INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS assignment_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id),
+  teacher_id INTEGER NOT NULL REFERENCES users(id),
+  title TEXT NOT NULL,
+  question_ids TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS due_soon_reminders_sent (
+  assignment_id INTEGER NOT NULL REFERENCES assignments(id),
+  student_id INTEGER NOT NULL REFERENCES users(id),
+  sent_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (assignment_id, student_id)
+);
+
 CREATE TABLE IF NOT EXISTS pets (
   student_id INTEGER PRIMARY KEY REFERENCES users(id),
   species TEXT NOT NULL,
@@ -218,10 +207,6 @@ CREATE TABLE IF NOT EXISTS pets (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- خریدهای فروشگاه (Shop Purchases)
--- accessory = مالکیت دائم، skip_card = اعتبار مصرفی (used_at)
--- ========================================
 CREATE TABLE IF NOT EXISTS shop_purchases (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   student_id INTEGER NOT NULL REFERENCES users(id),
@@ -231,9 +216,43 @@ CREATE TABLE IF NOT EXISTS shop_purchases (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ========================================
--- ایندکس‌ها برای پرفرمنس بهتر
--- ========================================
+CREATE TABLE IF NOT EXISTS duels (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id),
+  class_id INTEGER NOT NULL REFERENCES classes(id),
+  challenger_id INTEGER NOT NULL REFERENCES users(id),
+  opponent_id INTEGER NOT NULL REFERENCES users(id),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','active','finished','declined')),
+  question_count INTEGER NOT NULL DEFAULT 5,
+  winner_id INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  started_at TEXT,
+  finished_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS duel_questions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  duel_id INTEGER NOT NULL REFERENCES duels(id),
+  position INTEGER NOT NULL,
+  operand_a INTEGER NOT NULL,
+  operand_b INTEGER NOT NULL,
+  operator TEXT NOT NULL,
+  answer INTEGER NOT NULL,
+  UNIQUE (duel_id, position)
+);
+
+CREATE TABLE IF NOT EXISTS duel_answers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  duel_id INTEGER NOT NULL REFERENCES duels(id),
+  student_id INTEGER NOT NULL REFERENCES users(id),
+  position INTEGER NOT NULL,
+  submitted_answer INTEGER,
+  is_correct INTEGER NOT NULL DEFAULT 0,
+  answered_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (duel_id, student_id, position)
+);
+
+-- ایندکس‌ها
 CREATE INDEX IF NOT EXISTS idx_users_school ON users(school_id);
 CREATE INDEX IF NOT EXISTS idx_users_class ON users(class_id);
 CREATE INDEX IF NOT EXISTS idx_classes_school ON classes(school_id);
@@ -241,22 +260,38 @@ CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_question_bank_school ON question_bank(school_id);
 CREATE INDEX IF NOT EXISTS idx_assignments_class ON assignments(class_id);
 CREATE INDEX IF NOT EXISTS idx_assignment_questions_assignment ON assignment_questions(assignment_id);
-CREATE INDEX IF NOT EXISTS idx_assignment_questions_question ON assignment_questions(question_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_submission_answers_submission ON submission_answers(submission_id);
-CREATE INDEX IF NOT EXISTS idx_submission_answers_question ON submission_answers(question_id);
 CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
 CREATE INDEX IF NOT EXISTS idx_daily_rewards_user_date ON daily_rewards(user_id, reward_date);
 CREATE INDEX IF NOT EXISTS idx_lessons_class ON lessons(class_id);
 CREATE INDEX IF NOT EXISTS idx_lesson_assignments_lesson ON lesson_assignments(lesson_id);
 CREATE INDEX IF NOT EXISTS idx_parent_feedback_teacher ON parent_feedback(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_messages_to ON messages(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_parent_messages_student ON parent_messages(student_id);
+CREATE INDEX IF NOT EXISTS idx_parent_messages_teacher ON parent_messages(teacher_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_assignment_templates_teacher ON assignment_templates(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_shop_purchases_student ON shop_purchases(student_id);
 CREATE INDEX IF NOT EXISTS idx_shop_purchases_skip_unused ON shop_purchases(student_id, item_type, used_at);
+CREATE INDEX IF NOT EXISTS idx_duels_challenger ON duels(challenger_id, status);
+CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels(opponent_id, status);
+CREATE INDEX IF NOT EXISTS idx_duel_answers_duel_student ON duel_answers(duel_id, student_id);
 
--- ========================================
--- داده‌های اولیه: نشان‌های سیستم
--- ========================================
+-- داده‌های اولیه: نشان‌ها
 INSERT OR IGNORE INTO badges (code, name, icon, description) VALUES
-  ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی');
+  ('first_task', 'اولین قدم', '🌟', 'اولین تکلیفت رو انجام دادی'),
+  ('perfect_score', 'دقت طلایی', '🎯', 'یک تکلیف رو ٪۱۰۰ زدی'),
+  ('streak_5', 'آتیش‌پا', '🔥', ' روز پیاپی فعالیت داشتی'),
+  ('ten_tasks', 'ده‌قدمی', '🏆', '۰ تکلیف انجام دادی'),
+  ('artist', 'هنرمند', '🎨', 'یک تکلیف نقاشی یا رنگ‌آمیزی فرستادی'),
+  ('speaker', 'سخنور', '🎤', 'یک تکلیف صوتی فرستادی'),
+  ('first_assignment', 'اولین تکلیف را برای دانش‌آموزان ارسال کردی', '🌱', 'اساتید'),
+  ('ten_assignments', '۱۰ تکلیف ارسال کردی', '📚', 'معلم پرکار'),
+  ('quick_grader', 'تصحیح سریع', '⚡', 'میانگین زمان تصحیح زیر ۲۴ ساعت است'),
+  ('creative_bank', 'از ۵ نوع سؤال استفاده کردی', '🎨', 'معلم خلاق'),
+  ('popular_teacher', 'میانگین رضایت والدین بالای ۴ از ۵', '💛', 'محبوب والدین'),
+  ('lesson_builder', 'اولین فصل درسی را ساختی', '🏗️', 'برنامه‌ریز'),
+  ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی'),
+  ('duel_champion', 'قهرمان نبرد', '⚔️', 'سه نبرد ریاضی رو بردی');
