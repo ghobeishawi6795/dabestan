@@ -1,5 +1,5 @@
-import { verifyPassword, createSessionToken } from '../_lib/auth.js';
 import { json, err } from '../_lib/http.js';
+import { verifyPassword, createSessionToken } from '../_lib/auth.js';
 
 export async function onRequestPost({ request, env }) {
   const body = await request.json().catch(() => null);
@@ -23,4 +23,4 @@ export async function onRequestPost({ request, env }) {
     token,
     user: { id: user.id, role: user.role, fullName: user.full_name, username: user.username, growthPoints: user.growth_points },
   });
-}
+    }
