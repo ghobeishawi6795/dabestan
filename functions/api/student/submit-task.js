@@ -25,7 +25,10 @@ export async function onRequestPost({ request, env, data }) {
   ).bind(assignmentId, student.id).first();
   if (existing?.status === 'reviewed') return err('this assignment was already reviewed and cannot be resubmitted', 409);
 
-  // Only grade against questions that actually belong to this assignment — ignore/reject anything else in the payload.
+  // ⭐ اصلاح: امتیاز/سکه فقط برای اولین ارسال — جلوگیری از مزرعهٔ سکه با ارسال مجدد
+  const firstTime = !existing;
+
+  // Only grade against questions that actually belong to this assignment
   const { results: linkedQuestions } = await env.DB.prepare(
     `SELECT q.id, q.question_type, q.content_json
      FROM assignment_questions aq JOIN question_bank q ON q.id = aq.question_id
@@ -33,7 +36,7 @@ export async function onRequestPost({ request, env, data }) {
   ).bind(assignmentId).all();
   const questionById = new Map(linkedQuestions.map((q) => [q.id, q]));
 
-  // Require every linked question to be answered before allowing submission (learned from earlier project).
+  // Require every linked question to be answered before allowing submission
   const answerByQid = new Map(answers.map((a) => [a.questionId, a.answer]));
   for (const q of linkedQuestions) {
     if (!answerByQid.has(q.id)) return err(`missing answer for question ${q.id}`, 400);
@@ -82,15 +85,17 @@ export async function onRequestPost({ request, env, data }) {
   );
   await env.DB.batch(answerInserts);
 
-  const pointsEarned = correctCount * POINTS_PER_CORRECT + manualCount * POINTS_PER_MANUAL_SUBMISSION;
-  // سکه هم به همون نرخ امتیاز رشد اضافه می‌شه — ولی جدا نگه داشته می‌شه چون خرج‌شدنی توی فروشگاهه
-  // و نباید روی مرحلهٔ رشد نهال (که فقط از growth_points می‌خونه) اثر بذاره.
-  await env.DB.prepare('UPDATE users SET growth_points = growth_points + ?, coins = coins + ? WHERE id = ?')
-    .bind(pointsEarned, pointsEarned, student.id).run();
+  let pointsEarned = 0;
+  if (firstTime) {
+    pointsEarned = correctCount * POINTS_PER_CORRECT + manualCount * POINTS_PER_MANUAL_SUBMISSION;
+    // سکه هم به همون نرخ امتیاز رشد اضافه می‌شه — ولی جدا نگه داشته می‌شه چون خرج‌شدنی توی فروشگاهه
+    await env.DB.prepare('UPDATE users SET growth_points = growth_points + ?, coins = coins + ? WHERE id = ?')
+      .bind(pointsEarned, pointsEarned, student.id).run();
 
-  // تغذیهٔ حیوان خانگی (اگر دانش‌آموز قبلاً یکی انتخاب کرده باشه) — هر ارسال موفق = یک وعده غذا.
-  await env.DB.prepare('UPDATE pets SET last_fed_at = ? WHERE student_id = ?')
-    .bind(now, student.id).run();
+    // تغذیهٔ حیوان خانگی (اگر دانش‌آموز قبلاً یکی انتخاب کرده باشه) — هر ارسال موفق = یک وعده غذا.
+    await env.DB.prepare('UPDATE pets SET last_fed_at = ? WHERE student_id = ?')
+      .bind(now, student.id).run();
+  }
 
   const updatedUser = await env.DB.prepare('SELECT growth_points, coins FROM users WHERE id = ?').bind(student.id).first();
   const newlyEarnedBadges = await checkAndAwardBadges(env, student.id);
