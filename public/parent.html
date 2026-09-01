@@ -75,6 +75,11 @@
       </table>
     </div>
 
+    <div class="section-head" style="margin-top:16px;"><h2>📔 دفترچهٔ باغچه</h2></div>
+    <div class="card" id="diaryCard">
+      <div id="diaryList" style="display:flex; flex-direction:column; gap:10px;">در حال بارگذاری...</div>
+    </div>
+
     <div class="section-head" style="margin-top:16px;"><h2>💬 گفتگو با معلم<span id="pTeacherName"></span></h2></div>
     <div class="card" id="chatCard" style="display:none;">
       <div id="chatList" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
@@ -135,6 +140,31 @@
       <tr><td>${escapeHtml(s.title)}<br><span style="font-size:.75em;color:var(--ink-soft);">معلم: ${escapeHtml(s.teacherName)}</span></td>
       <td>${statusPill(s)}${s.status === 'reviewed' ? ratingWidget(s) : ''}</td></tr>`).join('') : '<tr><td colspan="2">هنوز تکلیفی ثبت نشده.</td></tr>';
     loadChat();
+    loadDiary();
+  }
+
+  async function loadDiary() {
+    try {
+      const res = await fetch(`/api/parent/get-garden-diary?code=${encodeURIComponent(parentCode)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error();
+      renderDiary(data.entries);
+    } catch {
+      document.getElementById('diaryList').innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem;">بارگذاری دفترچه با خطا مواجه شد.</div>';
+    }
+  }
+
+  function renderDiary(entries) {
+    const box = document.getElementById('diaryList');
+    if (!entries.length) {
+      box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem;">هنوز چیزی برای نوشتن توی دفترچه نیست.</div>';
+      return;
+    }
+    box.innerHTML = entries.map(e => `
+      <div style="border-right:3px solid var(--leaf); padding-right:10px;">
+        <div style="font-size:.72rem; color:var(--ink-soft); margin-bottom:2px;">${formatJalali(e.date)}</div>
+        <div style="font-size:.86rem;">${escapeHtml(e.text)}</div>
+      </div>`).join('');
   }
 
   async function loadChat() {

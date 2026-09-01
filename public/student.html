@@ -45,6 +45,8 @@
       <li><a class="nav-item" href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span> باغچهٔ من</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openShopModal();"><span class="ic">🛍️</span> فروشگاه</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openCardsModal();"><span class="ic">🎴</span> کارت‌های من</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDuelsModal();"><span class="ic">⚔️</span> نبرد ریاضی</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDiaryModal();"><span class="ic">📔</span> دفترچهٔ باغچه</a></li>
       <li><a class="nav-item" href="#" onclick="comingSoon(event)"><span class="ic">🏆</span> نشان‌ها</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
@@ -128,6 +130,7 @@
   <a class="active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span>خانه</a>
   <a href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span>تکالیف</a>
   <a href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span>باغچه</a>
+  <a href="#" onclick="event.preventDefault(); openModal('more');"><span class="ic">⋯</span>بیشتر</a>
   <a href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span>پروفایل</a>
 </nav>
 
@@ -199,6 +202,70 @@
     <h3 style="margin-bottom:12px;">🎴 کارت‌های من</h3>
     <div class="card-grid" id="cardGrid">در حال بارگذاری...</div>
     <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('cards')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال «بیشتر» (فقط موبایل — چون سایدبار اونجا مخفیه) ===== -->
+<div class="modal-backdrop" id="modalMore">
+  <div class="modal" style="max-width:340px; text-align:center;">
+    <h3 style="margin-bottom:14px;">بیشتر</h3>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openShopModal();">🛍️ فروشگاه</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openCardsModal();">🎴 کارت‌های من</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDuelsModal();">⚔️ نبرد ریاضی</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDiaryModal();">📔 دفترچهٔ باغچه</button>
+    </div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal('more')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال نبرد ریاضی — فهرست ===== -->
+<div class="modal-backdrop" id="modalDuels">
+  <div class="modal" style="max-width:440px;">
+    <h3 style="margin-bottom:4px;">⚔️ نبرد ریاضی</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">بردهای تو: <b id="duelWinsCount">۰</b> 🏆</div>
+    <div class="duel-tabs">
+      <button type="button" class="duel-tab active" data-tab="challenge" onclick="switchDuelTab('challenge')">شروع نبرد</button>
+      <button type="button" class="duel-tab" data-tab="incoming" onclick="switchDuelTab('incoming')">دعوت‌ها</button>
+      <button type="button" class="duel-tab" data-tab="active" onclick="switchDuelTab('active')">فعال</button>
+      <button type="button" class="duel-tab" data-tab="history" onclick="switchDuelTab('history')">تاریخچه</button>
+    </div>
+    <div class="duel-panel active" id="duelPanelChallenge"><div id="classmateList">در حال بارگذاری...</div></div>
+    <div class="duel-panel" id="duelPanelIncoming"><div id="duelIncomingList"></div></div>
+    <div class="duel-panel" id="duelPanelActive"><div id="duelActiveList"></div></div>
+    <div class="duel-panel" id="duelPanelHistory"><div id="duelHistoryList"></div></div>
+    <div id="msgDuels" style="margin-top:8px; color:var(--coral); font-size:.85rem;"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('duels'); stopDuelListPolling();">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال نبرد ریاضی — صحنهٔ بازی ===== -->
+<div class="modal-backdrop" id="modalDuelPlay">
+  <div class="modal" style="max-width:380px;">
+    <h3 style="margin-bottom:2px;" id="duelPlayTitle">نبرد با —</h3>
+    <div class="duel-progress-row">
+      <span id="duelPlayMyProgress">تو: ۰/۰</span>
+      <span id="duelPlayOppProgress">حریف: ۰/۰</span>
+    </div>
+    <div id="duelPlayBody">
+      <div class="duel-question-box">
+        <div class="duel-question-nums" id="duelQuestionText">—</div>
+        <input type="number" id="duelAnswerInput" placeholder="جواب رو بنویس" style="width:100%; text-align:center; font-size:1.1rem; padding:10px; border-radius:10px; border:1px solid var(--line); margin-bottom:12px;">
+        <button type="button" class="btn btn-primary" style="width:100%;" onclick="submitDuelAnswer()">ثبت جواب</button>
+        <div id="duelAnswerFeedback" style="margin-top:8px; font-size:.85rem; font-weight:700;"></div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('duelPlay'); stopDuelPlayPolling();">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال دفترچهٔ باغچه ===== -->
+<div class="modal-backdrop" id="modalDiary">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="margin-bottom:4px;">📔 دفترچهٔ باغچه</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">خلاصهٔ ۳۰ روز اخیرت</div>
+    <div id="diaryList" style="display:flex; flex-direction:column; gap:10px; max-height:55vh; overflow-y:auto;">در حال بارگذاری...</div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('diary')">بستن</button>
   </div>
 </div>
 
@@ -412,7 +479,7 @@
   }
 
   // ===== اعلان‌ها =====
-  const NOTIF_ICON = { new_assignment: '📋', grade_ready: '🎉', parent_message: '💬', due_soon: '⏰' };
+  const NOTIF_ICON = { new_assignment: '📋', grade_ready: '🎉', parent_message: '💬', due_soon: '⏰', duel_challenge: '⚔️', duel_accepted: '⚔️', duel_declined: '⚔️', duel_result: '⚔️' };
 
   async function loadNotifications() {
     try {
@@ -635,6 +702,212 @@
       t.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+  }
+
+  // ===== نبرد ریاضی =====
+  const DUEL_OP_LABEL = { '+': '+', '-': '−', '×': '×' };
+  let duelListTimer = null;
+
+  function openDuelsModal() {
+    openModal('duels');
+    document.getElementById('msgDuels').textContent = '';
+    switchDuelTab('challenge');
+    loadDuelsList();
+    clearInterval(duelListTimer);
+    duelListTimer = setInterval(loadDuelsList, 5000);
+  }
+
+  function stopDuelListPolling() { clearInterval(duelListTimer); duelListTimer = null; }
+
+  function switchDuelTab(tab) {
+    document.querySelectorAll('.duel-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.duel-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`duelPanel${cap(tab)}`).classList.add('active');
+    if (tab === 'challenge' && !window.__classmatesLoaded) loadClassmates();
+  }
+
+  async function loadClassmates() {
+    try {
+      const data = await apiFetch('/student/list-classmates');
+      window.__classmatesLoaded = true;
+      const box = document.getElementById('classmateList');
+      if (!data.classmates.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هم‌کلاسی‌ای برای دعوت پیدا نشد.</div>'; return; }
+      box.innerHTML = data.classmates.map(c => `
+        <div class="classmate-row">
+          <span>${escapeHtml(c.full_name)}</span>
+          <button type="button" class="btn btn-primary" style="padding:6px 14px; font-size:.76rem;" onclick="challengeClassmate(${c.id})">دعوت به نبرد</button>
+        </div>`).join('');
+    } catch (e) { document.getElementById('msgDuels').textContent = e.message; }
+  }
+
+  async function challengeClassmate(id) {
+    try {
+      await apiFetch('/student/challenge-duel', { method: 'POST', body: { opponentId: id } });
+      document.getElementById('msgDuels').textContent = '';
+    } catch (e) { document.getElementById('msgDuels').textContent = e.message; return; }
+    switchDuelTab('incoming');
+    loadDuelsList();
+  }
+
+  async function loadDuelsList() {
+    try {
+      const data = await apiFetch('/student/list-duels');
+      document.getElementById('duelWinsCount').textContent = toFa(data.wins);
+
+      const incomingBox = document.getElementById('duelIncomingList');
+      const incomingAll = [...data.incoming, ...data.sent];
+      incomingBox.innerHTML = incomingAll.length ? incomingAll.map(d => {
+        const mine = d.challenger_id === user.id;
+        return `
+        <div class="duel-list-item">
+          <div>
+            <div class="who">${escapeHtml(d.opponentName)}</div>
+            <div class="meta">${mine ? 'منتظر پاسخ اونه' : 'دعوتت کرده'}</div>
+          </div>
+          ${mine ? '' : `
+          <div class="duel-list-actions">
+            <button type="button" class="btn btn-primary" onclick="respondDuel(${d.id}, true)">قبول</button>
+            <button type="button" class="btn btn-ghost" onclick="respondDuel(${d.id}, false)">رد</button>
+          </div>`}
+        </div>`;
+      }).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">دعوتی در انتظار نیست.</div>';
+
+      const activeBox = document.getElementById('duelActiveList');
+      activeBox.innerHTML = data.active.length ? data.active.map(d => `
+        <div class="duel-list-item">
+          <div><div class="who">${escapeHtml(d.opponentName)}</div><div class="meta">نبرد در جریانه</div></div>
+          <div class="duel-list-actions"><button type="button" class="btn btn-primary" onclick="openDuelPlay(${d.id})">ادامه</button></div>
+        </div>`).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">نبرد فعالی نداری.</div>';
+
+      const historyBox = document.getElementById('duelHistoryList');
+      historyBox.innerHTML = data.history.length ? data.history.map(d => {
+        const outcome = d.winner_id === user.id ? 'بردی 🏆' : (d.winner_id === null ? 'مساوی' : 'باختی');
+        return `<div class="duel-list-item"><div><div class="who">${escapeHtml(d.opponentName)}</div><div class="meta">${outcome}</div></div></div>`;
+      }).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز نبردی تمام نشده.</div>';
+    } catch (e) { console.error(e); }
+  }
+
+  async function respondDuel(duelId, accept) {
+    try {
+      await apiFetch('/student/respond-duel', { method: 'POST', body: { duelId, accept } });
+      loadDuelsList();
+      if (accept) openDuelPlay(duelId);
+    } catch (e) { document.getElementById('msgDuels').textContent = e.message; }
+  }
+
+  // ===== صحنهٔ بازی نبرد =====
+  let duelPlayTimer = null, currentDuelId = null;
+
+  function openDuelPlay(duelId) {
+    currentDuelId = duelId;
+    renderedDuelPosition = null;
+    closeModal('duels'); stopDuelListPolling();
+    openModal('duelPlay');
+    pollDuelPlay();
+    clearInterval(duelPlayTimer);
+    duelPlayTimer = setInterval(pollDuelPlay, 2500);
+  }
+
+  function stopDuelPlayPolling() { clearInterval(duelPlayTimer); duelPlayTimer = null; currentDuelId = null; }
+
+  async function pollDuelPlay() {
+    if (!currentDuelId) return;
+    try {
+      const d = await apiFetch(`/student/get-duel?id=${currentDuelId}`);
+      document.getElementById('duelPlayTitle').textContent = `نبرد با ${d.opponentName}`;
+      document.getElementById('duelPlayMyProgress').textContent = `تو: ${toFa(d.myAnswered)}/${toFa(d.questionCount)}`;
+      document.getElementById('duelPlayOppProgress').textContent = `حریف: ${toFa(d.opponentAnswered)}/${toFa(d.questionCount)}`;
+
+      if (d.status === 'finished' && d.result) {
+        stopDuelPlayPolling();
+        renderDuelResult(d.result);
+        loadPetAndFestival();
+        return;
+      }
+      if (d.currentQuestion) {
+        renderDuelQuestion(d.currentQuestion);
+      } else if (d.status === 'active') {
+        document.getElementById('duelPlayBody').innerHTML = `
+          <div class="duel-question-box">
+            <div style="font-size:1rem; color:var(--ink-soft);">همهٔ سؤالاتو جواب دادی — منتظر حریفت باش... ⏳</div>
+          </div>`;
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  let renderedDuelPosition = null;
+  function renderDuelQuestion(q) {
+    if (renderedDuelPosition === q.position) return; // از رندر دوباره جلوگیری کن تا ورودی کاربر پاک نشه
+    renderedDuelPosition = q.position;
+    document.getElementById('duelPlayBody').innerHTML = `
+      <div class="duel-question-box">
+        <div class="duel-question-nums">${toFa(q.operandA)} ${DUEL_OP_LABEL[q.operator]} ${toFa(q.operandB)} = ؟</div>
+        <input type="number" id="duelAnswerInput" placeholder="جواب رو بنویس" style="width:100%; text-align:center; font-size:1.1rem; padding:10px; border-radius:10px; border:1px solid var(--line); margin-bottom:12px;">
+        <button type="button" class="btn btn-primary" style="width:100%;" onclick="submitDuelAnswer(${q.position})">ثبت جواب</button>
+        <div id="duelAnswerFeedback" style="margin-top:8px; font-size:.85rem; font-weight:700;"></div>
+      </div>`;
+    document.getElementById('duelAnswerInput').focus();
+  }
+
+  async function submitDuelAnswer(position) {
+    const input = document.getElementById('duelAnswerInput');
+    const val = input.value.trim();
+    if (val === '') return;
+    try {
+      const res = await apiFetch('/student/answer-duel', { method: 'POST', body: { duelId: currentDuelId, position, answer: Number(val) } });
+      const fb = document.getElementById('duelAnswerFeedback');
+      fb.style.color = res.isCorrect ? 'var(--leaf-dark)' : 'var(--coral-dark)';
+      fb.textContent = res.isCorrect ? 'درست بود! ✅' : `اشتباه بود — جواب درست: ${toFa(res.correctAnswer)}`;
+      input.disabled = true;
+      renderedDuelPosition = null;
+
+      if (res.newlyEarnedBadges && res.newlyEarnedBadges.length) {
+        try {
+          const overview = await apiFetch('/student/get-overview');
+          badgeCelebrateQueue.push(...res.newlyEarnedBadges.map(code => overview.badges.find(b => b.code === code)).filter(Boolean));
+        } catch { /* ignore */ }
+      }
+
+      if (res.finished && res.result) {
+        stopDuelPlayPolling();
+        setTimeout(() => { renderDuelResult(res.result); loadPetAndFestival(); showNextBadgeCelebration(); }, 900);
+      } else {
+        setTimeout(pollDuelPlay, 1200);
+      }
+    } catch (e) {
+      document.getElementById('duelAnswerFeedback').style.color = 'var(--coral-dark)';
+      document.getElementById('duelAnswerFeedback').textContent = e.message;
+    }
+  }
+
+  function renderDuelResult(result) {
+    const label = result.outcome === 'win' ? 'بردی! 🏆' : (result.outcome === 'lose' ? 'باختی' : 'مساوی شد');
+    document.getElementById('duelPlayBody').innerHTML = `
+      <div class="duel-question-box">
+        <div class="duel-result-outcome ${result.outcome}">${label}</div>
+        <div style="color:var(--ink-soft); font-size:.9rem;">امتیاز: ${toFa(result.myScore)} - ${toFa(result.opponentScore)}</div>
+      </div>`;
+  }
+
+  // ===== دفترچهٔ باغچه =====
+  async function openDiaryModal() {
+    openModal('diary');
+    document.getElementById('diaryList').textContent = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/get-garden-diary');
+      const box = document.getElementById('diaryList');
+      if (!data.entries.length) {
+        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز چیزی برای نوشتن توی دفترچه نیست — یه تکلیف بفرست تا شروع بشه 🌱</div>';
+        return;
+      }
+      box.innerHTML = data.entries.map(e => `
+        <div style="border-right:3px solid var(--leaf); padding-right:10px;">
+          <div style="font-size:.72rem; color:var(--ink-soft); margin-bottom:2px;">${formatJalali(e.date)}</div>
+          <div style="font-size:.86rem;">${escapeHtml(e.text)}</div>
+        </div>`).join('');
+    } catch (e) {
+      document.getElementById('diaryList').textContent = e.message;
     }
   }
 </script>

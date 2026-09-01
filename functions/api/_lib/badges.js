@@ -70,6 +70,11 @@ const BADGE_CHECKS = {
     ).bind(studentId, festival.start, festival.end).first();
     return r.n >= 1;
   },
+  duel_champion: async (env, studentId) => {
+    const r = await env.DB.prepare(`SELECT COUNT(*) AS n FROM duels WHERE winner_id = ? AND status = 'finished'`)
+      .bind(studentId).first();
+    return r.n >= 3;
+  },
 };
 
 // نشان‌های تازه‌کسب‌شده رو برمی‌گردونه (برای نمایش جشن‌گرفتن توی رابط کاربری)
