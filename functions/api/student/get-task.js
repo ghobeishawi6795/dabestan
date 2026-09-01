@@ -1,56 +1,44 @@
 import { json, err } from '../_lib/http.js';
-import { stripAnswerKey } from '../_lib/grading.js';
+import { getStreak } from '../_lib/badges.js';
 
-// شافل قطعی (deterministic) بر اساس شناسهٔ دانش‌آموز + تکلیف — هر دانش‌آموز ترتیب متفاوت
-// ولی ثابتی می‌بینه (بین بارگذاری‌های مختلف عوض نمی‌شه)، که جلوی تقلب چشمی رو می‌گیره.
-function seededShuffle(items, seedStr) {
-  let seed = 0;
-  for (let i = 0; i < seedStr.length; i++) seed = (seed * 31 + seedStr.charCodeAt(i)) >>> 0;
-  function rand() {
-    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  }
-  const arr = items.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-export async function onRequestGet({ request, env, data }) {
+export async function onRequestGet({ env, data }) {
   const student = data.user;
   if (student.role !== 'student') return err('forbidden', 403);
+  if (!student.class_id) {
+    return json({ assignments: [], streak: 0, doneCount: 0, avgScore: null, skipCredits: 0, skipCardsEnabled: false });
+  }
 
-  const url = new URL(request.url);
-  const assignmentId = url.searchParams.get('id');
-  if (!assignmentId) return err('id query param is required');
+  const { results } = await env.DB.prepare(
+    `SELECT a.id, a.title, a.due_at, a.created_at,
+            sub.status AS submission_status, sub.score, sub.excused,
+            (SELECT q.question_type FROM assignment_questions aq JOIN question_bank q ON q.id = aq.question_id
+             WHERE aq.assignment_id = a.id ORDER BY aq.position ASC LIMIT 1) AS primary_type
+     FROM assignments a
+     LEFT JOIN submissions sub ON sub.assignment_id = a.id AND sub.student_id = ?
+     WHERE a.class_id = ? AND a.school_id = ?
+     ORDER BY a.id DESC LIMIT 100`
+  ).bind(student.id, student.class_id, student.school_id).all();
 
-  // Ownership check: the assignment must target this student's own class in this student's school.
-  const assignment = await env.DB.prepare(
-    'SELECT id, title, description, due_at, class_id FROM assignments WHERE id = ? AND school_id = ? AND class_id = ?'
-  ).bind(assignmentId, student.school_id, student.class_id).first();
-  if (!assignment) return err('assignment not found', 404);
+  const streak = await getStreak(env, student.id);
 
-  const { results: questions } = await env.DB.prepare(
-    `SELECT q.id, q.question_type, q.title, q.content_json, q.custom_html, aq.position
-     FROM assignment_questions aq
-     JOIN question_bank q ON q.id = aq.question_id
-     WHERE aq.assignment_id = ?
-     ORDER BY aq.position ASC`
-  ).bind(assignment.id).all();
+  const doneRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS n, AVG(score) AS avg FROM submissions
+     WHERE student_id = ? AND status IN ('submitted','reviewed') AND assignment_id IN (SELECT id FROM assignments WHERE class_id = ?)`
+  ).bind(student.id, student.class_id).first();
 
-  const shuffled = seededShuffle(questions, `${student.id}:${assignment.id}`);
-
-  const submission = await env.DB.prepare(
-    'SELECT status, score FROM submissions WHERE assignment_id = ? AND student_id = ?'
-  ).bind(assignment.id, student.id).first();
+  // loadAll() توی student.html فقط این endpoint رو صدا می‌زنه، نه get-overview — پس اعتبار کارت معافیت
+  // و فعال‌بودن کلی این قابلیت در مدرسه رو همین‌جا هم لازم داریم تا دکمهٔ «معاف شدن» روی کارت تکلیف نشون داده بشه.
+  const skipCreditsRow = await env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM shop_purchases WHERE student_id = ? AND item_type = 'skip_card' AND used_at IS NULL`
+  ).bind(student.id).first();
+  const school = await env.DB.prepare('SELECT skip_cards_enabled FROM schools WHERE id = ?').bind(student.school_id).first();
 
   return json({
-    assignment: { id: assignment.id, title: assignment.title, description: assignment.description, dueAt: assignment.due_at },
-    questions: shuffled.map(stripAnswerKey),
-    submission: submission || null,
+    assignments: results,
+    streak,
+    doneCount: doneRow.n,
+    avgScore: doneRow.avg !== null ? Math.round(doneRow.avg) : null,
+    skipCredits: skipCreditsRow.n,
+    skipCardsEnabled: !!school?.skip_cards_enabled,
   });
 }
