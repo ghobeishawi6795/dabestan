@@ -3,7 +3,7 @@
 export const PET_SPECIES = [
   { code: 'cat', name: 'گربه', icon: '🐱' },
   { code: 'rabbit', name: 'خرگوش', icon: '🐰' },
-  { code: 'bird', name: 'جوجه‌تیغی', icon: '🐦' },
+  { code: 'hedgehog', name: 'جوجه‌تیغی', icon: '🦔' },
 ];
 
 // item_type: 'accessory' یا 'skip_card'

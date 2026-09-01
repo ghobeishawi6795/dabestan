@@ -26,12 +26,31 @@
   .modal-backdrop { position: fixed; inset: 0; background: rgba(33,53,31,.45); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; overflow-y: auto; }
   .modal-backdrop.open { display: flex; }
   .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; max-width: 420px; width: 100%; box-shadow: var(--shadow); margin: auto; }
-  .avatar-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .avatar-circle { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; font-size: 2rem; }
+.avatar-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
   .notif-item { padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; background: var(--bg-soft); font-size: .85rem; }
   .notif-item.unread { border-right: 3px solid var(--coral); font-weight: 700; }
   .avatar-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
   .avatar-grid button { font-size: 1.4rem; width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); cursor: pointer; }
   .avatar-grid button.active { border-color: var(--leaf); background: var(--leaf-pale); }
+
+/* ===== janbakhshi: جان‌بخشی 🌿 ===== */
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes sway { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+@keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes coinPulse { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+.sprout-wrap svg { animation: sway 4s ease-in-out infinite; transform-origin: 50% 90%; }
+.sprout-wrap.wiggle svg { animation: wiggle .45s ease; }
+.pet-avatar { animation: floaty 2.6s ease-in-out infinite; cursor: pointer; }
+.task-card { animation: popIn .45s ease both; }
+.task-card:nth-child(1) { animation-delay: .05s; }
+.task-card:nth-child(2) { animation-delay: .12s; }
+.task-card:nth-child(3) { animation-delay: .19s; }
+.task-card:nth-child(4) { animation-delay: .26s; }
+button, .btn { transition: transform .12s ease; }
+button:active, .btn:active { transform: scale(.95); }
+#coinsChip.pulse { animation: coinPulse .5s ease; }
 </style>
 </head>
 <body>
@@ -546,8 +565,8 @@
   }
 
   // ===== حیوان خانگی + جشنواره + سکه (از get-overview) =====
-  const PET_ICON = { cat: '🐱', rabbit: '🐰', bird: '🐦' };
-  const PET_NAME = { cat: 'گربه', rabbit: 'خرگوش', bird: 'جوجه‌تیغی' };
+  const PET_ICON = { cat: '🐱', rabbit: '🐰', hedgehog: '🦔' };
+  const PET_NAME = { cat: 'گربه', rabbit: 'خرگوش', hedgehog: 'جوجه‌تیغی' };
   const ACCESSORY_ICON = { hat_party: '🎉', bow_tie: '🎀', glasses: '🕶️', crown: '👑', scarf: '🧣' };
   let currentPet = null;
 
@@ -576,7 +595,7 @@
     const species = [
       { code: 'cat', name: 'گربه', icon: '🐱' },
       { code: 'rabbit', name: 'خرگوش', icon: '🐰' },
-      { code: 'bird', name: 'جوجه‌تیغی', icon: '🐦' },
+      { code: 'hedgehog', name: 'جوجه‌تیغی', icon: '🐦' },
     ];
     document.getElementById('petChoiceGrid').innerHTML = species.map(s => `
       <button type="button" class="pet-choice-btn" onclick="choosePet('${s.code}')">
@@ -910,6 +929,37 @@
       document.getElementById('diaryList').textContent = e.message;
     }
   }
+
+// ===== janbakhshi: واکنش‌ها ⚡ =====
+function aliveToast(msg) {
+  const t = document.getElementById('toastMini');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+document.querySelector('.sprout-wrap')?.addEventListener('click', () => {
+  const w = document.querySelector('.sprout-wrap');
+  w.classList.remove('wiggle'); void w.offsetWidth; w.classList.add('wiggle');
+  aliveToast(pick(['دارم بزرگ می‌شم! 🌱', 'یه تکلیف دیگه بفرست! ✨', 'داره جوانه می‌زنه! 🌿', 'به‌به! ادامه بده 🌟']));
+  navigator.vibrate?.(20);
+});
+document.getElementById('petAvatar')?.addEventListener('click', () => {
+  aliveToast(pick(['چه خبر؟ 😊', 'دلم برات تنگ شده بود! 💚', 'بریم تکلیف حل کنیم؟ 🎒']));
+  navigator.vibrate?.(15);
+});
+(function () {
+  const chip = document.getElementById('coinsChip');
+  if (!chip) return;
+  let last = chip.textContent;
+  new MutationObserver(() => {
+    if (chip.textContent !== last) {
+      chip.classList.remove('pulse'); void chip.offsetWidth; chip.classList.add('pulse');
+    }
+    last = chip.textContent;
+  }).observe(chip, { childList: true, characterData: true, subtree: true });
+})();
 </script>
 </body>
 </html>
