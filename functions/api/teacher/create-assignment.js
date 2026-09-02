@@ -34,9 +34,15 @@ export async function onRequestPost({ request, env, data }) {
      VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
   ).bind(teacher.school_id, teacher.id, classId, title, description || null, dueAt || null).first();
 
+  // نسخهٔ فعلی هر سؤال رو پین می‌کنیم تا ویرایش‌های بعدی، تکلیف قبلی رو تغییر نده
+  const { results: versionRows } = await env.DB.prepare(
+    `SELECT id, version FROM question_bank WHERE school_id = ? AND id IN (${questionIds.map(() => '?').join(',')})`
+  ).bind(teacher.school_id, ...questionIds).all();
+  const versionMap = new Map(versionRows.map((r) => [r.id, r.version || 1]));
+
   const inserts = questionIds.map((qid, i) =>
-    env.DB.prepare('INSERT INTO assignment_questions (assignment_id, question_id, position) VALUES (?, ?, ?)')
-      .bind(assignment.id, qid, i)
+    env.DB.prepare('INSERT INTO assignment_questions (assignment_id, question_id, position, pinned_version) VALUES (?, ?, ?, ?)')
+      .bind(assignment.id, qid, i, versionMap.get(qid) || 1)
   );
   await env.DB.batch(inserts);
 
