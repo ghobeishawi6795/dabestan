@@ -120,6 +120,16 @@ button:active, .btn:active { transform: scale(.95); }
       <div class="sprout-progress"><div id="sproutBar" style="width:0%"></div></div>
     </section>
 
+    
+    <!-- چالش روزانه -->
+    <section class="card" id="dailyChallengeSection" style="margin-top:14px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <span style="font-size:1.4rem;">☀️</span>
+        <h3 style="margin:0; font-size:.95rem;">چالش امروز</h3>
+      </div>
+      <div id="dailyChallengeContent">در حال بارگذاری...</div>
+    </section>
+
     <section class="pet-panel" id="petPanel" style="display:none;">
       <div class="pet-avatar" id="petAvatar">🐾</div>
       <div class="pet-info">
@@ -240,6 +250,12 @@ button:active, .btn:active { transform: scale(.95); }
       <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDuelsModal();">⚔️ نبرد ریاضی</button>
       <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDiaryModal();">📔 دفترچهٔ باغچه</button>
     </div>
+    
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openHighFivesModal();">🙌 های‌فایو به همکلاسی‌ها</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openParentNotesModal();">💌 یادداشت والدین</button>
+    </div>
+
     <button type="button" class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal('more')">بستن</button>
   </div>
 </div>
@@ -1048,5 +1064,33 @@ document.getElementById('petAvatar')?.addEventListener('click', () => {
   }).observe(chip, { childList: true, characterData: true, subtree: true });
 })();
 </script>
+
+<!-- ===== مودال های‌فایو ===== -->
+<div class="modal-backdrop" id="modalHighFives">
+  <div class="modal" style="max-width:480px;">
+    <h3 style="margin-bottom:4px;">🙌 های‌فایو به همکلاسی‌ها</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">به دوستانت انرژی مثبت بده! </div>
+    <div class="tabs" style="margin-bottom:12px;">
+      <button type="button" class="btn ${hfTab==='send'?'btn-primary':'btn-ghost'}" style="flex:1" onclick="switchHfTab('send')">ارسال های‌فایو</button>
+      <button type="button" class="btn ${hfTab==='received'?'btn-primary':'btn-ghost'}" style="flex:1" onclick="switchHfTab('received')">های‌فایوهای دریافتی</button>
+    </div>
+    <div id="hfSendBox"></div>
+    <div id="hfReceivedBox" style="display:none;"></div>
+    <div id="msgHighFives" style="margin-top:8px; color:var(--coral); font-size:.85rem;"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('highFives')">بستن</button>
+  </div>
+</div>
+
+
+<!-- ===== مودال یادداشت والدین ===== -->
+<div class="modal-backdrop" id="modalParentNotes">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="margin-bottom:4px;">💌 یادداشت والدین</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">پیام‌های والدین برایت</div>
+    <div id="parentNotesList">در حال بارگذاری...</div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('parentNotes')">بستن</button>
+  </div>
+</div>
+
 </body>
 </html>
