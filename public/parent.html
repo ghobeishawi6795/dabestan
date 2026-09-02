@@ -300,6 +300,43 @@
 
   function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
-</script>
+
+  async function sendParentNote() {
+    const text = document.getElementById('noteText').value.trim();
+    const isPrivate = document.getElementById('notePrivate').checked;
+    const msg = document.getElementById('noteMsg');
+    
+    if (!text) { msg.textContent = 'متن یادداشت خالی است'; msg.style.color = 'var(--coral)'; return; }
+    
+    try {
+      await apiFetch('/parent/add-note', {
+        method: 'POST',
+        body: { note: text, isPrivate }
+      });
+      msg.textContent = 'یادداشت ارسال شد ✅';
+      msg.style.color = 'var(--leaf)';
+      document.getElementById('noteText').value = '';
+    } catch (e) {
+      msg.textContent = e.message || 'خطا';
+      msg.style.color = 'var(--coral)';
+    }
+  }
+\n</script>
 </body>
 </html>
+\n
+    <!-- بخش نوشتن یادداشت -->
+    <section class="card" style="margin-top:14px;">
+      <h3 style="margin:0 0 10px; font-size:.95rem;">💌 نوشتن یادداشت برای فرزند</h3>
+      <div class="field" style="margin-bottom:10px;">
+        <label>متن یادداشت</label>
+        <textarea id="noteText" rows="4" placeholder="پیام خود را بنویسید..." style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); font-family:inherit; font-size:.92rem; resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <label style="display:flex; align-items:center; gap:6px; font-size:.85rem; cursor:pointer;">
+          <input type="checkbox" id="notePrivate"> فقط معلم و فرزندم ببینند (خصوصی)
+        </label>
+      </div>
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="sendParentNote()">ارسال یادداشت 💌</button>
+      <div id="noteMsg" style="margin-top:8px; font-size:.85rem;"></div>
+    </section>

@@ -229,7 +229,21 @@
     </div>
 
     <div id="bankCards"></div>
-  </main>
+  
+    <!-- بخش چالش روزانه -->
+    <section class="card" style="margin-top:14px;">
+      <h3 style="margin:0 0 10px; font-size:.95rem;">☀️ چالش روزانه</h3>
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:8px;">
+        <div><label>عنوان چالش</label><input id="chTitle" placeholder="مثلاً: ۱۰ ضرب سریع"></div>
+        <div><label>تاریخ (YYYY-MM-DD)</label><input id="chDate" type="date"></div>
+        <div style="grid-column:1/-1"><label>توضیح (اختیاری)</label><input id="chDesc" placeholder="توضیح کوتاه"></div>
+        <div><label>پاداش سکه</label><input id="chCoins" type="number" value="10" min="1"></div>
+        <div><label>پاداش XP</label><input id="chXp" type="number" value="20" min="1"></div>
+      </div>
+      <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="createDailyChallenge()">＋ ساخت چالش</button>
+      <div id="chMsg" style="margin-top:8px; font-size:.85rem;"></div>
+    </section>
+\n  </main>
 </div>
 
 <!-- ===== مودال سؤال جدید ===== -->
@@ -1551,6 +1565,38 @@
       renderLineChart(box, points, { color: 'var(--leaf)', emptyText: 'این دانش‌آموز هنوز نمرهٔ ثبت‌شده‌ای نداره.' });
     } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
   }
-</script>
+
+  async function createDailyChallenge() {
+    const title = document.getElementById('chTitle').value.trim();
+    const date = document.getElementById('chDate').value;
+    const desc = document.getElementById('chDesc').value.trim();
+    const coins = Number(document.getElementById('chCoins').value) || 10;
+    const xp = Number(document.getElementById('chXp').value) || 20;
+    const msg = document.getElementById('chMsg');
+    
+    if (!title) { msg.textContent = 'عنوان الزامی است'; msg.style.color = 'var(--coral)'; return; }
+    if (!date) { msg.textContent = 'تاریخ الزامی است'; msg.style.color = 'var(--coral)'; return; }
+    
+    try {
+      await apiFetch('/teacher/create-daily-challenge', {
+        method: 'POST',
+        body: { title, description: desc, challengeDate: date, rewardCoins: coins, rewardXp: xp }
+      });
+      msg.textContent = 'چالش ساخته شد ✅';
+      msg.style.color = 'var(--leaf)';
+      document.getElementById('chTitle').value = '';
+      document.getElementById('chDesc').value = '';
+    } catch (e) {
+      msg.textContent = e.message || 'خطا';
+      msg.style.color = 'var(--coral)';
+    }
+  }
+  
+  // پر کردن تاریخ امروز به‌صورت پیش‌فرض
+  const chDateInput = document.getElementById('chDate');
+  if (chDateInput && !chDateInput.value) {
+    chDateInput.value = new Date().toISOString().slice(0, 10);
+  }
+\n</script>
 </body>
   </html>
