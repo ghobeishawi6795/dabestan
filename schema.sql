@@ -61,7 +61,23 @@ CREATE TABLE IF NOT EXISTS question_bank (
   tags TEXT,
   is_favorite INTEGER NOT NULL DEFAULT 0,
   difficulty TEXT,
+  chapter TEXT,
+  topic TEXT,
+  explanation TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  version INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS question_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id INTEGER NOT NULL REFERENCES question_bank(id),
+  version INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  content_json TEXT NOT NULL,
+  custom_html TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (question_id, version)
 );
 
 CREATE TABLE IF NOT EXISTS assignments (
@@ -79,7 +95,8 @@ CREATE TABLE IF NOT EXISTS assignment_questions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   assignment_id INTEGER NOT NULL REFERENCES assignments(id),
   question_id INTEGER NOT NULL REFERENCES question_bank(id),
-  position INTEGER NOT NULL DEFAULT 0
+  position INTEGER NOT NULL DEFAULT 0,
+  pinned_version INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS submissions (

@@ -14,10 +14,11 @@ export async function onRequestPost({ request, env, data }) {
   const body = await request.json().catch(() => null);
   if (!body) return err('invalid json');
 
-  const { title, questionType, subject, grade, content, customHtml, tags, difficulty } = body;
+  const { title, questionType, subject, grade, content, customHtml, tags, difficulty, chapter, topic, explanation, status } = body;
   if (!title || !questionType || !content) return err('title, questionType, content are required');
   if (!VALID_TYPES.includes(questionType)) return err('invalid questionType');
   if (difficulty && !['easy', 'medium', 'hard'].includes(difficulty)) return err('invalid difficulty');
+  if (status && !['draft', 'active', 'archived'].includes(status)) return err('invalid status');
   const tagsStr = Array.isArray(tags) ? tags.map((t) => String(t).trim()).filter(Boolean).join(',') : (tags || null);
 
   if (questionType === 'custom_html') {
@@ -25,7 +26,6 @@ export async function onRequestPost({ request, env, data }) {
     if (customHtml.length > CUSTOM_HTML_MAX_CHARS) return err(`customHtml exceeds ${CUSTOM_HTML_MAX_CHARS} characters`, 400);
   }
 
-  // content must be valid JSON (structure varies by type; validated fully by the task-runtime grader later).
   let contentJson;
   try {
     contentJson = typeof content === 'string' ? content : JSON.stringify(content);
@@ -35,13 +35,17 @@ export async function onRequestPost({ request, env, data }) {
   }
 
   const result = await env.DB.prepare(
-    `INSERT INTO question_bank (school_id, teacher_id, question_type, subject, grade, title, content_json, custom_html, tags, difficulty)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
+    `INSERT INTO question_bank (school_id, teacher_id, question_type, subject, grade, title, content_json, custom_html, tags, difficulty, chapter, topic, explanation, status, version)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`
   ).bind(
     teacher.school_id, teacher.id, questionType, subject || null, grade || null, title, contentJson, customHtml || null,
-    tagsStr || null, difficulty || null
+    tagsStr || null, difficulty || null, chapter || null, topic || null, explanation || null, status || 'active'
   ).first();
 
+  await env.DB.prepare(
+    'INSERT INTO question_versions (question_id, version, title, content_json, custom_html) VALUES (?, 1, ?, ?, ?)'
+  ).bind(result.id, title, contentJson, customHtml || null).run();
+
   const newlyEarnedBadges = await checkAndAwardTeacherBadges(env, teacher.id);
-  return json({ ok: true, questionId: result.id, newlyEarnedBadges });
+  return json({ ok: true, questionId: result.id, version: 1, newlyEarnedBadges });
 }
