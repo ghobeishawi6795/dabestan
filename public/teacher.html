@@ -132,6 +132,7 @@
         <button type="button" class="btn btn-ghost" onclick="openParentChatList()" style="position:relative;">
           👪 <span id="parentChatBub" style="display:none; position:absolute; top:-6px; left:-6px; background:var(--coral); color:#fff; border-radius:999px; min-width:18px; height:18px; font-size:.65rem; align-items:center; justify-content:center; display:flex;"></span>
         </button>
+        <button type="button" class="help-icon-btn" onclick="openModal('help')" title="راهنما">❓</button>
         <button class="btn btn-primary" onclick="openModal('assignment')">＋ تکلیف جدید</button>
       </div>
     </div>
@@ -518,6 +519,67 @@
         <button type="button" class="btn btn-ghost" onclick="closeModal('upload')">انصراف</button>
         <button type="button" class="btn btn-primary" onclick="importSelectedQuestions()">افزودن انتخاب‌شده‌ها به بانک</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== مودال راهنما ===== -->
+<div class="modal-backdrop" id="modalHelp">
+  <div class="modal" style="max-width:600px;">
+    <h3 style="margin-bottom:4px;">❓ راهنمای پنل معلم</h3>
+    <p style="font-size:.8rem; color:var(--ink-soft); margin-bottom:14px;">هر بخش رو باز کن تا توضیحش رو ببینی.</p>
+
+    <details class="help-section" open>
+      <summary>📮 ارسال تکلیف جدید</summary>
+      <div class="help-body">
+        <p>روی <b>«＋ تکلیف جدید»</b> بزن، کلاس و تاریخ تحویل رو انتخاب کن، بعد از بین سؤالات بانک، هرچی می‌خوای رو تیک بزن.</p>
+        <p>کنار هر سؤالی که خودت ساختیش، یه دکمهٔ <b>✏️</b> هست — می‌تونی همون‌جا، قبل از ارسال نهایی، متن یا گزینه‌هاش رو ویرایش کنی.</p>
+        <p>اگه ترکیب سؤالی رو زیاد استفاده می‌کنی، می‌تونی از تکلیف فعلی یه <b>قالب</b> بسازی تا دفعهٔ بعد سریع‌تر بسازیش.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📚 بانک سؤال</summary>
+      <div class="help-body">
+        <p>دو تب داری: <b>«سوالات من»</b> (فقط سؤالات خودت) و <b>«بانک مدرسه»</b> (سؤالات همهٔ معلم‌های مدرسه — می‌تونی ازشون توی تکلیف استفاده کنی ولی فقط سازندهٔ هرکدوم می‌تونه ویرایشش کنه).</p>
+        <p><b>«＋ سؤال جدید»</b> اول ازت نوع سؤال رو می‌پرسه (چندگزینه‌ای، صوتی، نقاشی، رنگ‌آمیزی، ترتیبی، جورکردنی، HTML سفارشی و...)، بعد فقط فیلدهای همون نوع رو نشون می‌ده.</p>
+        <p><b>📄 آپلود فایل:</b> اگه چند سؤال آماده داری، می‌تونی یه فایل HTML با چند سؤال توش آپلود کنی و همه رو یه‌جا اضافه کنی.</p>
+        <p><b>📦 قالب‌های آماده:</b> چند بستهٔ نمونه سؤال (ریاضی/فارسی/علوم) که با یه کلیک به بانکت اضافه می‌شن — خوبه برای شروع سریع.</p>
+        <p>می‌تونی سؤالات رو با موضوع، پایه، نوع، سختی، برچسب، یا ⭐ علاقه‌مندی فیلتر کنی، و جست‌وجو هم روی عنوان و متن سؤال کار می‌کنه (حتی اگه با کیبورد عربی تایپ کرده باشی).</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>✅ مرور و نمره‌دهی</summary>
+      <div class="help-body">
+        <p>تکالیفی که دانش‌آموزا فرستادن اینجا میان. سؤالات چندگزینه‌ای/درست‌غلط/جای‌خالی خودکار تصحیح می‌شن؛ بقیه (نقاشی، صوتی، عکس و...) رو خودت نمره می‌دی.</p>
+        <p>بعضی نشان‌های دانش‌آموز (مثل «دقت طلایی») درست همون لحظه که نمره ثبت می‌شه بررسی و اعطا می‌شن.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📊 گزارش کلاس</summary>
+      <div class="help-body">
+        <p>میانگین نمره و روند پیشرفت کلاس رو در طول زمان نشون می‌ده. از بخش عملکرد تگ‌ها هم می‌تونی ببینی دانش‌آموزا روی کدوم مبحث‌ها (تگ‌ها) ضعیف‌ترن.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🏆 نشان‌های معلم</summary>
+      <div class="help-body">
+        <p>با فعالیت‌هایی مثل ارسال اولین تکلیف، ساختن بانک سؤال متنوع، تصحیح سریع، یا رضایت بالای والدین، نشان می‌گیری — از پروفایلت (زدن روی آواتار) قابل مشاهده‌ست.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>✉️ صندوق پیام و 👪 چت با والدین</summary>
+      <div class="help-body">
+        <p>دکمهٔ ✉️ پیام‌های مدیر مدرسه رو نشون می‌ده. دکمهٔ 👪 لیست گفتگوهای بازی با والدینه — والدین از صفحهٔ خودشون بهت پیام می‌دن، از همین‌جا جواب می‌دی.</p>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeModal('help')">متوجه شدم</button>
     </div>
   </div>
 </div>

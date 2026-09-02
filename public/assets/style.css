@@ -400,3 +400,22 @@ p { margin: 0; color: var(--ink-soft); line-height: 1.9; }
 .duel-result-outcome.win { color: var(--leaf-dark); }
 .duel-result-outcome.lose { color: var(--coral-dark); }
 .duel-result-outcome.draw { color: var(--ink-soft); }
+
+/* ===== راهنمای هر داشبورد (help accordion) — مشترک بین admin/teacher/student/parent ===== */
+.help-icon-btn {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  width: 42px; height: 42px; font-size: 1.1rem; cursor: pointer; flex-shrink: 0;
+}
+.help-section { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.help-section summary {
+  cursor: pointer; padding: 12px 14px; font-weight: 800; font-size: .86rem;
+  background: var(--bg); list-style: none; display: flex; align-items: center; gap: 8px;
+}
+.help-section summary::-webkit-details-marker { display: none; }
+.help-section summary::after { content: '▾'; margin-inline-start: auto; color: var(--ink-soft); font-size: .75rem; transition: transform .15s; }
+.help-section[open] summary::after { transform: rotate(180deg); }
+.help-body { padding: 2px 14px 14px; font-size: .82rem; line-height: 2; color: var(--ink-soft); }
+.help-body p { margin: 6px 0; }
+.help-body ul { margin: 6px 0; padding-inline-start: 20px; }
+.help-body li { margin: 4px 0; }
+.help-body b { color: var(--ink); }

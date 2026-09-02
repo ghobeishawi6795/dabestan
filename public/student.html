@@ -88,6 +88,7 @@ button:active, .btn:active { transform: scale(.95); }
         <button id="notifBellBtn" onclick="openNotifPanel()" style="position:relative; background:var(--surface); border:1px solid var(--line); border-radius:12px; width:42px; height:42px; font-size:1.1rem; cursor:pointer;">
           🔔<span id="notifBadge" style="display:none; position:absolute; top:-4px; left:-4px; background:var(--coral); color:#fff; font-size:.62rem; font-weight:800; border-radius:999px; min-width:16px; height:16px; align-items:center; justify-content:center; padding:0 3px;"></span>
         </button>
+        <button type="button" class="help-icon-btn" onclick="openModal('help')" title="راهنما">❓</button>
         <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
         <div class="streak-chip" style="background:var(--sun); color:#3a2c00;" id="coinsChip">🪙 ۰</div>
       </div>
@@ -290,6 +291,76 @@ button:active, .btn:active { transform: scale(.95); }
     <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">خلاصهٔ ۳۰ روز اخیرت</div>
     <div id="diaryList" style="display:flex; flex-direction:column; gap:10px; max-height:55vh; overflow-y:auto;">در حال بارگذاری...</div>
     <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('diary')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال راهنما ===== -->
+<div class="modal-backdrop" id="modalHelp">
+  <div class="modal" style="max-width:600px;">
+    <h3 style="margin-bottom:4px;">❓ راهنما</h3>
+    <p style="font-size:.8rem; color:var(--ink-soft); margin-bottom:14px;">هر بخش رو باز کن تا توضیحش رو ببینی.</p>
+
+    <details class="help-section" open>
+      <summary>🌱 باغچهٔ من</summary>
+      <div class="help-body">
+        <p>نهال بالای صفحه هرچی تکلیف بیشتری انجام بدی، رشد می‌کنه: دانه 🌰 ← جوانه‌زن 🌱 ← غنچه 🌿 ← شکوفا 🌸 ← درخت پربار 🌳.</p>
+        <p>آیکون کوچیک بالای نهال (☀️/⛅/☁️/🌧️) <b>حال‌وهوای باغچه</b>ست — نشون می‌ده چند وقته سر زدی؛ هرچی بیشتر فعال باشی، آفتابی‌تره.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🐣 حیوان خانگی</summary>
+      <div class="help-body">
+        <p>یه حیوون خانگی برای خودت انتخاب می‌کنی که هر بار تکلیف بفرستی بهش غذا می‌دی و خوشحال‌تر می‌شه. می‌تونی از فروشگاه براش لباس/وسیله بخری.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📋 تکالیف من</summary>
+      <div class="help-body">
+        <p>تکلیف‌هایی که معلمت فرستاده اینجا میان — هرکدوم یه آیکون داره که نشون می‌ده چه‌جور تکلیفیه (نوشتنی، صوتی، نقاشی، رنگ‌آمیزی، چندگزینه‌ای و...).</p>
+        <p>اگه مدرسه‌ت کارت «رد کردن تکلیف» رو فعال کرده باشه، یه دکمهٔ مخصوص روی تکلیف می‌بینی که می‌تونی باهاش یه تکلیف رو (با محدودیت تعداد) رد کنی.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🛍️ فروشگاه</summary>
+      <div class="help-body">
+        <p>هر تکلیفی که بفرستی، <b>سکه</b> می‌گیری. با سکه‌ها می‌تونی از فروشگاه برای حیوون خانگیت وسیله بخری یا کارت «رد کردن تکلیف» بگیری.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🎴 کارت‌های من</summary>
+      <div class="help-body">
+        <p>هر مبحثی (تگی) که ازش تکلیف انجام بدی، براش یه کارت جمع‌آوری می‌گیری — هرچی بیشتر روی همون مبحث تمرین کنی، سطح کارتش بالاتر می‌ره.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>⚔️ نبرد ریاضی</summary>
+      <div class="help-body">
+        <p>می‌تونی یه هم‌کلاسی رو به یه مسابقهٔ سریع محاسبهٔ ذهنی دعوت کنی. هرکی سریع‌تر و درست‌تر جواب بده، برنده می‌شه.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📔 دفترچهٔ باغچه</summary>
+      <div class="help-body">
+        <p>یه خلاصهٔ روزانه از کارهایی که این ماه انجام دادی (تکلیف، نشان، نبرد، خرید) — والدینت هم می‌تونن همینو از صفحهٔ خودشون ببینن.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🏅 نشان‌ها و جشنواره‌ها</summary>
+      <div class="help-body">
+        <p>با کارهای مختلف (اولین تکلیف، نمرهٔ کامل، فعالیت پیاپی، تکلیف صوتی/نقاشی و...) نشان می‌گیری. بعضی وقت‌ها هم جشنوارهٔ فصلی (مثل مهرگان) فعال می‌شه که نشان و دکور مخصوص خودشو داره.</p>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeModal('help')">متوجه شدم</button>
+    </div>
   </div>
 </div>
 

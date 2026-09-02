@@ -73,6 +73,7 @@
       </div>
       <button class="btn btn-primary" onclick="openModal('class')">＋ افزودن کلاس</button>
       <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن" style="margin-right:8px;">🌙</button>
+      <button type="button" class="help-icon-btn" onclick="openModal('help')" title="راهنما">❓</button>
     </div>
 
     <div class="grid grid-4" id="statsGrid">
@@ -280,6 +281,67 @@
         <button type="submit" class="btn btn-primary">ذخیره</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ===== مودال راهنما ===== -->
+<div class="modal-backdrop" id="modalHelp">
+  <div class="modal" style="max-width:600px;">
+    <h3 style="margin-bottom:4px;">❓ راهنمای پنل مدیریت</h3>
+    <p style="font-size:.8rem; color:var(--ink-soft); margin-bottom:14px;">هر بخش رو باز کن تا توضیحش رو ببینی.</p>
+
+    <details class="help-section" open>
+      <summary>🏠 صفحهٔ خانه و آمار کلی</summary>
+      <div class="help-body">
+        <p>کارت‌های بالای صفحه خلاصهٔ وضعیت مدرسه رو نشون می‌دن: تعداد کلاس، معلم، دانش‌آموز، و میانگین درصد تحویل تکالیف.</p>
+        <p>دکمهٔ <b>«＋ افزودن کلاس»</b> بالای صفحه همیشه در دسترسه، از هرجای صفحه که باشی.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🏫 کلاس‌ها</summary>
+      <div class="help-body">
+        <p>هر کلاس یه نام و یه پایه داره. از همین بخش می‌تونی کلاس جدید بسازی، اسمش رو ویرایش کنی، یا حذفش کنی.</p>
+        <p><b>نکته:</b> اگه کلاسی دانش‌آموز یا تکلیف داشته باشه، حذف کامل امکان‌پذیر نیست تا داده‌ای گم نشه — در اون حالت باید اول دانش‌آموزاش رو جابه‌جا یا غیرفعال کنی.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🧑‍🏫 معلم‌ها</summary>
+      <div class="help-body">
+        <p>برای هر معلم یه نام کاربری و رمز عبور می‌سازی و بهش می‌گی. معلم‌ها فقط به کلاس‌های خودشون دسترسی دارن.</p>
+        <p>به‌جای حذف کامل حساب یه معلم (که سوابقش رو از بین می‌بره)، می‌تونی از دکمهٔ <b>غیرفعال‌سازی</b> استفاده کنی — حساب می‌مونه ولی دیگه نمی‌تونه وارد بشه.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🧒 دانش‌آموزان</summary>
+      <div class="help-body">
+        <p>هر دانش‌آموز یه نام کاربری/رمز برای ورود خودش داره، و یه <b>کد والدین</b> جداگانه که خودکار ساخته می‌شه — این کد رو به خانوادهٔ دانش‌آموز بده تا بدون نیاز به ثبت‌نام، از صفحهٔ والدین وضعیتش رو ببینن.</p>
+        <p>مثل معلم‌ها، دانش‌آموز رو هم می‌شه به‌جای حذف کامل، غیرفعال کرد.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📊 گزارش مدرسه</summary>
+      <div class="help-body">
+        <p><b>امتیاز سلامت:</b> یه شاخص کلی از وضعیت مدرسه، ترکیبی از نرخ تحویل تکالیف، نمرات، و رضایت والدین.</p>
+        <p><b>میانگین نمره</b> و <b>نرخ تحویل تکالیف</b> از تکالیف تصحیح‌شدهٔ همهٔ کلاس‌ها محاسبه می‌شن.</p>
+        <p><b>درصد رضایت</b> از ستاره‌هایی میاد که والدین موقع مشاهدهٔ تکالیف فرزندشون ثبت می‌کنن.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>⚙️ پروفایل و تنظیمات</summary>
+      <div class="help-body">
+        <p>با زدن روی آواتار بالای صفحه، پروفایل مدرسه باز می‌شه — از اونجا می‌تونی رنگ اصلی تم مدرسه رو عوض کنی و کارت‌های «رد کردن تکلیف» (skip card) رو برای کل مدرسه فعال/غیرفعال کنی.</p>
+        <p>دکمهٔ 🌙 بالای صفحه حالت تاریک/روشن رو عوض می‌کنه — این تنظیم فقط روی همین گوشی/مرورگر می‌مونه.</p>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeModal('help')">متوجه شدم</button>
+    </div>
   </div>
 </div>
 

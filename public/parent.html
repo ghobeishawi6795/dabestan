@@ -30,10 +30,14 @@
   @media print {
     #chatCard, #codeScreen, .btn { display: none !important; }
   }
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(33,53,31,.45); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
+  .modal-backdrop.open { display: flex; }
+  .modal-backdrop .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 22px; max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; }
 </style>
 </head>
 <body>
 <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن" style="position:fixed; top:14px; left:14px; z-index:10;">🌙</button>
+<button type="button" onclick="openHelp()" title="راهنما" style="position:fixed; top:14px; right:14px; z-index:10; background:var(--surface); border:1px solid var(--line); border-radius:12px; width:42px; height:42px; font-size:1.1rem; cursor:pointer;">❓</button>
 <div class="wrap">
   <div id="codeScreen" class="code-box">
     <div style="font-size:2rem;">💛</div>
@@ -98,6 +102,67 @@
   </div>
 </div>
 
+<!-- ===== مودال راهنما ===== -->
+<div class="modal-backdrop" id="modalHelp">
+  <div class="modal">
+    <h3 style="margin-bottom:4px;">❓ راهنمای صفحهٔ والدین</h3>
+    <p style="font-size:.8rem; color:var(--ink-soft); margin-bottom:14px;">هر بخش رو باز کن تا توضیحش رو ببینی.</p>
+
+    <details class="help-section" open>
+      <summary>🔑 کد ورود چیه؟</summary>
+      <div class="help-body">
+        <p>این صفحه نیازی به ثبت‌نام یا رمز عبور نداره. مدرسه یه <b>کد اختصاصی</b> برای فرزندتون بهتون می‌ده — همون کد رو اینجا وارد می‌کنید تا وضعیتش رو ببینید.</p>
+        <p>این کد رو می‌تونید ذخیره کنید یا این صفحه رو نشون‌گذاری (بوکمارک) کنید تا هر بار لازم نباشه دوباره وارد کنید.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🌱 وضعیت کلی و نهال</summary>
+      <div class="help-body">
+        <p>نهال بالای صفحه نشون‌دهندهٔ میزان فعالیت فرزندتونه — هرچی تکلیف بیشتری انجام بده، نهال رشد می‌کنه.</p>
+        <p>عدد «تکلیف انجام‌نشده» یعنی چند تکلیف هنوز ارسال نشده.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📋 آخرین تکالیف</summary>
+      <div class="help-body">
+        <p>وضعیت هر تکلیف رو نشون می‌ده: <b>در حال انجام</b> (هنوز نفرستاده)، <b>در انتظار بررسی معلم</b> (فرستاده ولی هنوز نمره نگرفته)، یا <b>بررسی‌شده</b> (نمره‌ش مشخصه).</p>
+        <p>کنار تکالیف بررسی‌شده می‌تونید با ستاره به تعامل معلم امتیاز بدید.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📔 دفترچهٔ باغچه</summary>
+      <div class="help-body">
+        <p>خلاصهٔ روزانه‌ای از فعالیت‌های فرزندتون توی این ماه (تکالیف، نشان‌ها، و...).</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>💬 گفتگو با معلم</summary>
+      <div class="help-body">
+        <p>اگه کلاس فرزندتون معلم مشخصی داشته باشه، می‌تونید مستقیم از همین‌جا باهاش پیام رد و بدل کنید.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🖨️ چاپ کارنامه</summary>
+      <div class="help-body">
+        <p>دکمهٔ «چاپ کارنامه» پایین صفحه یه نسخهٔ قابل‌چاپ (بدون دکمه‌ها) از وضعیت فرزندتون می‌سازه.</p>
+      </div>
+    </details>
+
+    <div style="text-align:center; margin-top:16px;">
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeHelp()">متوجه شدم</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openHelp() { document.getElementById('modalHelp').classList.add('open'); }
+  function closeHelp() { document.getElementById('modalHelp').classList.remove('open'); }
+</script>
 <script>
   const STAGES = [
     { min: 0, name: 'دانه', icon: '🌰' }, { min: 30, name: 'جوانه‌زن', icon: '🌱' },
