@@ -1,39 +1,12 @@
 {
   "name": "باغچه درس",
   "short_name": "باغچه",
-  "description": "اپلیکیشن مدیریت تکالیف دبستان",
   "start_url": "/login.html",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#eef5ec",
   "theme_color": "#3F7A52",
-  "dir": "rtl",
-  "lang": "fa",
   "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    {"src": "/icons/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml"},
+    {"src": "/icons/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml"}
   ]
 }
