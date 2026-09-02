@@ -1,4 +1,5 @@
 import { json, err } from '../_lib/http.js';
+import { normalizeSearchText, normalizeSql } from '../_lib/search-normalize.js';
 
 export async function onRequestGet({ request, env, data }) {
   const teacher = data.user;
@@ -24,15 +25,31 @@ export async function onRequestGet({ request, env, data }) {
   if (difficulty) { where.push('q.difficulty = ?'); binds.push(difficulty); }
   if (tag) { where.push('(\',\' || REPLACE(q.tags, \' \', \'\') || \',\') LIKE ?'); binds.push(`%,${tag.replace(/\s/g, '')},%`); }
   if (favoriteOnly) { where.push('q.is_favorite = 1'); }
-  if (search) {
-    where.push('(q.title LIKE ? OR q.content_json LIKE ? OR q.tags LIKE ?)');
-    binds.push(`%${search}%`, `%${search}%`, `%${search}%`);
+
+  const titleExpr = normalizeSql('q.title');
+  const contentExpr = normalizeSql('q.content_json');
+  const tagsExpr = normalizeSql('q.tags');
+
+  // جست‌وجوی چندکلمه‌ای: هر کلمه باید یه‌جایی (عنوان/متن سؤال/تگ) پیدا بشه — نه لزوماً همه پشت‌سرهم،
+  // و حروف عربی/فارسی و نیم‌فاصله و اعداد یکسان‌سازی می‌شن تا «كتاب» با «کتاب» یکی دیده بشه.
+  const normSearch = search ? normalizeSearchText(search) : '';
+  const words = normSearch.split(/\s+/).filter(Boolean);
+  for (const w of words) {
+    where.push(`(${titleExpr} LIKE ? OR ${contentExpr} LIKE ? OR ${tagsExpr} LIKE ?)`);
+    binds.push(`%${w}%`, `%${w}%`, `%${w}%`);
   }
 
-  const order = sort === 'popular' ? 'usage_count DESC'
-              : sort === 'title' ? 'q.title ASC'
-              : sort === 'favorite' ? 'q.is_favorite DESC, q.id DESC'
-              : 'q.id DESC';
+  let order = sort === 'popular' ? 'usage_count DESC'
+            : sort === 'title' ? 'q.title ASC'
+            : sort === 'favorite' ? 'q.is_favorite DESC, q.id DESC'
+            : 'q.id DESC';
+
+  // وقتی جست‌وجو فعاله، تطبیق روی عنوان از تگ جلوتره و تگ از متن داخلی سؤال جلوتره —
+  // مرتب‌سازی انتخابی معلم (جدیدترین/محبوب‌ترین/...) به‌عنوان معیار دوم بعد از این رتبه باقی می‌مونه.
+  if (words.length) {
+    order = `CASE WHEN ${titleExpr} LIKE ? THEN 0 WHEN ${tagsExpr} LIKE ? THEN 1 ELSE 2 END, ${order}`;
+    binds.push(`%${normSearch}%`, `%${normSearch}%`);
+  }
 
   const { results } = await env.DB.prepare(
     `SELECT q.id, q.question_type, q.subject, q.grade, q.title, q.content_json, q.teacher_id,
@@ -47,3 +64,4 @@ export async function onRequestGet({ request, env, data }) {
 
   return json({ questions: results });
 }
+

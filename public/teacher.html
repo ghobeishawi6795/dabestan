@@ -29,6 +29,14 @@
   .field textarea { min-height: 70px; resize: vertical; }
   .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
   .modal-actions .btn { flex: 1; }
+  .type-picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .type-picker-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 6px; cursor: pointer; font-family: inherit; color: var(--ink); transition: .15s; }
+  .type-picker-btn:hover { border-color: var(--leaf); background: var(--leaf-pale); }
+  .type-picker-btn .tpb-icon { font-size: 1.5rem; }
+  .type-picker-btn .tpb-label { font-size: .72rem; font-weight: 700; text-align: center; }
+  .type-picker-chosen { display: flex; align-items: center; justify-content: space-between; background: var(--leaf-pale); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+  .type-picker-chosen .tpc-label { font-weight: 800; color: var(--leaf-dark); font-size: .88rem; }
+  .type-picker-chosen button { background: none; border: none; color: var(--leaf-dark); font-size: .78rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
   .msg { font-size: .8rem; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; }
   .msg-err { background: #FDECD8; color: var(--coral-dark); }
   .bank-list { max-height: 200px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
@@ -226,23 +234,18 @@
   <div class="modal">
     <h3 style="margin-bottom:14px;">سؤال جدید برای بانک</h3>
     <div id="msgQuestion"></div>
-    <form onsubmit="submitQuestion(event)">
+
+    <!-- گام ۱: انتخاب نوع سؤال -->
+    <div id="qTypeStep">
+      <p style="font-size:.85rem; color:var(--ink-soft); margin-bottom:12px;">اول نوع سؤال رو انتخاب کن، بعد فرم مخصوص همون نوع باز می‌شه:</p>
+      <div class="type-picker-grid" id="qTypeGrid"></div>
+    </div>
+
+    <!-- گام ۲: فرم مخصوص نوع انتخاب‌شده -->
+    <form id="qForm" onsubmit="submitQuestion(event)" style="display:none;">
+      <div class="type-picker-chosen" id="qTypeChosen"></div>
+      <input type="hidden" id="qType">
       <div class="field"><label>عنوان سؤال</label><input type="text" id="qTitle" required></div>
-      <div class="field"><label>نوع سؤال</label>
-        <select id="qType" onchange="renderTypeFields()" required>
-          <option value="multiple_choice">چندگزینه‌ای</option>
-          <option value="true_false">درست/نادرست</option>
-          <option value="fill_blank">جای‌خالی</option>
-          <option value="matching">جور کردنی</option>
-          <option value="ordering">ترتیبی</option>
-          <option value="drag_connect">اتصال با کشیدن خط</option>
-          <option value="drawing">کشیدنی (نقاشی)</option>
-          <option value="coloring">رنگ زدن</option>
-          <option value="audio_record">صوتی</option>
-          <option value="photo_upload">آپلود عکس</option>
-          <option value="custom_html">HTML سفارشی (پیشرفته)</option>
-        </select>
-      </div>
       <div class="field"><label>موضوع (اختیاری)</label><input type="text" id="qSubject" placeholder="مثلاً: فارسی"></div>
       <div class="field"><label>پایه (اختیاری)</label><input type="number" id="qGrade" min="1" max="6"></div>
       <div class="field"><label>سطح سختی (اختیاری)</label>
@@ -268,6 +271,7 @@
           <textarea id="qPairs" placeholder="سیب = میوه&#10;گربه = حیوان"></textarea>
         </div>
       </div>
+      <div id="fVisualNote" class="dyn-field hint" style="background:var(--leaf-pale); padding:10px 12px; border-radius:10px;"></div>
       <div id="fCustomHtml" class="dyn-field">
         <div class="field">
           <label>کد HTML سفارشی</label>
@@ -796,9 +800,9 @@
     if (!q) return;
     let content;
     try { content = JSON.parse(q.content_json); } catch { content = {}; }
-    openModal('addQuestion');
+    openModal('question');
+    selectQuestionType(q.question_type);
     document.getElementById('qTitle').value = q.title + ' (کپی)';
-    document.getElementById('qType').value = q.question_type;
     document.getElementById('qSubject').value = q.subject || '';
     document.getElementById('qGrade').value = q.grade || '';
     document.getElementById('qDifficulty').value = q.difficulty || '';
@@ -810,7 +814,6 @@
     if (document.getElementById('qFillAnswer')) document.getElementById('qFillAnswer').value = content.answer || '';
     if (document.getElementById('qPairs')) document.getElementById('qPairs').value = (content.pairs || []).map(p => `${p.left} = ${p.right}`).join('\n');
     if (document.getElementById('qCustomHtml')) document.getElementById('qCustomHtml').value = q.custom_html || '';
-    if (typeof renderTypeFields === 'function') renderTypeFields();
   }
 
   function useQuestionInNewAssignment(qid) {
@@ -854,7 +857,9 @@
   // ===== رندر picker برای مودال تکلیف =====
   function renderBankPicker() {
     document.getElementById('aBankPicker').innerHTML = bankQuestions.length ? bankQuestions.map(q => `
-      <label class="bank-row"><input type="checkbox" value="${q.id}" class="bank-check"> ${escapeHtml(q.title)} <span class="type-tag">${TYPE_LABEL[q.question_type] || q.question_type}</span></label>
+      <label class="bank-row"><input type="checkbox" value="${q.id}" class="bank-check"> ${escapeHtml(q.title)} <span class="type-tag">${TYPE_LABEL[q.question_type] || q.question_type}</span>
+        ${q.teacher_id === user.id ? `<button type="button" style="margin-inline-start:auto; background:none; border:none; cursor:pointer; font-size:.85rem;" title="ویرایش پیش از ارسال" onclick="event.preventDefault(); event.stopPropagation(); openEditQuestion(${q.id})">✏️</button>` : ''}
+      </label>
     `).join('') : '<div class="hint">اول از «سؤال جدید» چند سؤال بساز.</div>';
   }
 
@@ -895,18 +900,58 @@
     } catch (e) { console.error(e); }
   }
 
-  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') { renderBankPicker(); loadTemplatesIntoAssignmentModal(); } if (name === 'packs') loadPacksIfNeeded(); }
+  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') { renderBankPicker(); loadTemplatesIntoAssignmentModal(); } if (name === 'packs') loadPacksIfNeeded(); if (name === 'question') { renderQuestionTypeGrid(); resetQuestionWizard(); document.getElementById('msgQuestion').innerHTML = ''; } }
   function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
   function cap(s) { return s[0].toUpperCase() + s.slice(1); }
 
+  const VISUAL_TYPE_NOTE = {
+    drawing: '🎨 برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز یه بوم نقاشی برای کشیدن می‌بینه، تنظیم اضافه‌ای لازم نیست.',
+    coloring: '🖌️ برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز یه بوم برای رنگ‌آمیزی می‌بینه، تنظیم اضافه‌ای لازم نیست.',
+    audio_record: '🎤 برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز تا ۱۵ ثانیه صداش رو ضبط می‌کنه، تنظیم اضافه‌ای لازم نیست.',
+    photo_upload: '📷 برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز یه عکس آپلود می‌کنه، تنظیم اضافه‌ای لازم نیست.',
+  };
+
+  function renderQuestionTypeGrid() {
+    document.getElementById('qTypeGrid').innerHTML = Object.keys(BANK_TYPE_LABEL).map(t => `
+      <button type="button" class="type-picker-btn" onclick="selectQuestionType('${t}')">
+        <span class="tpb-icon">${BANK_TYPE_ICON[t]}</span>
+        <span class="tpb-label">${BANK_TYPE_LABEL[t]}</span>
+      </button>`).join('');
+  }
+
+  function selectQuestionType(type) {
+    document.getElementById('qType').value = type;
+    document.getElementById('qTypeChosen').innerHTML = `
+      <span class="tpc-label">${BANK_TYPE_ICON[type]} ${BANK_TYPE_LABEL[type]}</span>
+      <button type="button" onclick="backToTypeStep()">🔙 تغییر نوع</button>`;
+    document.getElementById('qTypeStep').style.display = 'none';
+    document.getElementById('qForm').style.display = 'block';
+    renderTypeFields();
+  }
+
+  function backToTypeStep() {
+    document.getElementById('qForm').style.display = 'none';
+    document.getElementById('qTypeStep').style.display = 'block';
+  }
+
+  function resetQuestionWizard() {
+    document.getElementById('qForm').reset();
+    document.getElementById('qType').value = '';
+    backToTypeStep();
+  }
+
   function renderTypeFields() {
     const type = document.getElementById('qType').value;
-    document.querySelectorAll('.dyn-field').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('#qForm .dyn-field').forEach(el => el.classList.remove('show'));
     if (type === 'multiple_choice') document.getElementById('fMultipleChoice').classList.add('show');
     if (type === 'true_false') document.getElementById('fTrueFalse').classList.add('show');
     if (type === 'fill_blank') document.getElementById('fFillBlank').classList.add('show');
     if (type === 'matching' || type === 'ordering' || type === 'drag_connect') document.getElementById('fPairs').classList.add('show');
     if (type === 'custom_html') document.getElementById('fCustomHtml').classList.add('show');
+    if (VISUAL_TYPE_NOTE[type]) {
+      document.getElementById('fVisualNote').textContent = VISUAL_TYPE_NOTE[type];
+      document.getElementById('fVisualNote').classList.add('show');
+    }
   }
 
   function buildContentJson(type, prompt) {
@@ -941,8 +986,7 @@
         tags: document.getElementById('qTags').value || null,
       }});
       closeModal('question');
-      e.target.reset();
-      renderTypeFields();
+      resetQuestionWizard();
       loadBank();
       celebrateBadges(result.newlyEarnedBadges);
     } catch (err) { showModalMsg('Question', err.message); }
@@ -1066,19 +1110,34 @@
   async function submitEditQuestion(e) {
     e.preventDefault();
     const type = document.getElementById('eqType').value;
+    const qid = Number(document.getElementById('eqId').value);
+    const payload = {
+      questionId: qid,
+      title: document.getElementById('eqTitle').value,
+      questionType: type,
+      subject: document.getElementById('eqSubject').value || null,
+      grade: document.getElementById('eqGrade').value ? Number(document.getElementById('eqGrade').value) : null,
+      difficulty: document.getElementById('eqDifficulty').value || null,
+      tags: document.getElementById('eqTags').value || null,
+      content: buildEditContentJson(type, document.getElementById('eqPrompt').value),
+      customHtml: type === 'custom_html' ? document.getElementById('eqCustomHtml').value : null,
+    };
     try {
-      await apiFetch('/teacher/update-question', { method: 'POST', body: {
-        questionId: Number(document.getElementById('eqId').value),
-        title: document.getElementById('eqTitle').value,
-        questionType: type,
-        subject: document.getElementById('eqSubject').value || null,
-        grade: document.getElementById('eqGrade').value ? Number(document.getElementById('eqGrade').value) : null,
-        difficulty: document.getElementById('eqDifficulty').value || null,
-        tags: document.getElementById('eqTags').value || null,
-        content: buildEditContentJson(type, document.getElementById('eqPrompt').value),
-        customHtml: type === 'custom_html' ? document.getElementById('eqCustomHtml').value : null,
-      }});
-      closeModal('editQuestion'); loadBank();
+      await apiFetch('/teacher/update-question', { method: 'POST', body: payload });
+      closeModal('editQuestion');
+      // به‌روزرسانی فوریِ محلی — چه از خود صفحهٔ بانک وارد ویرایش شده باشیم چه از داخل مودال «ارسال تکلیف»
+      // (که در اون حالت نباید فیلترها یا چک‌باکس‌های انتخاب‌شده با یه fetch دوباره از بین برن).
+      const patch = (arr) => {
+        const i = arr.findIndex(x => x.id === qid);
+        if (i > -1) arr[i] = { ...arr[i], title: payload.title, question_type: payload.questionType, subject: payload.subject, grade: payload.grade, difficulty: payload.difficulty, tags: payload.tags, content_json: JSON.stringify(payload.content), custom_html: payload.customHtml };
+      };
+      patch(bankAllQuestions); patch(bankQuestions);
+      if (document.getElementById('bankCards')) renderBank();
+      if (document.getElementById('modalAssignment').classList.contains('open')) {
+        const checkedIds = [...document.querySelectorAll('.bank-check:checked')].map(el => Number(el.value));
+        renderBankPicker();
+        document.querySelectorAll('.bank-check').forEach(cb => { cb.checked = checkedIds.includes(Number(cb.value)); });
+      }
     } catch (err) { document.getElementById('msgEditQuestion').innerHTML = `<div class="msg msg-err">${escapeHtml(err.message)}</div>`; }
   }
 
