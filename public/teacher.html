@@ -253,6 +253,10 @@
         <select id="qDifficulty"><option value="">—</option><option value="easy">🟢 آسان</option><option value="medium">🟡 متوسط</option><option value="hard">🔴 سخت</option></select>
       </div>
       <div class="field"><label>برچسب‌ها (اختیاری، با ویرگول جدا کن)</label><input type="text" id="qTags" placeholder="مثلاً: جمع, اعداد دورقمی"></div>
+        <div class="field"><label>فصل (اختیاری)</label><input type="text" id="qChapter" placeholder="فصل ۲"></div>
+        <div class="field"><label>مبحث (اختیاری)</label><input type="text" id="qTopic" placeholder="کسر"></div>
+        <div class="field"><label>توضیح پاسخ (اختیاری)</label><input type="text" id="qExplanation"></div>
+        <div class="field"><label>وضعیت</label><select id="qStatus"><option value="active">فعال</option><option value="draft">پیش‌نویس</option></select></div>
       <div class="field"><label>متن سؤال / توضیح برای دانش‌آموز</label><textarea id="qPrompt" required></textarea></div>
 
       <div id="fMultipleChoice" class="dyn-field">
@@ -350,6 +354,10 @@
         <select id="eqDifficulty"><option value="">—</option><option value="easy">🟢 آسان</option><option value="medium">🟡 متوسط</option><option value="hard">🔴 سخت</option></select>
       </div>
       <div class="field"><label>برچسب‌ها (اختیاری، با ویرگول جدا کن)</label><input type="text" id="eqTags"></div>
+        <div class="field"><label>فصل (اختیاری)</label><input type="text" id="eqChapter" placeholder="فصل ۲"></div>
+        <div class="field"><label>مبحث (اختیاری)</label><input type="text" id="eqTopic" placeholder="کسر"></div>
+        <div class="field"><label>توضیح پاسخ (اختیاری)</label><input type="text" id="eqExplanation"></div>
+        <div class="field"><label>وضعیت</label><select id="eqStatus"><option value="active">فعال</option><option value="draft">پیش‌نویس</option><option value="archived">بایگانی</option></select></div>
       <div class="field"><label>متن سؤال</label><textarea id="eqPrompt" required></textarea></div>
 
       <div id="efMultipleChoice" class="dyn-field">
@@ -833,7 +841,7 @@
         <div class="bank-card-meta">
           ${bankState.own === 'school' ? `<span class="owner-pill ${isMine ? 'me' : 'other'}">${isMine ? '👤 من' : '👤 ' + escapeHtml(q.author_name || '')}</span>` : ''}
           📚 ${escapeHtml(q.subject || '—')} · پایه ${q.grade ? toFa(q.grade) : '—'}
-          ${q.difficulty ? `· ${DIFFICULTY_LABEL[q.difficulty] || ''}` : ''}
+          ${q.difficulty ? `· ${DIFFICULTY_LABEL[q.difficulty] || ''}` : ''}${q.chapter ? ' · ' + q.chapter : ''}${q.topic ? ' · ' + q.topic : ''}${q.version ? ' · v' + toFa(q.version) : ''}${q.status === 'draft' ? ' · 📝 پیش‌نویس' : ''}${q.success_rate != null ? ' · ★ ' + toFa(q.success_rate) + '٪' : ''}
         </div>
         ${tagList.length ? `<div class="bank-card-meta" style="margin-top:-4px;">${tagList.map(t => `<span style="background:var(--leaf-pale); color:var(--leaf-dark); padding:2px 8px; border-radius:999px; font-size:.72rem;">#${escapeHtml(t)}</span>`).join(' ')}</div>` : ''}
         ${promptText ? `<div class="bank-card-prompt">${escapeHtml(promptText.slice(0, 120))}${promptText.length > 120 ? '...' : ''}</div>` : ''}
@@ -1046,6 +1054,10 @@
         customHtml: type === 'custom_html' ? document.getElementById('qCustomHtml').value : null,
         difficulty: document.getElementById('qDifficulty').value || null,
         tags: document.getElementById('qTags').value || null,
+        chapter: document.getElementById('qChapter').value || null,
+        topic: document.getElementById('qTopic').value || null,
+        explanation: document.getElementById('qExplanation').value || null,
+        status: document.getElementById('qStatus').value || null,
       }});
       closeModal('question');
       resetQuestionWizard();
@@ -1135,6 +1147,10 @@
     document.getElementById('eqGrade').value = q.grade || '';
     document.getElementById('eqDifficulty').value = q.difficulty || '';
     document.getElementById('eqTags').value = q.tags || '';
+    document.getElementById('eqChapter').value = q.chapter || '';
+    document.getElementById('eqTopic').value = q.topic || '';
+    document.getElementById('eqExplanation').value = q.explanation || '';
+    document.getElementById('eqStatus').value = q.status || 'active';
     document.getElementById('eqPrompt').value = content.prompt || '';
     document.getElementById('eqOptions').value = (content.options || []).join('\n');
     document.getElementById('eqCorrectIndex').value = content.correctIndex !== undefined ? content.correctIndex + 1 : '';
@@ -1181,6 +1197,10 @@
       grade: document.getElementById('eqGrade').value ? Number(document.getElementById('eqGrade').value) : null,
       difficulty: document.getElementById('eqDifficulty').value || null,
       tags: document.getElementById('eqTags').value || null,
+      chapter: document.getElementById('eqChapter').value || null,
+      topic: document.getElementById('eqTopic').value || null,
+      explanation: document.getElementById('eqExplanation').value || null,
+      status: document.getElementById('eqStatus').value || null,
       content: buildEditContentJson(type, document.getElementById('eqPrompt').value),
       customHtml: type === 'custom_html' ? document.getElementById('eqCustomHtml').value : null,
     };
