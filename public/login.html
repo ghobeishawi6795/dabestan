@@ -154,7 +154,7 @@
       const data = await res.json();
       if (!res.ok) return showMsg(data.error === 'invalid credentials' ? 'نام کاربری یا رمز عبور اشتباهه.' : data.error);
       Auth.save({ token: data.token, user: data.user, schoolId: selectedSchoolId });
-      const dest = data.user.is_super ? 'super.html' : ({ admin: 'admin.html', teacher: 'teacher.html', student: 'student.html' }[data.user.role] || 'index.html');
+      const dest = data.user.isSuper ? 'super.html' : ({ admin: 'admin.html', teacher: 'teacher.html', student: 'student.html' }[data.user.role] || 'index.html');
       window.location.href = dest;
     } catch (err) {
       showMsg('خطا در برقراری ارتباط با سرور.');
