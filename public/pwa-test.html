@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تست PWA</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<style>
+body { font-family: Vazirmatn, Tahoma; padding: 20px; background: #eef5ec; margin: 0; }
+.box { background: white; border-radius: 16px; padding: 24px; max-width: 400px; margin: 10px auto; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+.ok { color: green; font-weight: 800; }
+.bad { color: #e2725b; font-weight: 800; }
+h2 { margin: 0 0 12px; font-size: 1.1rem; }
+button { background: #3F7A52; color: white; border: none; border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; font-family: inherit; }
+.icon-preview { width: 128px; height: 128px; border-radius: 24px; margin: 10px auto; display: block; background: #3F7A52; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h2>🔍 وضعیت PWA</h2>
+  <div id="status"></div>
+  <img src="/icons/icon-192.png" class="icon-preview" alt="آیکون">
+  <p style="text-align:center; color:#666; font-size:.85rem;">آیکون بالا باید غنچه گل باشه</p>
+</div>
+
+<div class="box">
+  <h2>📲 نصب اپ</h2>
+  <p style="color:#666; font-size:.85rem;">اگه دکمه زیر رو می‌بینی، یعنی PWA آماده نصبه!</p>
+  <button id="installBtn" style="display:none;" onclick="doInstall()">📲 نصب به‌عنوان اپ</button>
+  <p id="installMsg" style="color:#666; font-size:.8rem; text-align:center;"></p>
+</div>
+
+<div class="box">
+  <h2> پاکسازی</h2>
+  <button onclick="doCleanup()" style="background:#e2725b;">پاک کردن shortcut قدیمی</button>
+  <p style="color:#666; font-size:.8rem; text-align:center;">اول shortcut قدیمی رو از صفحه اصلی پاک کن، بعد از اینجا نصب کن</p>
+</div>
+
+<script>
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'block';
+  document.getElementById('installMsg').textContent = '✅ آماده نصب!';
+});
+
+async function doInstall() {
+  if (!deferredPrompt) {
+    document.getElementById('installMsg').textContent = '⚠️ مرورگر اجازه نصب نمیده. از منوی سه‌نقطه → «نصب برنامه» استفاده کن.';
+    return;
+  }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    document.getElementById('installMsg').textContent = '🎉 نصب شد!';
+  }
+  deferredPrompt = null;
+  document.getElementById('installBtn').style.display = 'none';
+}
+
+async function doCleanup() {
+  const regs = await navigator.serviceWorker.getRegistrations();
+  for (const reg of regs) await reg.unregister();
+  const keys = await caches.keys();
+  for (const key of keys) await caches.delete(key);
+  alert('✅ پاک شد! حالا از منوی سه‌نقطه → «نصب برنامه» رو بزن.');
+}
+
+// بررسی وضعیت
+async function checkStatus() {
+  const s = document.getElementById('status');
+  const checks = [];
+  
+  // 1. Manifest
+  const manifestLink = document.querySelector('link[rel="manifest"]');
+  checks.push(['Manifest لینک شده', !!manifestLink]);
+  
+  // 2. Service Worker
+  const swReg = await navigator.serviceWorker.getRegistration();
+  checks.push(['Service Worker', !!swReg]);
+  
+  // 3. Display mode
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  checks.push(['حالت standalone', isStandalone]);
+  
+  // 4. HTTPS
+  checks.push(['HTTPS', location.protocol === 'https:']);
+  
+  s.innerHTML = checks.map(([name, ok]) => 
+    `<div class="row"><span>${name}</span><span class="${ok?'ok':'bad'}">${ok?'✅':''}</span></div>`
+  ).join('');
+}
+
+checkStatus();
+</script>
+</body>
+</html>

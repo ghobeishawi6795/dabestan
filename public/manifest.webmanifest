@@ -1,19 +1,39 @@
 {
-  "name": "باغچهٔ درس",
-  "short_name": "باغچهٔ درس",
-  "description": "مدیریت تکالیف مدرسه — معلم، دانش‌آموز، مدیر و والدین",
+  "name": "باغچه درس",
+  "short_name": "باغچه",
+  "description": "اپلیکیشن مدیریت تکالیف دبستان",
   "start_url": "/login.html",
-  "id": "/login.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
+  "background_color": "#eef5ec",
+  "theme_color": "#3F7A52",
   "dir": "rtl",
   "lang": "fa",
-  "background_color": "#EAF4E9",
-  "theme_color": "#3F7A52",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
