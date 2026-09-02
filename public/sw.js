@@ -1,64 +1,52 @@
-// باغچهٔ درس — Service Worker
-// فقط پوستهٔ برنامه (HTML/CSS/JS استاتیک + آیکون‌ها) کش می‌شه.
-// همهٔ درخواست‌های /api/ همیشه از شبکه می‌رن — هرگز کش/آفلاین نمی‌شن،
-// چون داده‌ها زنده و وابسته به نشست کاربرن و کش کردنشون باعث باگ می‌شه.
+// Service Worker v3 - Clean cache management
 const CACHE_VERSION = 'v3';
-const CACHE_NAME = `baghche-shell-${CACHE_VERSION}`;
+const CACHE_NAME = 'dabestan-' + CACHE_VERSION;
 
-const SHELL_FILES = [
+const STATIC_ASSETS = [
+  '/',
   '/login.html',
-  '/admin.html',
-  '/teacher.html',
-  '/student.html',
-  '/parent.html',
-  '/review.html',
-  '/task.html',
   '/assets/style.css',
   '/assets/api.js',
-  '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  '/assets/date-fa.js',
+  '/assets/theme.js',
+  '/assets/pwa.js',
+  '/assets/install-pwa.js',
+  '/manifest.webmanifest'
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
+  console.log('[SW v3] Installing');
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_FILES)).catch(() => {})
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
+  console.log('[SW v3] Activating');
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys().then(keys => 
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
-
-  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
-  // API calls: always network, never cached/served from cache.
-  if (url.pathname.startsWith('/api/')) return;
-
-  // App shell: NETWORK-FIRST. Always try the network so a fresh deploy is visible
-  // on the very next load — no manual "clear site data" needed. The cache is only
-  // a fallback for when there's no network at all (real offline use). This also
-  // keeps the old ERR_FAILED trap closed: cache lookups here never produce an
-  // undefined response — caches.match() resolves to a real Response or undefined,
-  // and we only ever return a Response or let the browser's own network error show.
+self.addEventListener('fetch', event => {
+  // API requests: always network
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // Static assets: Network First
   event.respondWith(
-    fetch(req)
-      .then((res) => {
-        if (res && res.ok) {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
-        }
+    fetch(event.request)
+      .then(res => {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
         return res;
       })
-      .catch(() => caches.match(req).then((cached) => cached || Response.error()))
+      .catch(() => caches.match(event.request))
   );
 });

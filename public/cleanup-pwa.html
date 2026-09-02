@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>پاکسازی PWA</title>
+<style>
+body { font-family: Vazirmatn, Tahoma; padding: 20px; text-align: center; background: #eef5ec; margin: 0; }
+.box { background: white; border-radius: 16px; padding: 24px; max-width: 400px; margin: 20px auto; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+button { background: #3F7A52; color: white; border: none; border-radius: 12px; padding: 14px 28px; font-size: 1rem; font-weight: 800; cursor: pointer; margin: 8px; font-family: inherit; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.status { margin-top: 16px; font-size: .9rem; color: #666; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h2>🧹 پاکسازی PWA قدیمی</h2>
+  <p>این صفحه Service Worker و cache قدیمی رو پاک می‌کنه.</p>
+  <button id="btn" onclick="doCleanup()">شروع پاکسازی</button>
+  <div class="status" id="status"></div>
+</div>
+<script>
+async function doCleanup() {
+  const status = document.getElementById('status');
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  
+  status.textContent = '۱. unregister Service Worker...';
+  const regs = await navigator.serviceWorker.getRegistrations();
+  for (const reg of regs) { await reg.unregister(); }
+  
+  status.textContent = '۲. پاک کردن cache...';
+  const keys = await caches.keys();
+  for (const key of keys) { await caches.delete(key); }
+  
+  status.textContent = '. پاک کردن localStorage...';
+  localStorage.clear();
+  
+  status.textContent = '✅ همه‌چیز پاک شد! در حال انتقال...';
+  status.style.color = 'green';
+  status.style.fontWeight = '800';
+  
+  setTimeout(() => {
+    window.location.href = '/login.html';
+  }, 2000);
+}
+</script>
+</body>
+</html>
