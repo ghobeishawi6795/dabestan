@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بازنشانی PWA</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<style>
+body { font-family: Vazirmatn, Tahoma; padding: 20px; background: #eef5ec; margin: 0; }
+.box { background: white; border-radius: 16px; padding: 24px; max-width: 400px; margin: 10px auto; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+button { background: #3F7A52; color: white; border: none; border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 10px; width: 100%; font-family: inherit; }
+.status { padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; }
+.ok { background: #d4edda; color: #155724; }
+.bad { background: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h2>🔄 بازنشانی PWA</h2>
+  <p>این صفحه همه‌چیز رو ریست می‌کنه تا prompt نصب دوباره بیاد.</p>
+  <button onclick="doReset()">🔄 شروع بازنشانی</button>
+  <div id="status"></div>
+</div>
+
+<script>
+async function doReset() {
+  const status = document.getElementById('status');
+  
+  // 1. پاک کردن localStorage
+  localStorage.removeItem('pwa_install_dismissed');
+  status.innerHTML = '<div class="status ok">✅ localStorage پاک شد</div>';
+  
+  // 2. unregister Service Worker
+  const regs = await navigator.serviceWorker.getRegistrations();
+  for (const reg of regs) await reg.unregister();
+  status.innerHTML += '<div class="status ok">✅ Service Worker unregister شد</div>';
+  
+  // 3. پاک کردن cache
+  const keys = await caches.keys();
+  for (const key of keys) await caches.delete(key);
+  status.innerHTML += '<div class="status ok">✅ cache پاک شد</div>';
+  
+  // 4. تست beforeinstallprompt
+  status.innerHTML += '<div class="status ok">🔄 در حال بررسی...</div>';
+  
+  setTimeout(() => {
+    window.location.href = '/login.html';
+  }, 2000);
+}
+
+// چک کردن وضعیت فعلی
+const dismissed = localStorage.getItem('pwa_install_dismissed');
+if (dismissed) {
+  document.getElementById('status').innerHTML = '<div class="status bad">⚠️ localStorage[\'pwa_install_dismissed\'] = ' + dismissed + '</div><p>دکمه بالا رو بزن تا پاک بشه.</p>';
+}
+</script>
+</body>
+</html>

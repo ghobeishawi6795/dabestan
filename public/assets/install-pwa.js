@@ -1,4 +1,4 @@
-// PWA Install Handler
+// PWA Install Handler - Force show
 (function() {
   let deferredPrompt = null;
   
@@ -11,7 +11,6 @@
   function showInstallButton() {
     // Don't show if already installed
     if (window.matchMedia('(display-mode: standalone)').matches) return;
-    if (localStorage.getItem('pwa_install_dismissed')) return;
     
     let btn = document.getElementById('installPwaBtn');
     if (!btn) {
@@ -36,17 +35,20 @@
     }
     btn.style.display = 'block';
     
-    // Auto-hide after 10 seconds
+    // Auto-hide after 15 seconds
     setTimeout(() => {
       if (btn && btn.style.display !== 'none') {
         btn.style.opacity = '0';
         setTimeout(() => { if(btn) btn.style.display = 'none'; }, 300);
       }
-    }, 10000);
+    }, 15000);
   }
   
   async function doInstall() {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert('مرورگر اجازه نصب مستقیم نمیده. از منوی سه‌نقطه → «نصب برنامه» استفاده کن.');
+      return;
+    }
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     deferredPrompt = null;
