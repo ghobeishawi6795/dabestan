@@ -85,7 +85,7 @@ export async function getAuthUser(env, token) {
   const payload = await verifySessionToken(env, token);
   if (!payload) return null;
   const row = await env.DB.prepare(
-    'SELECT id, school_id, role, username, full_name, class_id, is_active FROM users WHERE id = ?'
+    'SELECT id, school_id, role, username, full_name, class_id, is_active, is_super FROM users WHERE id = ?'
   ).bind(payload.uid).first();
   if (!row || !row.is_active) return null;
   if (row.school_id !== payload.sid || row.role !== payload.role) return null;

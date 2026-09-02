@@ -2,7 +2,7 @@ import { getAuthUser } from './_lib/auth.js';
 import { err } from './_lib/http.js';
 
 // Public endpoints that don't require a session yet.
-const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/register-school', '/api/auth/find-school', '/api/parent/get-student', '/api/parent/submit-feedback', '/api/parent/list-messages', '/api/parent/send-message', '/api/parent/get-garden-diary', '/api/health'];
+const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/register-school', '/api/auth/find-school', '/api/auth/setup-super', '/api/parent/get-student', '/api/parent/submit-feedback', '/api/parent/list-messages', '/api/parent/send-message', '/api/parent/get-garden-diary', '/api/health'];
 
 export async function onRequest(context) {
   const { request, next } = context;
@@ -16,7 +16,10 @@ export async function onRequest(context) {
   const user = await getAuthUser(context.env, token);
   if (!user) return err('unauthorized', 401);
 
-  // Downstream handlers read context.data.user — never re-derive identity from client-supplied ids.
+  // مسیرهای سوپرادمین فقط برای کاربر با is_super=1
+  if (url.pathname.startsWith('/api/super/') && !user.is_super) {
+    return err('forbidden: super admin only', 403);
+  }
   context.data.user = user;
   return next();
 }
