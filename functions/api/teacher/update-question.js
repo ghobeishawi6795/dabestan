@@ -17,6 +17,7 @@ export async function onRequestPost({ request, env, data }) {
   if (!VALID_TYPES.includes(body.questionType)) return err('invalid questionType');
   if (body.difficulty && !['easy', 'medium', 'hard'].includes(body.difficulty)) return err('invalid difficulty');
   if (body.status && !['draft', 'active', 'archived'].includes(body.status)) return err('invalid status');
+  if (body.visibility && !['private', 'public'].includes(body.visibility)) return err('invalid visibility');
   const tagsStr = Array.isArray(body.tags) ? body.tags.map((t) => String(t).trim()).filter(Boolean).join(',') : (body.tags || null);
 
   if (body.questionType === 'custom_html') {
@@ -40,11 +41,11 @@ export async function onRequestPost({ request, env, data }) {
 
   await env.DB.prepare(
     `UPDATE question_bank SET title = ?, question_type = ?, subject = ?, grade = ?, content_json = ?, custom_html = ?, tags = ?, difficulty = ?,
-     chapter = ?, topic = ?, explanation = ?, status = COALESCE(?, status), version = ? WHERE id = ?`
+     chapter = ?, topic = ?, explanation = ?, status = COALESCE(?, status), visibility = COALESCE(?, visibility), version = ? WHERE id = ?`
   ).bind(
     body.title, body.questionType, body.subject || null, body.grade || null, contentJson, body.customHtml || null,
     tagsStr || null, body.difficulty || null, body.chapter || null, body.topic || null, body.explanation || null,
-    body.status || null, nextVersion, body.questionId
+    body.status || null, body.visibility || null, nextVersion, body.questionId
   ).run();
 
   await env.DB.prepare(

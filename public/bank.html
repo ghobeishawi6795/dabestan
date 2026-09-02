@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بانک سؤال 🏦</title>
+<script src="/assets/api.js"></script>
+<style>
+:root{--bg:#eef5ec;--surface:#fff;--ink:#26332b;--soft:#6b7a6f;--leaf:#3f7a52;--leaf-pale:#e3f0e6;--sun:#f6c445;--coral:#e2725b;--line:#e3e8e0;--shadow:0 6px 18px rgba(38,51,43,.08)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:980px;margin:0 auto;padding:0 14px 60px}
+.top{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:8px;padding:12px 0;z-index:5;flex-wrap:wrap}
+h1{font-size:1.1rem;margin:0}
+.sp{flex:1}
+a.back{color:var(--leaf);font-size:.75rem;font-weight:800;text-decoration:none}
+.btn{background:var(--leaf);color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;font-family:inherit;font-size:.78rem}
+.btn:active{transform:scale(.95)}
+.ghost{background:var(--surface);color:var(--leaf);border:2px solid var(--leaf-pale)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:.72rem;font-weight:800;box-shadow:var(--shadow)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{border:none;background:var(--surface);border-radius:12px 12px 0 0;padding:10px 16px;font-weight:800;font-size:.78rem;cursor:pointer;color:var(--soft);font-family:inherit}
+.tabs button.on{background:var(--leaf);color:#fff}
+.filters{background:var(--surface);border-radius:16px;padding:12px;box-shadow:var(--shadow);display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filters input,.filters select{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-family:inherit;font-size:.75rem;background:var(--bg);color:var(--ink)}
+.filters input{flex:1;min-width:130px}
+.row{background:var(--surface);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;animation:pop .4s both}
+@keyframes pop{from{opacity:0;transform:translateY(12px)}}
+.row .main{flex:1;min-width:220px}
+.row .t{font-weight:800;font-size:.86rem}
+.row .meta{color:var(--soft);font-size:.66rem;margin-top:3px}
+.tag{background:var(--leaf-pale);color:var(--leaf);border-radius:999px;padding:1px 8px;font-size:.6rem;font-weight:800}
+.badge{border-radius:999px;padding:3px 10px;font-size:.63rem;font-weight:800}
+.use{font-size:.7rem;font-weight:800;color:var(--soft)}
+.ver{background:var(--line);border-radius:8px;padding:2px 7px;font-size:.6rem;font-weight:800;color:var(--soft)}
+.acts{display:flex;gap:4px}
+.acts button{border:1px solid var(--line);background:var(--bg);border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:.95rem}
+.acts button:active{transform:scale(.88)}
+.mbg{position:fixed;inset:0;background:rgba(33,53,31,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:14px;overflow-y:auto}
+.mbg.open{display:flex}
+.modal{background:var(--surface);border-radius:20px;padding:20px;max-width:600px;width:100%;margin:auto;animation:pop .3s both}
+.modal h3{margin:0 0 12px;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid label{font-size:.66rem;font-weight:800;color:var(--soft)}
+.grid input,.grid select,.modal textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit;font-size:.78rem;background:var(--bg);color:var(--ink)}
+.studentview{background:var(--bg);border-radius:16px;padding:16px;margin:10px 0}
+.studentview .o{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px;margin:6px 0;font-size:.83rem;font-weight:700}
+.toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:.78rem;font-weight:800;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.toast.show{opacity:1}
+.cf{position:fixed;top:-30px;font-size:20px;animation:fall linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <a class="back" href="teacher.html">→ بازگشت</a>
+  <h1>🏦 بانک سؤال</h1>
+  <div class="sp"></div>
+  <button class="btn ghost" onclick="openBulk()">📥 ورود گروهی</button>
+  <button class="btn" onclick="openCreate()">＋ افزودن سؤال</button>
+</header>
+<div class="chips" id="chips"></div>
+<div class="tabs">
+  <button class="on" onclick="setOwn('me',this)">👤 بانک من</button>
+  <button onclick="setOwn('school',this)">🏫 بانک مدرسه</button>
+  <button onclick="setOwn('public',this)">🌍 بانک عمومی</button>
+</div>
+<div class="filters">
+  <input id="fSearch" placeholder="🔎 جستجو..." oninput="debounceLoad()">
+  <select id="fSubject" onchange="load()"><option value="">همه درس‌ها</option><option>ریاضی</option><option>فارسی</option><option>علوم</option></select>
+  <select id="fGrade" onchange="load()"><option value="">همه پایه‌ها</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+  <select id="fType" onchange="load()"><option value="">همه انواع</option><option value="multiple_choice">چهارگزینه‌ای</option><option value="true_false">صحیح/غلط</option><option value="fill_blank">جای خالی</option><option value="matching">وصل‌کردنی</option><option value="ordering">مرتب‌کردنی</option><option value="drawing">نقاشی</option><option value="audio_record">صوتی</option><option value="photo_upload">عکس</option></select>
+  <select id="fDiff" onchange="load()"><option value="">همه سطوح</option><option value="easy">آسان</option><option value="medium">متوسط</option><option value="hard">سخت</option></select>
+  <select id="fStatus" onchange="load()"><option value="">همه وضعیت‌ها</option><option value="active">فعال</option><option value="draft">پیش‌نویس</option><option value="archived">بایگانی</option></select>
+  <select id="fSort" onchange="load()"><option value="newest">جدیدترین</option><option value="popular">پرمصرف‌ترین</option><option value="success">بیشترین موفقیت</option><option value="title">الفبا</option></select>
+  <button class="chip" id="favBtn" onclick="toggleFavF()">⭐ علاقه‌ها</button>
+  <button class="chip" id="unusedBtn" onclick="toggleUnused()">💤 بدون استفاده</button>
+</div>
+<div id="list"></div>
+</div>
+
+<div class="mbg" id="mPrev"><div class="modal">
+  <h3>👁 پیش‌نمایش دانش‌آموز <span class="ver" id="pvVer"></span></h3>
+  <div class="studentview" id="pvBody"></div>
+  <p style="font-size:.72rem;color:var(--soft)" id="pvExplain"></p>
+  <h3 style="font-size:.8rem">📊 آمار سؤال</h3>
+  <div id="pvStats" style="font-size:.75rem"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn ghost" style="flex:1" id="pvEdit">✏️ ویرایش</button>
+    <button class="btn ghost" style="flex:1" onclick="closeM('mPrev')">بستن</button>
+  </div>
+</div></div>
+
+<div class="mbg" id="mEdit"><div class="modal">
+  <h3 id="eHead">➕ ساخت سؤال</h3>
+  <div class="grid">
+    <div><label>نوع</label><select id="eType" onchange="typeUI()"><option value="multiple_choice">چهارگزینه‌ای</option><option value="true_false">صحیح/غلط</option><option value="fill_blank">جای خالی</option></select></div>
+    <div><label>پایه</label><select id="eGrade"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+    <div><label>درس</label><select id="eSubject"><option>ریاضی</option><option>فارسی</option><option>علوم</option></select></div>
+    <div><label>سطح</label><select id="eDiff"><option value="">—</option><option value="easy">آسان</option><option value="medium">متوسط</option><option value="hard">سخت</option></select></div>
+    <div><label>فصل</label><input id="eChapter" placeholder="فصل ۲"></div>
+    <div><label>مبحث</label><input id="eTopic" placeholder="کسر"></div>
+    <div><label>وضعیت</label><select id="eStatus"><option value="active">فعال</option><option value="draft">پیش‌نویس</option><option value="archived">بایگانی</option></select></div>
+    <div><label>بانک عمومی 🌍</label><select id="eVis"><option value="private">خیر</option><option value="public">بله — نمایش عمومی</option></select></div>
+  </div>
+  <label style="font-size:.66rem;font-weight:800;color:var(--soft)">متن سؤال</label>
+  <textarea id="ePrompt" rows="2"></textarea>
+  <div id="eMcBox"><label style="font-size:.66rem;font-weight:800;color:var(--soft)">گزینه‌ها (هر خط یک گزینه)</label>
+    <textarea id="eOpts" rows="4"></textarea>
+    <label style="font-size:.66rem;font-weight:800;color:var(--soft)">شمارهٔ پاسخ صحیح</label>
+    <input id="eCorrect" type="number" value="1" min="1" style="width:80px;border:1.5px solid var(--line);border-radius:10px;padding:8px;font-family:inherit"></div>
+  <div id="eTfBox" style="display:none"><label style="font-size:.66rem;font-weight:800;color:var(--soft)">پاسخ</label>
+    <select id="eTf"><option value="true">صحیح</option><option value="false">غلط</option></select></div>
+  <div id="eFillBox" style="display:none"><label style="font-size:.66rem;font-weight:800;color:var(--soft)">پاسخ جای خالی</label>
+    <input id="eAnswer" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit"></div>
+  <label style="font-size:.66rem;font-weight:800;color:var(--soft)">توضیح پاسخ</label>
+  <input id="eExplain" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit">
+  <label style="font-size:.66rem;font-weight:800;color:var(--soft)">برچسب‌ها (کاما-جدا)</label>
+  <input id="eTags" style="width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit">
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button class="btn" style="flex:1" onclick="saveQ()">💾 ذخیره</button>
+    <button class="btn ghost" onclick="closeM('mEdit')">انصراف</button>
+  </div>
+</div></div>
+
+<div class="mbg" id="mBulk"><div class="modal">
+  <h3>📥 ورود گروهی</h3>
+  <p style="font-size:.7rem;color:var(--soft)">هر خط یک سؤال:<br><b>عنوان | نوع | درس | پایه | سطح | برچسب‌ها | گزینه۱؛گزینه۲؛گزینه۳؛گزینه۴ | شماره‌پاسخ</b><br>برای true_false به‌جای شماره‌پاسخ بنویس true/false و برای fill_blank خود پاسخ.</p>
+  <textarea id="bText" rows="6" placeholder="کدام کسر با ۱/۲ برابر است؟ | multiple_choice | ریاضی | 4 | medium | کسر | ۲/۴؛۳/۶؛۲/۳؛۱/۴ | 2"></textarea>
+  <button class="btn" style="width:100%" onclick="bulkCheck()">🔎 بررسی و ورود</button>
+  <div id="bReport" style="font-size:.72rem;margin-top:10px"></div>
+  <button class="btn ghost" style="width:100%;margin-top:10px" onclick="closeM('mBulk')">بستن</button>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<script>
+const user = requireAuth(['teacher']);
+const toFa=n=>String(n==null?'—':n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const TL={multiple_choice:['چهارگزینه‌ای','#e3f0e6','#3f7a52'],true_false:['صحیح/غلط','#e6fbf5','#0f9d8a'],fill_blank:['جای خالی','#fdf3e0','#b7791f'],matching:['وصل‌کردنی','#f0e8fd','#6b46c1'],ordering:['مرتب‌کردنی','#fde8e3','#c05621'],drawing:['نقاشی','#fde8f0','#b83280'],coloring:['رنگ‌آمیزی','#fde8f0','#b83280'],audio_record:['صوتی','#e8f4fd','#2b6cb0'],photo_upload:['عکس','#e8f4fd','#2b6cb0'],drag_connect:['وصل‌کردنی','#f0e8fd','#6b46c1'],custom_html:['تعاملی','#eee','#555']};
+const DL={easy:'🟢 آسان',medium:'🟠 متوسط',hard:'🔴 سخت'};
+let S={own:'me',fav:false,unused:false},QS=[],editId=null,debT;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
+function confetti(){for(let i=0;i<24;i++){const s=document.createElement('span');s.className='cf';s.textContent=['🎉','✨','🌟','🍂'][i%4];s.style.right=Math.random()*100+'vw';s.style.animationDuration=(1.2+Math.random())+'s';document.body.appendChild(s);setTimeout(()=>s.remove(),2400);}}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+function setOwn(o,btn){S.own=o;document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');load();}
+function toggleFavF(){S.fav=!S.fav;load();}
+function toggleUnused(){S.unused=!S.unused;load();}
+function debounceLoad(){clearTimeout(debT);debT=setTimeout(load,350);}
+async function load(){
+  const p=new URLSearchParams();p.set('own',S.own);
+  const g=id=>document.getElementById(id).value;
+  if(g('fSubject'))p.set('subject',g('fSubject'));if(g('fGrade'))p.set('grade',g('fGrade'));
+  if(g('fType'))p.set('type',g('fType'));if(g('fDiff'))p.set('difficulty',g('fDiff'));
+  if(g('fStatus'))p.set('status',g('fStatus'));if(g('fSort'))p.set('sort',g('fSort'));
+  if(S.fav)p.set('favorite','1');if(g('fSearch').trim())p.set('search',g('fSearch').trim());
+  try{const d=await apiFetch('/teacher/list-questions?'+p.toString());QS=d.questions||[];}catch(e){QS=[];toast('خطا در بارگذاری!');}
+  if(S.unused)QS=QS.filter(q=>(q.usage_count||0)===0);
+  render();
+}
+function render(){
+  const fav=QS.filter(q=>q.is_favorite).length,un=QS.filter(q=>(q.usage_count||0)===0).length;
+  const sr=QS.filter(q=>q.success_rate!=null);
+  document.getElementById('chips').innerHTML=`<div class="chip">📚 ${toFa(QS.length)} سؤال</div><div class="chip">⭐ ${toFa(fav)}</div><div class="chip">💤 ${toFa(un)}</div><div class="chip">🎯 میانگین موفقیت ${sr.length?toFa(Math.round(sr.reduce((s,q)=>s+q.success_rate,0)/sr.length))+'٪':'—'}</div>`;
+  document.getElementById('list').innerHTML=QS.length?QS.map((q,i)=>{
+    const t=TL[q.question_type]||['؟','#eee','#555'];
+    const mine=q.teacher_id===user.id;
+    return `<div class="row" style="animation-delay:${i*.04}s">
+      <div class="main"><div class="t">${q.title} ${q.status==='draft'?'<span class="badge" style="background:#eee;color:#888">📝 پیش‌نویس</span>':''} ${q.visibility==='public'?'<span class="badge" style="background:#e8f4fd;color:#2b6cb0">🌍 عمومی</span>':''}</div>
+      <div class="meta">${q.grade?'پایهٔ '+toFa(q.grade)+' · ':''}${q.subject||''}${q.chapter?' · '+q.chapter:''}${q.topic?' · '+q.topic:''}${S.own!=='me'&&q.author_name?' · 👤 '+q.author_name:''} ${(q.tags||'').split(',').filter(Boolean).map(x=>`<span class="tag">#${x.trim()}</span>`).join(' ')}</div></div>
+      <span class="badge" style="background:${t[1]};color:${t[2]}">${t[0]}</span>
+      ${q.difficulty?`<span style="font-size:.68rem;font-weight:800">${DL[q.difficulty]||''}</span>`:''}
+      <span class="use">${toFa(q.usage_count||0)} بار${q.success_rate!=null?' ★ <b>'+toFa(q.success_rate)+'٪</b>':''}</span>
+      <span class="ver">v${toFa(q.version||1)}</span>
+      <div class="acts">
+        <button onclick="openPrev(${q.id})">👁</button>
+        ${mine?`<button onclick="openEdit(${q.id})">✏️</button>`:`<button onclick="copyQ(${q.id})" title="کپی به بانک من">📋</button>`}
+        ${mine?`<button onclick="toggleFav(${q.id})">${q.is_favorite?'⭐':'☆'}</button>`:''}
+      </div></div>`;}).join(''):'<p style="text-align:center;color:var(--soft);padding:30px">🔍 سؤالی پیدا نشد.</p>';
+}
+function parseC(q){try{return JSON.parse(q.content_json);}catch(e){return{};}}
+function openPrev(id){const q=QS.find(x=>x.id===id);const c=parseC(q);
+  document.getElementById('pvVer').textContent='نسخهٔ '+toFa(q.version||1);
+  let h=`<p style="font-weight:800">${c.prompt||q.title}</p>`;
+  if(c.options)h+=c.options.map((o,i)=>`<div class="o">${'ابپت'[i]||'•'} ) ${o}${i===c.correctIndex?' ✅':''}</div>`).join('');
+  if(c.correct!=null)h+=`<div class="o">پاسخ: ${c.correct?'صحیح ✅':'غلط ❌'}</div>`;
+  if(c.answer)h+=`<div class="o">پاسخ: ${c.answer}</div>`;
+  document.getElementById('pvBody').innerHTML=h;
+  document.getElementById('pvExplain').textContent=q.explanation?'💡 '+q.explanation:'';
+  document.getElementById('pvStats').innerHTML=`استفاده در تکالیف: <b>${toFa(q.usage_count||0)}</b> · تعداد پاسخ: <b>${toFa(q.answer_count||0)}</b> · موفقیت: <b>${q.success_rate!=null?toFa(q.success_rate)+'٪':'—'}</b> · آخرین استفاده: <b>${q.last_used_at?q.last_used_at.slice(0,10):'—'}</b>`;
+  document.getElementById('pvEdit').onclick=()=>{closeM('mPrev');openEdit(id);};
+  document.getElementById('pvEdit').style.display=(q.teacher_id===user.id)?'block':'none';
+  document.getElementById('mPrev').classList.add('open');}
+async function toggleFav(id){await apiFetch('/teacher/toggle-favorite-question',{method:'POST',body:{questionId:id}});load();}
+async function copyQ(id){const q=QS.find(x=>x.id===id);const c=parseC(q);
+  try{await apiFetch('/teacher/add-question',{method:'POST',body:{title:q.title,questionType:q.question_type,subject:q.subject,grade:q.grade,content:c,chapter:q.chapter||null,topic:q.topic||null,explanation:q.explanation||null,difficulty:q.difficulty||null,tags:(q.tags||'').split(',').map(s=>s.trim()).filter(Boolean)}});confetti();toast('به بانک من کپی شد 📋');if(S.own==='me')load();}catch(e){toast('خطا: '+e.message);}}
+function typeUI(){const t=document.getElementById('eType').value;
+  document.getElementById('eMcBox').style.display=t==='multiple_choice'?'block':'none';
+  document.getElementById('eTfBox').style.display=t==='true_false'?'block':'none';
+  document.getElementById('eFillBox').style.display=t==='fill_blank'?'block':'none';}
+function openCreate(){editId=null;document.getElementById('eHead').textContent='➕ ساخت سؤال';
+  ['ePrompt','eOpts','eChapter','eTopic','eExplain','eTags','eAnswer'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('eType').value='multiple_choice';document.getElementById('eCorrect').value=1;document.getElementById('eVis').value='private';typeUI();
+  document.getElementById('mEdit').classList.add('open');}
+function openEdit(id){const q=QS.find(x=>x.id===id);const c=parseC(q);editId=id;
+  document.getElementById('eHead').textContent='✏️ ویرایش سؤال (v'+toFa(q.version||1)+')';
+  document.getElementById('eType').value=q.question_type;document.getElementById('eGrade').value=q.grade||'';
+  document.getElementById('eSubject').value=q.subject||'ریاضی';document.getElementById('eDiff').value=q.difficulty||'';
+  document.getElementById('eChapter').value=q.chapter||'';document.getElementById('eTopic').value=q.topic||'';
+  document.getElementById('eStatus').value=q.status||'active';document.getElementById('eVis').value=q.visibility||'private';
+  document.getElementById('ePrompt').value=c.prompt||'';
+  document.getElementById('eOpts').value=(c.options||[]).join('\n');document.getElementById('eCorrect').value=(c.correctIndex||0)+1;
+  document.getElementById('eTf').value=String(!!c.correct);document.getElementById('eAnswer').value=c.answer||'';
+  document.getElementById('eExplain').value=q.explanation||'';document.getElementById('eTags').value=q.tags||'';typeUI();
+  document.getElementById('mEdit').classList.add('open');}
+async function saveQ(){
+  const g=id=>document.getElementById(id).value;
+  const type=g('eType');let content={prompt:g('ePrompt')};
+  if(type==='multiple_choice'){const opts=g('eOpts').split('\n').map(s=>s.trim()).filter(Boolean);content.options=opts;content.correctIndex=Math.max(0,Number(g('eCorrect'))-1);}
+  if(type==='true_false')content.correct=g('eTf')==='true';
+  if(type==='fill_blank')content.answer=g('eAnswer');
+  const body={title:g('ePrompt')||'بدون عنوان',questionType:type,subject:g('eSubject'),grade:g('eGrade')?Number(g('eGrade')):null,content,chapter:g('eChapter')||null,topic:g('eTopic')||null,explanation:g('eExplain')||null,status:g('eStatus'),visibility:g('eVis'),difficulty:g('eDiff')||null,tags:g('eTags')?g('eTags').split(',').map(s=>s.trim()).filter(Boolean):null};
+  try{
+    if(editId){body.questionId=editId;const r=await apiFetch('/teacher/update-question',{method:'POST',body});toast('نسخهٔ '+toFa(r.version)+' ذخیره شد 🛡️');}
+    else{await apiFetch('/teacher/add-question',{method:'POST',body});confetti();toast('سؤال ذخیره شد 💾');}
+    closeM('mEdit');load();
+  }catch(e){toast('خطا: '+e.message);}
+}
+function openBulk(){document.getElementById('bReport').innerHTML='';document.getElementById('mBulk').classList.add('open');}
+async function bulkCheck(){
+  const lines=document.getElementById('bText').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const ok=[],bad=[];
+  for(let i=0;i<lines.length;i++){
+    const p=lines[i].split('|').map(s=>s.trim());
+    if(!p[0]||!p[1]){bad.push('خط '+(i+1)+': عنوان/نوع ندارد');continue;}
+    ok.push(p);
+  }
+  let html=`<p>✅ ${toFa(ok.length)} سؤال سالم ${bad.length?'· ⚠️ '+toFa(bad.length)+' خطا':''}</p>`+bad.map(b=>`<p style="color:var(--coral)">⚠️ ${b}</p>`).join('');
+  if(ok.length){html+=`<button class="btn" style="width:100%;margin-top:8px" onclick='doImport(${JSON.stringify(ok)})'>✓ وارد کردن ${toFa(ok.length)} سؤال</button>`;}
+  document.getElementById('bReport').innerHTML=html;
+}
+async function doImport(rows){
+  let n=0;for(const p of rows){
+    const type=p[1];let content={prompt:p[0]};
+    if(type==='multiple_choice'){content.options=(p[6]||'').split('؛').map(s=>s.trim()).filter(Boolean);content.correctIndex=Math.max(0,Number(p[7]||1)-1);}
+    if(type==='true_false')content.correct=(p[7]||'true')==='true';
+    if(type==='fill_blank')content.answer=p[7]||'';
+    try{await apiFetch('/teacher/add-question',{method:'POST',body:{title:p[0],questionType:type,subject:p[2]||null,grade:p[3]?Number(p[3]):null,difficulty:p[4]||null,tags:(p[5]||'').split(/[,،]/).map(s=>s.trim()).filter(Boolean),content}});n++;}catch(e){}
+  }
+  confetti();closeM('mBulk');toast(toFa(n)+' سؤال وارد شد 📥');load();
+}
+if(user)load();
+</script>
+</body>
+</html>

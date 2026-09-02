@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS question_bank (
   explanation TEXT,
   status TEXT NOT NULL DEFAULT 'active',
   version INTEGER NOT NULL DEFAULT 1,
+  visibility TEXT NOT NULL DEFAULT 'private',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
