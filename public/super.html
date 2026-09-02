@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ستاد مرکزی 👑</title>
+<script src="/assets/api.js"></script>
+<style>
+:root{--bg:#eef5ec;--surface:#fff;--ink:#26332b;--soft:#6b7a6f;--leaf:#3f7a52;--leaf-pale:#e3f0e6;--sun:#f6c445;--coral:#e2725b;--line:#e3e8e0;--shadow:0 6px 18px rgba(38,51,43,.08)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:860px;margin:0 auto;padding:14px 14px 60px}
+.top{display:flex;align-items:center;gap:10px;padding:10px 0}
+h1{font-size:1.15rem;margin:0}
+.sp{flex:1}
+.btn{background:var(--leaf);color:#fff;border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:inherit;font-size:.8rem}
+.btn:active{transform:scale(.95)}
+.ghost{background:var(--surface);color:var(--coral);border:2px solid var(--line)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.75rem;font-weight:800;box-shadow:var(--shadow)}
+.card{background:var(--surface);border-radius:18px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h3{margin:0 0 10px;font-size:.9rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid label{font-size:.66rem;font-weight:800;color:var(--soft)}
+.grid input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px;font-family:inherit;font-size:.8rem;background:var(--bg)}
+.row{background:var(--surface);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row .main{flex:1;min-width:200px}
+.row .t{font-weight:800;font-size:.88rem}
+.row .meta{color:var(--soft);font-size:.68rem;margin-top:3px}
+.badge{border-radius:999px;padding:3px 10px;font-size:.65rem;font-weight:800}
+.on{background:var(--leaf-pale);color:var(--leaf)}
+.off{background:#fdecd8;color:var(--coral)}
+.toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:.8rem;font-weight:800;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>👑 ستاد مرکزی</h1>
+  <div class="sp"></div>
+  <button class="btn ghost" onclick="logout()">🚪 خروج</button>
+</header>
+<div class="chips" id="stats"></div>
+<section class="card">
+  <h3>🏫 ساخت مدرسهٔ جدید + مدیر</h3>
+  <div class="grid">
+    <div><label>نام مدرسه</label><input id="cName"></div>
+    <div><label>شهر</label><input id="cCity"></div>
+    <div><label>نام مدیر</label><input id="cFull"></div>
+    <div><label>نام کاربری مدیر</label><input id="cUser"></div>
+    <div style="grid-column:1/-1"><label>رمز عبور مدیر (حداقل ۸)</label><input id="cPass" type="password"></div>
+  </div>
+  <button class="btn" style="width:100%;margin-top:10px" onclick="createSchool()">＋ ساخت مدرسه</button>
+</section>
+<h3 style="font-size:.95rem">🏫 مدرسه‌های سامانه</h3>
+<div id="schools"></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const user = requireAuth(['admin']);
+if (user && !user.isSuper) window.location.href = 'login.html';
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
+function logout(){Auth.clear();window.location.href='login.html';}
+const toFa=n=>String(n==null?'—':n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+async function load(){
+  try{
+    const [st, sc] = await Promise.all([apiFetch('/super/stats'), apiFetch('/super/list-schools')]);
+    const s=st.stats;
+    document.getElementById('stats').innerHTML=`<div class="chip">🏫 ${toFa(s.schools)} مدرسه</div><div class="chip">👩‍🏫 ${toFa(s.teachers)} معلم</div><div class="chip">🧒 ${toFa(s.students)} دانش‌آموز</div><div class="chip">📚 ${toFa(s.questions)} سؤال</div><div class="chip">📝 ${toFa(s.assignments)} تکلیف</div>`;
+    document.getElementById('schools').innerHTML=(sc.schools||[]).map(x=>`
+      <div class="row">
+        <div class="main"><div class="t">🏫 ${x.name} ${x.enabled?'<span class="badge on">فعال</span>':'<span class="badge off">غیرفعال</span>'}</div>
+        <div class="meta">${x.city||''} · 👩‍🏫 ${toFa(x.teacher_count)} معلم · 🧒 ${toFa(x.student_count)} دانش‌آموز · ساخته: ${x.created_at?x.created_at.slice(0,10):'—'}</div></div>
+        <button class="btn ${x.enabled?'ghost':''}" onclick="toggle(${x.id},${x.enabled?0:1})">${x.enabled?'⛔ غیرفعال':'✅ فعال'}</button>
+      </div>`).join('')||'<p style="color:var(--soft)">مدرسه‌ای نیست.</p>';
+  }catch(e){toast('خطا: '+e.message);}
+}
+async function createSchool(){
+  const g=id=>document.getElementById(id).value;
+  try{
+    await apiFetch('/super/create-school',{method:'POST',body:{schoolName:g('cName'),city:g('cCity'),adminFullName:g('cFull'),adminUsername:g('cUser'),adminPassword:g('cPass')}});
+    toast('مدرسه ساخته شد 🏫');['cName','cCity','cFull','cUser','cPass'].forEach(id=>document.getElementById(id).value='');load();
+  }catch(e){toast('خطا: '+e.message);}
+}
+async function toggle(id,en){
+  try{await apiFetch('/super/toggle-school',{method:'POST',body:{schoolId:id,enable:!!en}});toast(en?'مدرسه فعال شد ✅':'مدرسه غیرفعال شد ⛔');load();}catch(e){toast('خطا: '+e.message);}
+}
+if(user)load();
+</script>
+</body>
+</html>
