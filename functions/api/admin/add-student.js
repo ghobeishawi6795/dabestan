@@ -1,3 +1,12 @@
+
+// تولید کد والدین امن (۱۶ کاراکتر تصادفی)
+function generateSecureParentCode() {
+  const array = new Uint8Array(12);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode.apply(null, array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '').slice(0, 16);
+}
+
 import { hashPassword } from '../_lib/auth.js';
 import { json, err } from '../_lib/http.js';
 

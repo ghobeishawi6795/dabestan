@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نمونه تستی انواع سؤال</title>
+<style>
+  :root {
+    --leaf: #3F7A52;
+    --leaf-light: #5B9E6E;
+    --leaf-pale: #E3F0E6;
+    --sun: #F6C445;
+    --coral: #E8734A;
+    --bg: #f4f9f5;
+    --surface: #fff;
+    --ink: #26332b;
+    --ink-soft: #6b7a6f;
+    --line: #e3e8e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Tahoma, sans-serif; }
+  body { background: var(--bg); color: var(--ink); padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { text-align: center; margin-bottom: 24px; color: var(--leaf); font-size: 1.6rem; }
+  .question-card { background: var(--surface); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.08); border-right: 4px solid var(--leaf); }
+  .question-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .question-type-badge { background: var(--leaf-pale); color: var(--leaf); padding: 4px 12px; border-radius: 999px; font-size: .78rem; font-weight: 800; }
+  .question-title { font-size: 1.1rem; font-weight: 800; flex: 1; }
+  .question-body { margin-bottom: 14px; line-height: 1.8; font-size: 1rem; }
+  .question-image { width: 100%; max-width: 300px; height: 180px; background: var(--leaf-pale); border-radius: 12px; margin: 10px auto; display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+  .options-list { display: flex; flex-direction: column; gap: 8px; }
+  .option-btn { padding: 12px 16px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); cursor: pointer; font-size: .95rem; font-family: inherit; transition: all .2s; text-align: right; display: flex; align-items: center; gap: 10px; }
+  .option-btn:hover { border-color: var(--leaf); background: var(--leaf-pale); }
+  .option-btn.selected { border-color: var(--leaf); background: var(--leaf-pale); font-weight: 700; }
+  .option-btn.correct { border-color: var(--leaf); background: #d4edda; }
+  .option-btn.wrong { border-color: var(--coral); background: #f8d7da; }
+  .option-image { width: 50px; height: 50px; background: var(--bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+  .fill-blank-input { padding: 10px 14px; border: 2px solid var(--line); border-radius: 10px; font-size: 1rem; font-family: inherit; width: 100%; max-width: 300px; }
+  .fill-blank-input:focus { outline: none; border-color: var(--leaf); }
+  .matching-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .matching-column { display: flex; flex-direction: column; gap: 8px; }
+  .matching-item { padding: 10px; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; text-align: center; font-size: .9rem; transition: all .2s; }
+  .matching-item.selected { border-color: var(--leaf); background: var(--leaf-pale); }
+  .matching-item.matched { border-color: var(--leaf); background: #d4edda; opacity: .7; }
+  .ordering-list { display: flex; flex-direction: column; gap: 8px; }
+  .ordering-item { padding: 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); cursor: grab; display: flex; align-items: center; justify-content: space-between; font-size: .95rem; transition: all .2s; }
+  .ordering-item:active { cursor: grabbing; border-color: var(--leaf); background: var(--leaf-pale); }
+  .ordering-item .handle { font-size: 1.2rem; color: var(--ink-soft); }
+  .drawing-canvas { border: 2px solid var(--line); border-radius: 12px; background: #fff; cursor: crosshair; touch-action: none; width: 100%; max-width: 400px; height: 250px; display: block; margin: 0 auto; }
+  .drawing-tools { display: flex; gap: 8px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+  .color-btn { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--line); cursor: pointer; }
+  .color-btn.active { border-color: var(--ink); transform: scale(1.1); }
+  .audio-controls { display: flex; gap: 10px; justify-content: center; align-items: center; }
+  .audio-btn { padding: 12px 24px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s; }
+  .audio-btn.record { background: var(--coral); color: #fff; }
+  .audio-btn.stop { background: var(--ink); color: #fff; }
+  .audio-timer { font-size: 1.2rem; font-weight: 800; color: var(--coral); min-width: 60px; text-align: center; }
+  .upload-area { border: 2px dashed var(--line); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all .2s; }
+  .upload-area:hover { border-color: var(--leaf); background: var(--leaf-pale); }
+  .upload-icon { font-size: 3rem; margin-bottom: 10px; }
+  .upload-preview { max-width: 100%; max-height: 200px; border-radius: 12px; margin-top: 10px; }
+  .coloring-svg { width: 100%; max-width: 300px; height: auto; border: 2px solid var(--line); border-radius: 12px; background: #fff; display: block; margin: 0 auto; }
+  .coloring-svg path, .coloring-svg circle { cursor: pointer; transition: fill .2s; }
+  .drag-drop-container { display: flex; flex-direction: column; gap: 16px; }
+  .drag-source { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: var(--bg); border-radius: 12px; min-height: 60px; }
+  .drag-item { padding: 10px 16px; background: var(--surface); border: 2px solid var(--leaf); border-radius: 10px; cursor: grab; font-size: .9rem; font-weight: 700; user-select: none; touch-action: none; transition: all .2s; }
+  .drag-item:active { cursor: grabbing; transform: scale(1.05); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+  .drag-item.dragging { opacity: .5; }
+  .drop-zones { display: flex; flex-direction: column; gap: 10px; }
+  .drop-zone { padding: 12px; border: 2px dashed var(--line); border-radius: 12px; min-height: 50px; display: flex; align-items: center; gap: 10px; background: var(--bg); transition: all .2s; }
+  .drop-zone.drag-over { border-color: var(--leaf); background: var(--leaf-pale); }
+  .drop-zone.correct { border-color: var(--leaf); background: #d4edda; border-style: solid; }
+  .drop-zone.wrong { border-color: var(--coral); background: #f8d7da; border-style: solid; }
+  .drop-label { font-weight: 700; color: var(--ink-soft); min-width: 80px; }
+  .check-btn { width: 100%; padding: 12px; background: var(--leaf); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit; margin-top: 12px; transition: all .2s; }
+  .check-btn:hover { background: var(--leaf-light); }
+  .feedback { margin-top: 12px; padding: 12px; border-radius: 10px; font-weight: 700; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #d4edda; color: #155724; }
+  .feedback.wrong { background: #f8d7da; color: #721c24; }
+  @media (max-width: 600px) { .matching-container { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>🎯 نمونه تستی انواع سؤال</h1>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">چهارگزینه‌ای</span>
+    <div class="question-title">کدام حیوان پستاندار است؟</div>
+  </div>
+  <div class="question-body">
+    <div class="question-image">🐾</div>
+    <div class="options-list" id="mc-options">
+      <button class="option-btn" data-correct="false"><div class="option-image"></div><span>مار</span></button>
+      <button class="option-btn" data-correct="true"><div class="option-image"></div><span>گربه</span></button>
+      <button class="option-btn" data-correct="false"><div class="option-image"></div><span>قورباغه</span></button>
+      <button class="option-btn" data-correct="false"><div class="option-image">🐟</div><span>ماهی</span></button>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkMC()">بررسی پاسخ</button>
+  <div class="feedback" id="mc-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">درست/نادرست</span>
+    <div class="question-title">آب در ۱۰۰ درجه سانتی‌گراد می‌جوشد</div>
+  </div>
+  <div class="question-body">
+    <div class="options-list" id="tf-options">
+      <button class="option-btn" data-correct="true">✅ درست</button>
+      <button class="option-btn" data-correct="false">❌ نادرست</button>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkTF()">بررسی پاسخ</button>
+  <div class="feedback" id="tf-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">جای خالی</span>
+    <div class="question-title">پایتخت ایران ............ است</div>
+  </div>
+  <div class="question-body">
+    <input type="text" class="fill-blank-input" id="fill-input" placeholder="پاسخ خود را بنویسید...">
+  </div>
+  <button class="check-btn" onclick="checkFill()">بررسی پاسخ</button>
+  <div class="feedback" id="fill-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">جورکردنی</span>
+    <div class="question-title">هر کشور را به پایتختش وصل کن</div>
+  </div>
+  <div class="question-body">
+    <div class="matching-container">
+      <div class="matching-column" id="match-left">
+        <div class="matching-item" data-match="iran">🇷 ایران</div>
+        <div class="matching-item" data-match="france">🇫🇷 فرانسه</div>
+        <div class="matching-item" data-match="japan">🇯🇵 ژاپن</div>
+      </div>
+      <div class="matching-column" id="match-right">
+        <div class="matching-item" data-match="japan">توکیو</div>
+        <div class="matching-item" data-match="iran">تهران</div>
+        <div class="matching-item" data-match="france">پاریس</div>
+      </div>
+    </div>
+  </div>
+  <div class="feedback" id="match-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">مرتب‌کردنی</span>
+    <div class="question-title">اعداد را از کوچک به بزرگ مرتب کن (بکش و رها کن)</div>
+  </div>
+  <div class="question-body">
+    <div class="ordering-list" id="ordering-list">
+      <div class="ordering-item" data-value="5"><span>۵</span><span class="handle"></span></div>
+      <div class="ordering-item" data-value="2"><span></span><span class="handle">⋮</span></div>
+      <div class="ordering-item" data-value="8"><span>۸</span><span class="handle">⋮</span></div>
+      <div class="ordering-item" data-value="1"><span>۱</span><span class="handle">⋮</span></div>
+      <div class="ordering-item" data-value="3"><span>۳</span><span class="handle">⋮</span></div>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkOrdering()">بررسی ترتیب</button>
+  <div class="feedback" id="ordering-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">نقاشی</span>
+    <div class="question-title">یک مثلث بکش</div>
+  </div>
+  <div class="question-body">
+    <canvas class="drawing-canvas" id="draw-canvas" width="400" height="250"></canvas>
+    <div class="drawing-tools">
+      <div class="color-btn active" style="background:#000" data-color="#000"></div>
+      <div class="color-btn" style="background:#e2725b" data-color="#e2725b"></div>
+      <div class="color-btn" style="background:#3F7A52" data-color="#3F7A52"></div>
+      <div class="color-btn" style="background:#F6C445" data-color="#F6C445"></div>
+      <button class="audio-btn" style="background:var(--ink);color:#fff;padding:8px 16px;" onclick="clearCanvas()">🗑 پاک کردن</button>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkDrawing()">ارسال نقاشی</button>
+  <div class="feedback" id="drawing-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">ضبط صدا</span>
+    <div class="question-title">این جمله را با صدای بلند بخوان: «من مدرسه را دوست دارم»</div>
+  </div>
+  <div class="question-body">
+    <div class="audio-controls">
+      <button class="audio-btn record" id="record-btn" onclick="toggleRecord()">🎤 شروع ضبط</button>
+      <div class="audio-timer" id="audio-timer">00:00</div>
+    </div>
+  </div>
+  <div class="feedback" id="audio-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">آپلود عکس</span>
+    <div class="question-title">از تکلیف عملی‌ات عکس بگیر</div>
+  </div>
+  <div class="question-body">
+    <div class="upload-area" onclick="document.getElementById('photo-input').click()">
+      <div class="upload-icon">📷</div>
+      <div>برای انتخاب عکس کلیک کن</div>
+      <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+    </div>
+    <img id="photo-preview" class="upload-preview" style="display:none">
+  </div>
+  <div class="feedback" id="photo-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">رنگ‌آمیزی</span>
+    <div class="question-title">این گل را رنگ بزن (روی هر قسمت کلیک کن)</div>
+  </div>
+  <div class="question-body">
+    <svg class="coloring-svg" viewBox="0 0 200 200" id="coloring-svg">
+      <path d="M 100 180 Q 100 140 100 120" stroke="#3F7A52" stroke-width="4" fill="none"/>
+      <path d="M 100 150 Q 80 140 70 130 Q 85 135 100 145" fill="#fff" stroke="#3F7A52" stroke-width="2" class="colorable"/>
+      <path d="M 100 140 Q 120 130 130 120 Q 115 125 100 135" fill="#fff" stroke="#3F7A52" stroke-width="2" class="colorable"/>
+      <circle cx="100" cy="80" r="20" fill="#fff" stroke="#FF69B4" stroke-width="2" class="colorable"/>
+      <circle cx="80" cy="90" r="20" fill="#fff" stroke="#FF69B4" stroke-width="2" class="colorable"/>
+      <circle cx="120" cy="90" r="20" fill="#fff" stroke="#FF69B4" stroke-width="2" class="colorable"/>
+      <circle cx="85" cy="70" r="20" fill="#fff" stroke="#FF69B4" stroke-width="2" class="colorable"/>
+      <circle cx="115" cy="70" r="20" fill="#fff" stroke="#FF69B4" stroke-width="2" class="colorable"/>
+      <circle cx="100" cy="85" r="15" fill="#fff" stroke="#FFD700" stroke-width="2" class="colorable"/>
+    </svg>
+    <div class="drawing-tools" style="margin-top:10px">
+      <div class="color-btn active" style="background:#FF69B4" data-color="#FF69B4"></div>
+      <div class="color-btn" style="background:#FFD700" data-color="#FFD700"></div>
+      <div class="color-btn" style="background:#5B9E6E" data-color="#5B9E6E"></div>
+      <div class="color-btn" style="background:#87CEEB" data-color="#87CEEB"></div>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkColoring()">ارسال رنگ‌آمیزی</button>
+  <div class="feedback" id="coloring-feedback"></div>
+</div>
+
+<div class="question-card">
+  <div class="question-header">
+    <span class="question-type-badge">کشیدن و رها کردن</span>
+    <div class="question-title">هر کلمه را در جای درست بگذار</div>
+  </div>
+  <div class="question-body">
+    <div class="drag-drop-container">
+      <div class="drag-source" id="drag-source">
+        <div class="drag-item" draggable="true" data-answer="tehran">تهران</div>
+        <div class="drag-item" draggable="true" data-answer="paris">پاریس</div>
+        <div class="drag-item" draggable="true" data-answer="tokyo">توکیو</div>
+      </div>
+      <div class="drop-zones">
+        <div class="drop-zone" data-accept="tehran"><span class="drop-label">🇷 ایران:</span><span class="drop-content"></span></div>
+        <div class="drop-zone" data-accept="paris"><span class="drop-label">🇫🇷 فرانسه:</span><span class="drop-content"></span></div>
+        <div class="drop-zone" data-accept="tokyo"><span class="drop-label">🇯🇵 ژاپن:</span><span class="drop-content"></span></div>
+      </div>
+    </div>
+  </div>
+  <button class="check-btn" onclick="checkDragDrop()">بررسی پاسخ</button>
+  <div class="feedback" id="drag-feedback"></div>
+</div>
+
+
+<script>
+let mcSelected = null;
+document.querySelectorAll('#mc-options .option-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mc-options .option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    mcSelected = btn;
+  });
+});
+
+function checkMC() {
+  const fb = document.getElementById('mc-feedback');
+  if (!mcSelected) { fb.textContent = 'لطفاً یک گزینه انتخاب کن'; fb.className = 'feedback show wrong'; return; }
+  const isCorrect = mcSelected.dataset.correct === 'true';
+  document.querySelectorAll('#mc-options .option-btn').forEach(b => {
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+    else if (b.classList.contains('selected')) b.classList.add('wrong');
+  });
+  fb.textContent = isCorrect ? '✅ آفرین! گربه پستاندار است' : '❌ اشتباه بود. گربه پستاندار است';
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+}
+
+let tfSelected = null;
+document.querySelectorAll('#tf-options .option-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#tf-options .option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    tfSelected = btn;
+  });
+});
+
+function checkTF() {
+  const fb = document.getElementById('tf-feedback');
+  if (!tfSelected) { fb.textContent = 'لطفاً یک گزینه انتخاب کن'; fb.className = 'feedback show wrong'; return; }
+  const isCorrect = tfSelected.dataset.correct === 'true';
+  fb.textContent = isCorrect ? '✅ آفرین! آب در ۱۰۰ درجه می‌جوشد' : '❌ اشتباه بود';
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+}
+
+function checkFill() {
+  const input = document.getElementById('fill-input');
+  const fb = document.getElementById('fill-feedback');
+  const answer = input.value.trim();
+  if (!answer) { fb.textContent = 'لطفاً پاسخ را بنویس'; fb.className = 'feedback show wrong'; return; }
+  const isCorrect = answer === 'تهران';
+  fb.textContent = isCorrect ? '✅ آفرین! پایتخت ایران تهران است' : '❌ اشتباه بود. پاسخ درست: تهران';
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+}
+
+let matchSelected = null;
+document.querySelectorAll('.matching-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const parent = item.parentElement;
+    if (matchSelected && matchSelected.parentElement !== parent) {
+      if (matchSelected.dataset.match === item.dataset.match) {
+        matchSelected.classList.add('matched');
+        item.classList.add('matched');
+        matchSelected = null;
+        document.getElementById('match-feedback').textContent = '✅ درست بود!';
+        document.getElementById('match-feedback').className = 'feedback show correct';
+      } else {
+        matchSelected.classList.remove('selected');
+        document.getElementById('match-feedback').textContent = '❌ اشتباه بود';
+        document.getElementById('match-feedback').className = 'feedback show wrong';
+        matchSelected = null;
+      }
+    } else {
+      document.querySelectorAll('.matching-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      matchSelected = item;
+    }
+  });
+});
+
+const orderingList = document.getElementById('ordering-list');
+let dragItem = null, touchDragItem = null;
+
+orderingList.addEventListener('dragover', e => {
+  e.preventDefault();
+  const afterElement = getDragAfterElement(orderingList, e.clientY);
+  if (dragItem) {
+    if (afterElement == null) orderingList.appendChild(dragItem);
+    else orderingList.insertBefore(dragItem, afterElement);
+  }
+});
+
+orderingList.addEventListener('dragstart', e => { if (e.target.classList.contains('ordering-item')) dragItem = e.target; });
+orderingList.addEventListener('dragend', () => { dragItem = null; });
+
+function getDragAfterElement(container, y) {
+  const elements = [...container.querySelectorAll('.ordering-item:not(.dragging)')];
+  return elements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset, element: child };
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+orderingList.addEventListener('touchstart', e => {
+  if (e.target.classList.contains('ordering-item')) { touchDragItem = e.target; touchDragItem.classList.add('dragging'); }
+}, {passive: true});
+
+document.addEventListener('touchmove', e => {
+  if (touchDragItem) {
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const afterElement = getDragAfterElement(orderingList, y);
+    if (afterElement == null) orderingList.appendChild(touchDragItem);
+    else orderingList.insertBefore(touchDragItem, afterElement);
+  }
+}, {passive: false});
+
+document.addEventListener('touchend', () => { if (touchDragItem) { touchDragItem.classList.remove('dragging'); touchDragItem = null; } });
+
+function checkOrdering() {
+  const items = [...document.querySelectorAll('.ordering-item')];
+  const values = items.map(i => parseInt(i.dataset.value));
+  const sorted = [...values].sort((a, b) => a - b);
+  const isCorrect = JSON.stringify(values) === JSON.stringify(sorted);
+  const fb = document.getElementById('ordering-feedback');
+  fb.textContent = isCorrect ? '✅ آفرین! ترتیب درست است' : '❌ ترتیب اشتباه است. درست: ۱، ۲، ۳، ۵، ۸';
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+}
+
+const canvas = document.getElementById('draw-canvas');
+const ctx = canvas.getContext('2d');
+let drawing = false, currentColor = '#000';
+
+ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = currentColor;
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDraw);
+canvas.addEventListener('mouseout', stopDraw);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); });
+canvas.addEventListener('touchend', stopDraw);
+
+function startDraw(e) { drawing = true; const rect = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top); }
+function draw(e) { if (!drawing) return; const rect = canvas.getBoundingClientRect(); ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top); ctx.stroke(); }
+function stopDraw() { drawing = false; }
+
+document.querySelectorAll('.drawing-tools .color-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.drawing-tools .color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentColor = btn.dataset.color;
+    ctx.strokeStyle = currentColor;
+  });
+});
+
+function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+function checkDrawing() { const fb = document.getElementById('drawing-feedback'); fb.textContent = '✅ نقاشی ارسال شد! معلم بررسی خواهد کرد'; fb.className = 'feedback show correct'; }
+
+let mediaRecorder = null, audioChunks = [], isRecording = false, recordTimer = null, recordSeconds = 0;
+
+async function toggleRecord() {
+  const btn = document.getElementById('record-btn');
+  const timer = document.getElementById('audio-timer');
+  const fb = document.getElementById('audio-feedback');
+  
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        fb.textContent = `✅ صدا ضبط شد! (${recordSeconds} ثانیه)`;
+        fb.className = 'feedback show correct';
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mediaRecorder.start();
+      isRecording = true;
+      btn.textContent = '⏹ توقف ضبط';
+      btn.classList.remove('record');
+      btn.classList.add('stop');
+      recordSeconds = 0;
+      recordTimer = setInterval(() => {
+        recordSeconds++;
+        const mins = Math.floor(recordSeconds / 60).toString().padStart(2, '0');
+        const secs = (recordSeconds % 60).toString().padStart(2, '0');
+        timer.textContent = `${mins}:${secs}`;
+      }, 1000);
+    } catch (err) { fb.textContent = '❌ دسترسی به میکروفون داده نشد'; fb.className = 'feedback show wrong'; }
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    btn.textContent = ' شروع ضبط';
+    btn.classList.remove('stop');
+    btn.classList.add('record');
+    clearInterval(recordTimer);
+  }
+}
+
+function handlePhotoUpload(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const preview = document.getElementById('photo-preview');
+      preview.src = ev.target.result;
+      preview.style.display = 'block';
+      document.getElementById('photo-feedback').textContent = '✅ عکس آپلود شد!';
+      document.getElementById('photo-feedback').className = 'feedback show correct';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+let coloringColor = '#FF69B4';
+document.querySelectorAll('.coloring-svg .colorable').forEach(el => { el.addEventListener('click', () => { el.style.fill = coloringColor; }); });
+document.querySelectorAll('#coloring-svg ~ .drawing-tools .color-btn, .question-card:last-of-type .color-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const card = btn.closest('.question-card');
+    card.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    coloringColor = btn.dataset.color;
+  });
+});
+
+function checkColoring() { const fb = document.getElementById('coloring-feedback'); fb.textContent = '✅ رنگ‌آمیزی ارسال شد!'; fb.className = 'feedback show correct'; }
+
+const dragItems = document.querySelectorAll('.drag-item');
+const dropZones = document.querySelectorAll('.drop-zone');
+
+dragItems.forEach(item => {
+  item.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', item.dataset.answer); item.classList.add('dragging'); });
+  item.addEventListener('dragend', () => { item.classList.remove('dragging'); });
+  item.addEventListener('touchstart', e => { item.classList.add('dragging'); }, {passive: true});
+});
+
+dropZones.forEach(zone => {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => { zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const answer = e.dataTransfer.getData('text/plain');
+    const item = document.querySelector(`.drag-item[data-answer="${answer}"]`);
+    if (item) { const content = zone.querySelector('.drop-content'); content.textContent = item.textContent; content.dataset.answer = answer; item.style.display = 'none'; }
+  });
+});
+
+document.addEventListener('touchmove', e => {
+  const touch = e.touches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  const zone = element?.closest('.drop-zone');
+  dropZones.forEach(z => z.classList.remove('drag-over'));
+  if (zone) zone.classList.add('drag-over');
+}, {passive: true});
+
+document.addEventListener('touchend', e => {
+  const touch = e.changedTouches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  const zone = element?.closest('.drop-zone');
+  if (zone) {
+    const draggingItem = document.querySelector('.drag-item.dragging');
+    if (draggingItem) {
+      const answer = draggingItem.dataset.answer;
+      const content = zone.querySelector('.drop-content');
+      content.textContent = draggingItem.textContent;
+      content.dataset.answer = answer;
+      draggingItem.style.display = 'none';
+      draggingItem.classList.remove('dragging');
+    }
+  }
+  dropZones.forEach(z => z.classList.remove('drag-over'));
+});
+
+function checkDragDrop() {
+  const fb = document.getElementById('drag-feedback');
+  let allCorrect = true;
+  dropZones.forEach(zone => {
+    const content = zone.querySelector('.drop-content');
+    if (content.dataset.answer === zone.dataset.accept) { zone.classList.add('correct'); zone.classList.remove('wrong'); }
+    else { zone.classList.add('wrong'); zone.classList.remove('correct'); allCorrect = false; }
+  });
+  fb.textContent = allCorrect ? '✅ آفرین! همه درست بود' : '❌ بعضی پاسخ‌ها اشتباه است';
+  fb.className = 'feedback show ' + (allCorrect ? 'correct' : 'wrong');
+}
+</script>
+
+</body>
+</html>
