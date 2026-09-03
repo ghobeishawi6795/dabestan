@@ -802,6 +802,17 @@ loadAll();
   
   let bankAllQuestions = [];
 
+  var bankState = {
+    own: 'me',
+    subject: '',
+    grade: '',
+    type: '',
+    difficulty: '',
+    favorite: false,
+    search: '',
+    sort: 'newest'
+  };
+
   async function loadBank() {
     try {
       const params = new URLSearchParams();
