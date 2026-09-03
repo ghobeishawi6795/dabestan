@@ -639,7 +639,8 @@
   if (user) {
     document.getElementById('whoami').textContent = `${user.fullName} (معلم)`;
     document.getElementById('teacherName').textContent = `سلام ${user.fullName}`;
-    loadAll();
+    let bankState = { own:'me', subject:'', grade:'', type:'', difficulty:'', favorite:false, search:'', sort:'newest' };
+loadAll();
     loadBadges();
     loadInbox();
     loadProfile();
@@ -788,7 +789,7 @@
   };
 
   const DIFFICULTY_LABEL = { easy: '🟢 آسان', medium: '🟡 متوسط', hard: '🔴 سخت' };
-  let bankState = { own:'me', subject:'', grade:'', type:'', difficulty:'', favorite:false, search:'', sort:'newest' };
+  
   let bankAllQuestions = [];
 
   async function loadBank() {
