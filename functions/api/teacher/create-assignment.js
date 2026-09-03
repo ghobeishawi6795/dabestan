@@ -24,7 +24,7 @@ export async function onRequestPost({ request, env, data }) {
   const placeholders = questionIds.map(() => '?').join(',');
   const { results: ownedQuestions } = await env.DB.prepare(
     `SELECT id FROM question_bank WHERE school_id = ? AND id IN (${placeholders}) AND (visibility = 'public' OR teacher_id = ?)`
-  ).bind(teacher.school_id, ...questionIds, teacher.id).all();
+  ).bind(teacher.school_id, ...questionIds).all();
   if (ownedQuestions.length !== questionIds.length) {
     return err('one or more questionIds are invalid for this school', 400);
   }

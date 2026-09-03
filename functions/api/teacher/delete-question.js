@@ -15,6 +15,10 @@ export async function onRequestPost({ request, env, data }) {
     .bind(body.questionId).first();
   if (usage.n > 0) return err('این سؤال در یک یا چند تکلیف استفاده شده — قابل حذف نیست', 409);
 
-  await env.DB.prepare('DELETE FROM question_bank WHERE id = ?').bind(body.questionId).run();
+  await env.DB.prepare(
+  `DELETE FROM question_versions WHERE question_id = ?`
+).bind(questionId).run();
+
+await env.DB.prepare('DELETE FROM question_bank WHERE id = ?').bind(body.questionId).run();
   return json({ ok: true });
 }

@@ -16,9 +16,16 @@ export async function onRequestPost({ request, env, data }) {
   const { assignmentId, answers } = body;
 
   const assignment = await env.DB.prepare(
-    'SELECT id FROM assignments WHERE id = ? AND school_id = ? AND class_id = ?'
+    'SELECT id, due_at FROM assignments WHERE id = ? AND school_id = ? AND class_id = ?'
   ).bind(assignmentId, student.school_id, student.class_id).first();
   if (!assignment) return err('assignment not found', 404);
+
+  if (assignment.due_at) {
+    const dueAt = new Date(assignment.due_at);
+    if (!Number.isNaN(dueAt.getTime()) && new Date() > dueAt) {
+      return err('این تکلیف به پایان رسیده است', 400);
+    }
+  }
 
   const existing = await env.DB.prepare(
     'SELECT id, status FROM submissions WHERE assignment_id = ? AND student_id = ?'

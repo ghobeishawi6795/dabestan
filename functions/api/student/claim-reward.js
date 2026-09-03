@@ -17,10 +17,25 @@ export async function onRequestPost({ env, data }) {
 
   const rewardValue = 10 + Math.floor(Math.random() * 21); // 10..30
 
-  await env.DB.prepare('INSERT INTO daily_rewards (user_id, reward_date, reward_type, reward_value) VALUES (?, ?, ?, ?)')
-    .bind(student.id, today, 'points', rewardValue).run();
-  await env.DB.prepare('UPDATE users SET growth_points = growth_points + ? WHERE id = ?')
-    .bind(rewardValue, student.id).run();
+  const claimResult = await env.DB.prepare(
+    'INSERT OR IGNORE INTO daily_rewards (user_id, reward_date, reward_type, reward_value) VALUES (?, ?, ?, ?)'
+  ).bind(student.id, today, 'points', rewardValue).run();
+
+  if (!claimResult.meta?.changes) {
+    const current = await env.DB.prepare(
+      'SELECT growth_points FROM users WHERE id = ?'
+    ).bind(student.id).first();
+
+    return json({
+      ok: false,
+      error: 'پاداش امروز قبلاً دریافت شده است',
+      growthPoints: current?.growth_points ?? 0
+    }, 409);
+  }
+
+  await env.DB.prepare(
+    'UPDATE users SET growth_points = growth_points + ? WHERE id = ?'
+  ).bind(rewardValue, student.id).run();
 
   const updated = await env.DB.prepare('SELECT growth_points FROM users WHERE id = ?').bind(student.id).first();
   return json({ ok: true, rewardValue, growthPoints: updated.growth_points });
