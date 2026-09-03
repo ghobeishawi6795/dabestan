@@ -123,8 +123,11 @@
     <div class="topbar">
     <a href="bank.html" title="بانک سؤال تمام‌صفحه" style="background:var(--leaf);color:#fff;border-radius:12px;padding:8px 12px;font-size:.75rem;font-weight:800;text-decoration:none;">🏦 بانک</a>
     <button type="button" id="logoutTopBtn" onclick="logout()" title="خروج از حساب" style="background:var(--surface);border:1px solid var(--line);border-radius:12px;width:42px;height:42px;font-size:1.1rem;cursor:pointer;">🚪</button>
-      <div class="greeting">
-        <div class="avatar-circle" id="avatarCircle" onclick="openProfileModal()" style="cursor:pointer;">🍎</div>
+      <div class="greeting" onclick="openProfileModal()" style="cursor:pointer;" title="پروفایل من">
+        <div style="position:relative; display:inline-block;">
+          <div class="avatar-circle" id="avatarCircle">🍎</div>
+          <span style="position:absolute; bottom:-2px; left:-2px; background:var(--leaf); color:#fff; border-radius:50%; width:18px; height:18px; font-size:.6rem; display:flex; align-items:center; justify-content:center; border:2px solid var(--surface); pointer-events:none;">✎</span>
+        </div>
         <div><h1 id="teacherName">در حال بارگذاری...</h1><p id="classSummary"></p></div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
@@ -819,7 +822,7 @@
       renderBankSubjectTabs();
     } catch (e) {
       console.error(e);
-      document.getElementById('bankCards').innerHTML = '<div class="bank-empty">خطا در بارگذاری بانک سؤال.</div>';
+      document.getElementById('bankCards').innerHTML = `<div class="bank-empty">خطا در بارگذاری بانک سؤال: ${escapeHtml(e.message || 'نامشخص')}</div>`;
     }
   }
 
