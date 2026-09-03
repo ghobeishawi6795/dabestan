@@ -393,6 +393,7 @@ button:active, .btn:active { transform: scale(.95); }
     celebratePendingBadges();
     loadProgressChart();
     loadPetAndFestival();
+    loadDailyChallenge();
   }
 
   // اعتبار کارت معافیت + فعال‌بودنش، از پاسخ get-tasks (نه get-overview) پر می‌شه — چون loadAll جدا صداش می‌زنه.
@@ -1034,6 +1035,118 @@ button:active, .btn:active { transform: scale(.95); }
     }
   }
 
+  // ===== چالش روزانه =====
+  async function loadDailyChallenge() {
+    const box = document.getElementById('dailyChallengeContent');
+    try {
+      const data = await apiFetch('/student/list-daily-challenges');
+      if (!data.challenge) {
+        box.innerHTML = '<div style="color:var(--ink-soft); font-size:.85rem;">امروز چالشی تعریف نشده — فردا سر بزن! 🌤️</div>';
+        return;
+      }
+      const c = data.challenge;
+      const desc = c.description ? `<div style="font-size:.82rem; color:var(--ink-soft); margin:4px 0 10px;">${escapeHtml(c.description)}</div>` : '';
+      if (c.my_completed) {
+        box.innerHTML = `
+          <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(c.title)}</div>
+          ${desc}
+          <div style="color:var(--leaf-dark); font-size:.85rem; font-weight:700;">تکمیل شد! ✅ +${toFa(c.reward_coins)} 🪙 +${toFa(c.reward_xp)} XP</div>`;
+      } else {
+        box.innerHTML = `
+          <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(c.title)}</div>
+          ${desc}
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <span style="font-size:.8rem; color:var(--ink-soft);">پاداش: 🪙 ${toFa(c.reward_coins)} — ${toFa(c.reward_xp)} XP</span>
+            <button type="button" class="btn btn-primary" style="padding:8px 16px; font-size:.8rem;" onclick="completeDailyChallenge(${c.id})">انجامش دادم!</button>
+          </div>`;
+      }
+    } catch (e) {
+      box.innerHTML = `<div style="color:var(--coral); font-size:.82rem;">${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  async function completeDailyChallenge(challengeId) {
+    try {
+      const res = await apiFetch('/student/complete-daily-challenge', { method: 'POST', body: { challengeId } });
+      aliveToast(`آفرین! 🪙+${toFa(res.coins)} XP+${toFa(res.xp)}`);
+      loadDailyChallenge();
+      loadPetAndFestival();
+    } catch (e) {
+      document.getElementById('dailyChallengeContent').insertAdjacentHTML('beforeend', `<div style="color:var(--coral); font-size:.8rem; margin-top:6px;">${escapeHtml(e.message)}</div>`);
+    }
+  }
+
+  // ===== های‌فایو همکلاسی =====
+  let hfTab = 'send';
+  function openHighFivesModal() {
+    openModal('highFives');
+    document.getElementById('msgHighFives').textContent = '';
+    switchHfTab('send');
+  }
+  function switchHfTab(tab) {
+    hfTab = tab;
+    document.getElementById('hfTabSendBtn').className = tab === 'send' ? 'btn btn-primary' : 'btn btn-ghost';
+    document.getElementById('hfTabReceivedBtn').className = tab === 'received' ? 'btn btn-primary' : 'btn btn-ghost';
+    document.getElementById('hfSendBox').style.display = tab === 'send' ? 'block' : 'none';
+    document.getElementById('hfReceivedBox').style.display = tab === 'received' ? 'block' : 'none';
+    if (tab === 'send') loadHfSend(); else loadHfReceived();
+  }
+  async function loadHfSend() {
+    const box = document.getElementById('hfSendBox');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/list-classmates');
+      if (!data.classmates.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هم‌کلاسی‌ای پیدا نشد.</div>'; return; }
+      box.innerHTML = data.classmates.map(c => `
+        <div class="classmate-row" style="align-items:center;">
+          <span>${escapeHtml(c.full_name)}</span>
+          <button type="button" class="btn btn-primary" style="padding:6px 14px; font-size:.76rem;" onclick="sendHighFive(${c.id}, this)">🙌 های‌فایو</button>
+        </div>`).join('');
+    } catch (e) { document.getElementById('msgHighFives').textContent = e.message; }
+  }
+  async function sendHighFive(toStudentId, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'ارسال شد ✅'; }
+    try {
+      await apiFetch('/student/send-high-five', { method: 'POST', body: { toStudentId } });
+      document.getElementById('msgHighFives').textContent = '';
+    } catch (e) {
+      document.getElementById('msgHighFives').textContent = e.message;
+      if (btn) { btn.disabled = false; btn.textContent = '🙌 های‌فایو'; }
+    }
+  }
+  async function loadHfReceived() {
+    const box = document.getElementById('hfReceivedBox');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/list-high-fives');
+      if (!data.received.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز های‌فایوی دریافت نکردی.</div>'; return; }
+      box.innerHTML = data.received.map(h => `
+        <div style="border-right:3px solid var(--leaf); padding-right:10px; margin-bottom:8px;">
+          <div style="font-size:.86rem;"><b>${escapeHtml(h.from_name)}</b> بهت های‌فایو زد 🙌</div>
+          ${h.message ? `<div style="font-size:.82rem; color:var(--ink-soft); margin-top:2px;">${escapeHtml(h.message)}</div>` : ''}
+        </div>`).join('');
+    } catch (e) { document.getElementById('msgHighFives').textContent = e.message; }
+  }
+
+  // ===== یادداشت والدین =====
+  function openParentNotesModal() {
+    openModal('parentNotes');
+    loadParentNotes();
+  }
+  async function loadParentNotes() {
+    const box = document.getElementById('parentNotesList');
+    box.textContent = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/list-parent-notes');
+      if (!data.notes.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز یادداشتی از والدینت نداری.</div>'; return; }
+      box.innerHTML = data.notes.map(n => `
+        <div style="border-right:3px solid var(--sun); padding-right:10px; margin-bottom:10px;">
+          <div style="font-size:.72rem; color:var(--ink-soft); margin-bottom:2px;">${escapeHtml(n.parent_name)} — ${formatJalali(n.created_at)}</div>
+          <div style="font-size:.86rem;">${escapeHtml(n.note)}</div>
+        </div>`).join('');
+    } catch (e) { box.textContent = e.message; }
+  }
+
 // ===== janbakhshi: واکنش‌ها ⚡ =====
 function aliveToast(msg) {
   const t = document.getElementById('toastMini');
@@ -1064,190 +1177,6 @@ document.getElementById('petAvatar')?.addEventListener('click', () => {
     last = chip.textContent;
   }).observe(chip, { childList: true, characterData: true, subtree: true });
 })();
-
-  // ===== چالش روزانه =====
-  async function loadDailyChallenge() {
-    const box = document.getElementById('dailyChallengeContent');
-    if (!box) return;
-    try {
-      const data = await apiFetch('/student/list-daily-challenges');
-      if (!data.challenge) {
-        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); padding:16px;">امروز چالشی ثبت نشده </div>';
-        return;
-      }
-      const c = data.challenge;
-      const completed = !!c.my_completed;
-      box.innerHTML = `
-        <div style="background:${completed?'var(--leaf-pale)':'var(--bg-soft)'}; border-radius:12px; padding:14px;">
-          <div style="font-weight:800; font-size:.95rem; margin-bottom:6px;">${escapeHtml(c.title)}</div>
-          ${c.description?`<div style="color:var(--ink-soft); font-size:.82rem; margin-bottom:10px;">${escapeHtml(c.description)}</div>`:''}
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-            <span style="font-size:.8rem;">🪙 ${toFa(c.reward_coins)} امتیاز</span>
-            <span style="font-size:.8rem;">⭐ ${toFa(c.reward_xp)} XP</span>
-            <span style="font-size:.8rem; color:var(--ink-soft);">👥 ${toFa(c.participant_count)} شرکت‌کننده</span>
-          </div>
-          ${completed
-            ? '<div style="background:var(--leaf); color:#fff; border-radius:8px; padding:8px; text-align:center; font-weight:700;">انجام دادی ✅</div>'
-            : `<button type="button" class="btn btn-primary" style="width:100%;" onclick="completeDailyChallenge(${c.id})">انجام چالش 🎯</button>`
-          }
-        </div>`;
-    } catch (e) {
-      if (box) box.innerHTML = '<div style="color:var(--coral); text-align:center;">خطا در بارگذاری</div>';
-    }
-  }
-
-  async function completeDailyChallenge(challengeId) {
-    if (!confirm('آیا این چالش رو انجام دادی؟')) return;
-    try {
-      await apiFetch('/student/complete-daily-challenge', { method: 'POST', body: { challengeId } });
-      await loadDailyChallenge();
-      loadAll();
-      showToast('چالش انجام شد! 🌟');
-    } catch (e) {
-      showToast(e.message || 'خطا');
-    }
-  }
-
-  // ===== های‌فایو =====
-  let hfCurrentTab = 'send';
-
-  function switchHfTab(tab) {
-    hfCurrentTab = tab;
-    const sendBox = document.getElementById('hfSendBox');
-    const recvBox = document.getElementById('hfReceivedBox');
-    if (sendBox) sendBox.style.display = tab === 'send' ? 'block' : 'none';
-    if (recvBox) recvBox.style.display = tab === 'received' ? 'block' : 'none';
-    // Update tab buttons
-    document.querySelectorAll('.hf-tab-btn').forEach(b => {
-      b.classList.toggle('btn-primary', b.dataset.tab === tab);
-      b.classList.toggle('btn-ghost', b.dataset.tab !== tab);
-    });
-    if (tab === 'send') loadClassmatesForHighFive();
-    else loadHighFivesReceived();
-  }
-
-  async function loadClassmatesForHighFive() {
-    const box = document.getElementById('hfSendBox');
-    if (!box) return;
-    try {
-      const data = await apiFetch('/student/list-classmates');
-      if (!data.classmates || !data.classmates.length) {
-        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); padding:16px;">هم‌کلاسی‌ای برای ارسال نیست</div>';
-        return;
-      }
-      box.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:8px; max-height:40vh; overflow-y:auto;">
-          ${data.classmates.map(c => `
-            <div style="display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg-soft); border-radius:10px; flex-wrap:wrap;">
-              <div style="font-weight:700; min-width:100px;">${escapeHtml(c.full_name)}</div>
-              <input type="text" id="hfMsg_${c.id}" placeholder="پیام (اختیاری)" style="flex:1; min-width:120px; padding:8px; border-radius:8px; border:1px solid var(--line); font-size:.82rem; font-family:inherit;">
-              <button type="button" class="btn btn-primary" style="padding:8px 14px; font-size:.82rem;" onclick="sendHighFive(${c.id})">🙌 ارسال</button>
-            </div>
-          `).join('')}
-        </div>`;
-    } catch (e) {
-      box.innerHTML = '<div style="color:var(--coral); text-align:center;">خطا</div>';
-    }
-  }
-
-  async function sendHighFive(toStudentId) {
-    const msgInput = document.getElementById(`hfMsg_${toStudentId}`);
-    const message = msgInput ? msgInput.value.trim() : '';
-    try {
-      await apiFetch('/student/send-high-five', { method: 'POST', body: { toStudentId, message } });
-      showToast('های‌فایو ارسال شد! 🙌');
-      if (msgInput) msgInput.value = '';
-    } catch (e) {
-      showToast(e.message || 'خطا');
-    }
-  }
-
-  async function loadHighFivesReceived() {
-    const box = document.getElementById('hfReceivedBox');
-    if (!box) return;
-    try {
-      const data = await apiFetch('/student/list-high-fives');
-      if (!data.received || !data.received.length) {
-        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); padding:16px;">هنوز های‌فایویی دریافت نکردی</div>';
-        return;
-      }
-      box.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          ${data.received.map(hf => `
-            <div style="background:var(--bg-soft); border-radius:10px; padding:12px;">
-              <div style="font-weight:700; margin-bottom:4px;">از: ${escapeHtml(hf.from_name)}</div>
-              ${hf.message?`<div style="color:var(--ink-soft); font-size:.85rem;">${escapeHtml(hf.message)}</div>`:''}
-              <div style="font-size:.72rem; color:var(--ink-soft); margin-top:4px;">${formatJalali(hf.created_at, {time:true})}</div>
-            </div>
-          `).join('')}
-        </div>`;
-    } catch (e) {
-      box.innerHTML = '<div style="color:var(--coral); text-align:center;">خطا</div>';
-    }
-  }
-
-  function openHighFivesModal() {
-    hfCurrentTab = 'send';
-    const msgEl = document.getElementById('msgHighFives');
-    if (msgEl) msgEl.textContent = '';
-    openModal('highFives');
-    // Update tab buttons
-    document.querySelectorAll('.hf-tab-btn').forEach(b => {
-      b.classList.toggle('btn-primary', b.dataset.tab === 'send');
-      b.classList.toggle('btn-ghost', b.dataset.tab !== 'send');
-    });
-    loadClassmatesForHighFive();
-    const recvBox = document.getElementById('hfReceivedBox');
-    if (recvBox) recvBox.style.display = 'none';
-    const sendBox = document.getElementById('hfSendBox');
-    if (sendBox) sendBox.style.display = 'block';
-  }
-
-  // ===== یادداشت والدین =====
-  async function openParentNotesModal() {
-    openModal('parentNotes');
-    const box = document.getElementById('parentNotesList');
-    if (!box) return;
-    box.innerHTML = 'در حال بارگذاری...';
-    try {
-      const data = await apiFetch('/student/list-parent-notes');
-      if (!data.notes || !data.notes.length) {
-        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); padding:16px;">هنوز یادداشتی از والدین نداری 💌</div>';
-        return;
-      }
-      box.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          ${data.notes.map(n => `
-            <div style="background:${n.is_private?'var(--leaf-pale)':'var(--bg-soft)'}; border-radius:12px; padding:14px; border-right:3px solid var(--leaf);">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                <span style="font-size:1.2rem;"></span>
-                <div style="font-weight:800;">${escapeHtml(n.parent_name)}</div>
-                ${n.is_private?'<span style="font-size:.7rem; background:var(--leaf); color:#fff; padding:2px 6px; border-radius:6px;">خصوصی</span>':''}
-              </div>
-              <div style="color:var(--ink-soft); font-size:.9rem; line-height:1.6; white-space:pre-wrap;">${escapeHtml(n.note)}</div>
-              <div style="font-size:.72rem; color:var(--ink-soft); margin-top:6px;">${formatJalali(n.created_at, {time:true})}</div>
-            </div>
-          `).join('')}
-        </div>`;
-    } catch (e) {
-      box.innerHTML = '<div style="color:var(--coral); text-align:center;">خطا در بارگذاری</div>';
-    }
-  }
-
-  // Helper: toast
-  let _toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toastMini');
-    if (!t) { alert(msg); return; }
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
-  }
-
-  // Load daily challenge on page load
-  if (user) loadDailyChallenge();
-
 </script>
 
 <!-- ===== مودال های‌فایو ===== -->
@@ -1255,9 +1184,9 @@ document.getElementById('petAvatar')?.addEventListener('click', () => {
   <div class="modal" style="max-width:480px;">
     <h3 style="margin-bottom:4px;">🙌 های‌فایو به همکلاسی‌ها</h3>
     <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">به دوستانت انرژی مثبت بده! </div>
-    <div class="tabs" style="margin-bottom:12px;">
-      <button type="button" class="btn ${hfTab==='send'?'btn-primary':'btn-ghost'}" style="flex:1" onclick="switchHfTab('send')">ارسال های‌فایو</button>
-      <button type="button" class="btn ${hfTab==='received'?'btn-primary':'btn-ghost'}" style="flex:1" onclick="switchHfTab('received')">های‌فایوهای دریافتی</button>
+    <div class="tabs" style="margin-bottom:12px; display:flex; gap:8px;">
+      <button type="button" id="hfTabSendBtn" class="btn btn-primary" style="flex:1" onclick="switchHfTab('send')">ارسال های‌فایو</button>
+      <button type="button" id="hfTabReceivedBtn" class="btn btn-ghost" style="flex:1" onclick="switchHfTab('received')">های‌فایوهای دریافتی</button>
     </div>
     <div id="hfSendBox"></div>
     <div id="hfReceivedBox" style="display:none;"></div>

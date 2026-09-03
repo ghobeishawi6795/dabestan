@@ -270,51 +270,7 @@ CREATE TABLE IF NOT EXISTS duel_answers (
   UNIQUE (duel_id, student_id, position)
 );
 
--- ایندکس‌ها
-CREATE INDEX IF NOT EXISTS idx_users_school ON users(school_id);
-CREATE INDEX IF NOT EXISTS idx_users_class ON users(class_id);
-CREATE INDEX IF NOT EXISTS idx_classes_school ON classes(school_id);
-CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
-CREATE INDEX IF NOT EXISTS idx_question_bank_school ON question_bank(school_id);
-CREATE INDEX IF NOT EXISTS idx_assignments_class ON assignments(class_id);
-CREATE INDEX IF NOT EXISTS idx_assignment_questions_assignment ON assignment_questions(assignment_id);
-CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
-CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
-CREATE INDEX IF NOT EXISTS idx_submission_answers_submission ON submission_answers(submission_id);
-CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
-CREATE INDEX IF NOT EXISTS idx_daily_rewards_user_date ON daily_rewards(user_id, reward_date);
-CREATE INDEX IF NOT EXISTS idx_lessons_class ON lessons(class_id);
-CREATE INDEX IF NOT EXISTS idx_lesson_assignments_lesson ON lesson_assignments(lesson_id);
-CREATE INDEX IF NOT EXISTS idx_parent_feedback_teacher ON parent_feedback(teacher_id);
-CREATE INDEX IF NOT EXISTS idx_messages_to ON messages(to_user_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
-CREATE INDEX IF NOT EXISTS idx_parent_messages_student ON parent_messages(student_id);
-CREATE INDEX IF NOT EXISTS idx_parent_messages_teacher ON parent_messages(teacher_id, is_read);
-CREATE INDEX IF NOT EXISTS idx_assignment_templates_teacher ON assignment_templates(teacher_id);
-CREATE INDEX IF NOT EXISTS idx_shop_purchases_student ON shop_purchases(student_id);
-CREATE INDEX IF NOT EXISTS idx_shop_purchases_skip_unused ON shop_purchases(student_id, item_type, used_at);
-CREATE INDEX IF NOT EXISTS idx_duels_challenger ON duels(challenger_id, status);
-CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels(opponent_id, status);
-CREATE INDEX IF NOT EXISTS idx_duel_answers_duel_student ON duel_answers(duel_id, student_id);
-
--- داده‌های اولیه: نشان‌ها
-INSERT OR IGNORE INTO badges (code, name, icon, description) VALUES
-  ('first_task', 'اولین قدم', '🌟', 'اولین تکلیفت رو انجام دادی'),
-  ('perfect_score', 'دقت طلایی', '🎯', 'یک تکلیف رو ٪۱۰۰ زدی'),
-  ('streak_5', 'آتیش‌پا', '🔥', ' روز پیاپی فعالیت داشتی'),
-  ('ten_tasks', 'ده‌قدمی', '🏆', '۰ تکلیف انجام دادی'),
-  ('artist', 'هنرمند', '🎨', 'یک تکلیف نقاشی یا رنگ‌آمیزی فرستادی'),
-  ('speaker', 'سخنور', '🎤', 'یک تکلیف صوتی فرستادی'),
-  ('first_assignment', 'اولین تکلیف را برای دانش‌آموزان ارسال کردی', '🌱', 'اساتید'),
-  ('ten_assignments', '۱۰ تکلیف ارسال کردی', '📚', 'معلم پرکار'),
-  ('quick_grader', 'تصحیح سریع', '⚡', 'میانگین زمان تصحیح زیر ۲۴ ساعت است'),
-  ('creative_bank', 'از ۵ نوع سؤال استفاده کردی', '🎨', 'معلم خلاق'),
-  ('popular_teacher', 'میانگین رضایت والدین بالای ۴ از ۵', '💛', 'محبوب والدین'),
-  ('lesson_builder', 'اولین فصل درسی را ساختی', '🏗️', 'برنامه‌ریز'),
-  ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی'),
-  ('duel_champion', 'قهرمان نبرد', '⚔️', 'سه نبرد ریاضی رو بردی');
-
--- 010: social features
+-- 010: چالش روزانه، های‌فایو، یادداشت والدین
 CREATE TABLE IF NOT EXISTS daily_challenges (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -354,8 +310,51 @@ CREATE TABLE IF NOT EXISTS parent_notes (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ایندکس‌ها
+CREATE INDEX IF NOT EXISTS idx_users_school ON users(school_id);
+CREATE INDEX IF NOT EXISTS idx_users_class ON users(class_id);
+CREATE INDEX IF NOT EXISTS idx_classes_school ON classes(school_id);
+CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_question_bank_school ON question_bank(school_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_class ON assignments(class_id);
+CREATE INDEX IF NOT EXISTS idx_assignment_questions_assignment ON assignment_questions(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_submission_answers_submission ON submission_answers(submission_id);
+CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_daily_rewards_user_date ON daily_rewards(user_id, reward_date);
+CREATE INDEX IF NOT EXISTS idx_lessons_class ON lessons(class_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_assignments_lesson ON lesson_assignments(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_parent_feedback_teacher ON parent_feedback(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_messages_to ON messages(to_user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_parent_messages_student ON parent_messages(student_id);
+CREATE INDEX IF NOT EXISTS idx_parent_messages_teacher ON parent_messages(teacher_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_assignment_templates_teacher ON assignment_templates(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_shop_purchases_student ON shop_purchases(student_id);
+CREATE INDEX IF NOT EXISTS idx_shop_purchases_skip_unused ON shop_purchases(student_id, item_type, used_at);
+CREATE INDEX IF NOT EXISTS idx_duels_challenger ON duels(challenger_id, status);
+CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels(opponent_id, status);
+CREATE INDEX IF NOT EXISTS idx_duel_answers_duel_student ON duel_answers(duel_id, student_id);
 CREATE INDEX IF NOT EXISTS idx_daily_challenges_school_date ON daily_challenges(school_id, challenge_date);
 CREATE INDEX IF NOT EXISTS idx_challenge_participants_student ON challenge_participants(student_id);
 CREATE INDEX IF NOT EXISTS idx_high_fives_from ON high_fives(from_student_id);
 CREATE INDEX IF NOT EXISTS idx_high_fives_to ON high_fives(to_student_id);
 CREATE INDEX IF NOT EXISTS idx_parent_notes_student ON parent_notes(student_id);
+
+-- داده‌های اولیه: نشان‌ها
+INSERT OR IGNORE INTO badges (code, name, icon, description) VALUES
+  ('first_task', 'اولین قدم', '🌟', 'اولین تکلیفت رو انجام دادی'),
+  ('perfect_score', 'دقت طلایی', '🎯', 'یک تکلیف رو ٪۱۰۰ زدی'),
+  ('streak_5', 'آتیش‌پا', '🔥', ' روز پیاپی فعالیت داشتی'),
+  ('ten_tasks', 'ده‌قدمی', '🏆', '۰ تکلیف انجام دادی'),
+  ('artist', 'هنرمند', '🎨', 'یک تکلیف نقاشی یا رنگ‌آمیزی فرستادی'),
+  ('speaker', 'سخنور', '🎤', 'یک تکلیف صوتی فرستادی'),
+  ('first_assignment', 'اولین تکلیف را برای دانش‌آموزان ارسال کردی', '🌱', 'اساتید'),
+  ('ten_assignments', '۱۰ تکلیف ارسال کردی', '📚', 'معلم پرکار'),
+  ('quick_grader', 'تصحیح سریع', '⚡', 'میانگین زمان تصحیح زیر ۲۴ ساعت است'),
+  ('creative_bank', 'از ۵ نوع سؤال استفاده کردی', '🎨', 'معلم خلاق'),
+  ('popular_teacher', 'میانگین رضایت والدین بالای ۴ از ۵', '💛', 'محبوب والدین'),
+  ('lesson_builder', 'اولین فصل درسی را ساختی', '🏗️', 'برنامه‌ریز'),
+  ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی'),
+  ('duel_champion', 'قهرمان نبرد', '⚔️', 'سه نبرد ریاضی رو بردی');

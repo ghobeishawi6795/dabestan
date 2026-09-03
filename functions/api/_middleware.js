@@ -2,7 +2,7 @@ import { getAuthUser } from './_lib/auth.js';
 import { err } from './_lib/http.js';
 
 // Public endpoints that don't require a session yet.
-const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/register-school', '/api/auth/find-school', '/api/auth/setup-super', '/api/parent/get-student', '/api/parent/submit-feedback', '/api/parent/list-messages', '/api/parent/send-message', '/api/parent/get-garden-diary', '/api/health'];
+const PUBLIC_PATHS = ['/api/auth/login', '/api/auth/register-school', '/api/auth/find-school', '/api/auth/setup-super', '/api/parent/get-student', '/api/parent/submit-feedback', '/api/parent/list-messages', '/api/parent/send-message', '/api/parent/get-garden-diary', '/api/parent/add-note', '/api/health'];
 
 export async function onRequest(context) {
   const { request, next } = context;

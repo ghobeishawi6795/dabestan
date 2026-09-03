@@ -107,6 +107,7 @@
       <li><a class="nav-item" href="#" onclick="openModal('packs')"><span class="ic">📦</span> قالب‌های آماده</a></li>
       <li><a class="nav-item" href="#tasksSection" onclick="reviewHint()"><span class="ic">✅</span> مرور و نمره‌دهی</a></li>
       <li><a class="nav-item" href="#classReportSection" onclick="scrollToId('classReportSection')"><span class="ic">📊</span> گزارش کلاس</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDailyChallengeModal();"><span class="ic">☀️</span> چالش روزانه</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openParentChatList();"><span class="ic">👪</span> پیام‌های والدین</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
@@ -229,21 +230,7 @@
     </div>
 
     <div id="bankCards"></div>
-  
-    <!-- بخش چالش روزانه -->
-    <section class="card" style="margin-top:14px;">
-      <h3 style="margin:0 0 10px; font-size:.95rem;">☀️ چالش روزانه</h3>
-      <div class="grid" style="grid-template-columns:1fr 1fr; gap:8px;">
-        <div><label>عنوان چالش</label><input id="chTitle" placeholder="مثلاً: ۱۰ ضرب سریع"></div>
-        <div><label>تاریخ (YYYY-MM-DD)</label><input id="chDate" type="date"></div>
-        <div style="grid-column:1/-1"><label>توضیح (اختیاری)</label><input id="chDesc" placeholder="توضیح کوتاه"></div>
-        <div><label>پاداش سکه</label><input id="chCoins" type="number" value="10" min="1"></div>
-        <div><label>پاداش XP</label><input id="chXp" type="number" value="20" min="1"></div>
-      </div>
-      <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="createDailyChallenge()">＋ ساخت چالش</button>
-      <div id="chMsg" style="margin-top:8px; font-size:.85rem;"></div>
-    </section>
-\n  </main>
+  </main>
 </div>
 
 <!-- ===== مودال سؤال جدید ===== -->
@@ -543,6 +530,33 @@
         <button type="button" class="btn btn-ghost" onclick="closeModal('upload')">انصراف</button>
         <button type="button" class="btn btn-primary" onclick="importSelectedQuestions()">افزودن انتخاب‌شده‌ها به بانک</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== مودال چالش روزانه ===== -->
+<div class="modal-backdrop" id="modalDailyChallenge">
+  <div class="modal" style="max-width:440px;">
+    <h3 style="margin-bottom:4px;">☀️ چالش روزانه</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">یه چالش برای امروز برای دانش‌آموزات تعریف کن — با انجامش سکه و XP می‌گیرن.</div>
+    <label style="font-size:.82rem; font-weight:700;">عنوان چالش</label>
+    <input type="text" id="dcTitle" placeholder="مثلاً: امروز ۱۰ دقیقه کتاب بخون" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin:6px 0 12px;">
+    <label style="font-size:.82rem; font-weight:700;">توضیح (اختیاری)</label>
+    <textarea id="dcDescription" rows="2" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin:6px 0 12px; resize:vertical;"></textarea>
+    <div style="display:flex; gap:10px; margin-bottom:14px;">
+      <div style="flex:1;">
+        <label style="font-size:.82rem; font-weight:700;">پاداش سکه 🪙</label>
+        <input type="number" id="dcCoins" value="10" min="0" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin-top:6px;">
+      </div>
+      <div style="flex:1;">
+        <label style="font-size:.82rem; font-weight:700;">پاداش XP</label>
+        <input type="number" id="dcXp" value="20" min="0" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin-top:6px;">
+      </div>
+    </div>
+    <div id="msgDailyChallenge" style="margin-bottom:8px; color:var(--coral); font-size:.85rem;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('dailyChallenge')">انصراف</button>
+      <button type="button" class="btn btn-primary" onclick="submitDailyChallenge()">ثبت برای امروز</button>
     </div>
   </div>
 </div>
@@ -989,6 +1003,33 @@
   function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); if (name === 'assignment') { renderBankPicker(); loadTemplatesIntoAssignmentModal(); } if (name === 'packs') loadPacksIfNeeded(); if (name === 'question') { renderQuestionTypeGrid(); resetQuestionWizard(); document.getElementById('msgQuestion').innerHTML = ''; } }
   function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
   function cap(s) { return s[0].toUpperCase() + s.slice(1); }
+
+  // ===== چالش روزانه =====
+  function openDailyChallengeModal() {
+    document.getElementById('msgDailyChallenge').textContent = '';
+    openModal('dailyChallenge');
+  }
+  async function submitDailyChallenge() {
+    const title = document.getElementById('dcTitle').value.trim();
+    const description = document.getElementById('dcDescription').value.trim();
+    const rewardCoins = Number(document.getElementById('dcCoins').value) || 0;
+    const rewardXp = Number(document.getElementById('dcXp').value) || 0;
+    const msg = document.getElementById('msgDailyChallenge');
+    if (!title) { msg.textContent = 'عنوان چالش رو بنویس.'; return; }
+    const challengeDate = new Date().toISOString().slice(0, 10);
+    try {
+      await apiFetch('/teacher/create-daily-challenge', {
+        method: 'POST',
+        body: { title, description: description || null, challengeDate, rewardCoins, rewardXp },
+      });
+      msg.style.color = 'var(--leaf-dark)';
+      msg.textContent = 'چالش امروز ثبت شد ✅';
+      setTimeout(() => closeModal('dailyChallenge'), 900);
+    } catch (e) {
+      msg.style.color = 'var(--coral)';
+      msg.textContent = e.message;
+    }
+  }
 
   const VISUAL_TYPE_NOTE = {
     drawing: '🎨 برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز یه بوم نقاشی برای کشیدن می‌بینه، تنظیم اضافه‌ای لازم نیست.',
@@ -1565,38 +1606,6 @@
       renderLineChart(box, points, { color: 'var(--leaf)', emptyText: 'این دانش‌آموز هنوز نمرهٔ ثبت‌شده‌ای نداره.' });
     } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
   }
-
-  async function createDailyChallenge() {
-    const title = document.getElementById('chTitle').value.trim();
-    const date = document.getElementById('chDate').value;
-    const desc = document.getElementById('chDesc').value.trim();
-    const coins = Number(document.getElementById('chCoins').value) || 10;
-    const xp = Number(document.getElementById('chXp').value) || 20;
-    const msg = document.getElementById('chMsg');
-    
-    if (!title) { msg.textContent = 'عنوان الزامی است'; msg.style.color = 'var(--coral)'; return; }
-    if (!date) { msg.textContent = 'تاریخ الزامی است'; msg.style.color = 'var(--coral)'; return; }
-    
-    try {
-      await apiFetch('/teacher/create-daily-challenge', {
-        method: 'POST',
-        body: { title, description: desc, challengeDate: date, rewardCoins: coins, rewardXp: xp }
-      });
-      msg.textContent = 'چالش ساخته شد ✅';
-      msg.style.color = 'var(--leaf)';
-      document.getElementById('chTitle').value = '';
-      document.getElementById('chDesc').value = '';
-    } catch (e) {
-      msg.textContent = e.message || 'خطا';
-      msg.style.color = 'var(--coral)';
-    }
-  }
-  
-  // پر کردن تاریخ امروز به‌صورت پیش‌فرض
-  const chDateInput = document.getElementById('chDate');
-  if (chDateInput && !chDateInput.value) {
-    chDateInput.value = new Date().toISOString().slice(0, 10);
-  }
-\n</script>
+</script>
 </body>
   </html>

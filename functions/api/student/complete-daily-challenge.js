@@ -15,16 +15,11 @@ export async function onRequestPost({ request, env, data }) {
   const today = new Date().toISOString().slice(0, 10);
   if (challenge.challenge_date !== today) return err('این چالش مربوط به امروز نیست', 400);
 
-  // چک کن قبلاً تکمیل شده یا نه
   const existing = await env.DB.prepare(
     'SELECT completed FROM challenge_participants WHERE challenge_id = ? AND student_id = ?'
   ).bind(challenge.id, student.id).first();
+  if (existing && existing.completed) return err('این چالش رو قبلاً تکمیل کردی', 400);
 
-  if (existing && existing.completed === 1) {
-    return err('این چالش قبلاً تکمیل شده', 400);
-  }
-
-  // ثبت تکمیل + پاداش (فقط یکبار)
   await env.DB.prepare(
     `INSERT INTO challenge_participants (challenge_id, student_id, completed, completed_at)
      VALUES (?, ?, 1, datetime('now'))

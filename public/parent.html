@@ -85,6 +85,16 @@
       <div id="diaryList" style="display:flex; flex-direction:column; gap:10px;">در حال بارگذاری...</div>
     </div>
 
+    <div class="section-head" style="margin-top:16px;"><h2>💌 یادداشت برای فرزندم</h2></div>
+    <div class="card">
+      <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:10px;">یه پیام مهربونانه بنویس — فرزندت توی داشبورد خودش می‌بینتش.</div>
+      <textarea id="parentNoteInput" rows="3" placeholder="مثلاً: امروز خیلی بهت افتخار کردم..." style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); font-family:inherit; resize:vertical;"></textarea>
+      <div style="display:flex; gap:8px; margin-top:10px; align-items:center;">
+        <button class="btn btn-primary" onclick="sendParentNote()">ارسال یادداشت</button>
+        <span id="parentNoteMsg" style="font-size:.8rem;"></span>
+      </div>
+    </div>
+
     <div class="section-head" style="margin-top:16px;"><h2>💬 گفتگو با معلم<span id="pTeacherName"></span></h2></div>
     <div class="card" id="chatCard" style="display:none;">
       <div id="chatList" style="max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
@@ -271,6 +281,27 @@
     } catch { alert('خطا در ارسال پیام.'); }
   }
 
+  async function sendParentNote() {
+    const input = document.getElementById('parentNoteInput');
+    const note = input.value.trim();
+    const msg = document.getElementById('parentNoteMsg');
+    if (!note) return;
+    try {
+      const res = await fetch('/api/parent/add-note', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: parentCode, note }),
+      });
+      if (!res.ok) throw new Error();
+      input.value = '';
+      msg.style.color = 'var(--leaf-dark)';
+      msg.textContent = 'ارسال شد ✅';
+      setTimeout(() => { msg.textContent = ''; }, 2500);
+    } catch {
+      msg.style.color = 'var(--coral)';
+      msg.textContent = 'خطا در ارسال — دوباره امتحان کن.';
+    }
+  }
+
   function ratingWidget(s) {
     if (s.myRating) {
       return `<div style="margin-top:6px; font-size:.85em;">${'⭐'.repeat(s.myRating)}${'☆'.repeat(5 - s.myRating)}</div>`;
@@ -300,43 +331,6 @@
 
   function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
-
-  async function sendParentNote() {
-    const text = document.getElementById('noteText').value.trim();
-    const isPrivate = document.getElementById('notePrivate').checked;
-    const msg = document.getElementById('noteMsg');
-    
-    if (!text) { msg.textContent = 'متن یادداشت خالی است'; msg.style.color = 'var(--coral)'; return; }
-    
-    try {
-      await apiFetch('/parent/add-note', {
-        method: 'POST',
-        body: { note: text, isPrivate }
-      });
-      msg.textContent = 'یادداشت ارسال شد ✅';
-      msg.style.color = 'var(--leaf)';
-      document.getElementById('noteText').value = '';
-    } catch (e) {
-      msg.textContent = e.message || 'خطا';
-      msg.style.color = 'var(--coral)';
-    }
-  }
-\n</script>
+</script>
 </body>
 </html>
-\n
-    <!-- بخش نوشتن یادداشت -->
-    <section class="card" style="margin-top:14px;">
-      <h3 style="margin:0 0 10px; font-size:.95rem;">💌 نوشتن یادداشت برای فرزند</h3>
-      <div class="field" style="margin-bottom:10px;">
-        <label>متن یادداشت</label>
-        <textarea id="noteText" rows="4" placeholder="پیام خود را بنویسید..." style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); font-family:inherit; font-size:.92rem; resize:vertical;"></textarea>
-      </div>
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <label style="display:flex; align-items:center; gap:6px; font-size:.85rem; cursor:pointer;">
-          <input type="checkbox" id="notePrivate"> فقط معلم و فرزندم ببینند (خصوصی)
-        </label>
-      </div>
-      <button type="button" class="btn btn-primary" style="width:100%;" onclick="sendParentNote()">ارسال یادداشت 💌</button>
-      <div id="noteMsg" style="margin-top:8px; font-size:.85rem;"></div>
-    </section>

@@ -4,7 +4,8 @@ export async function onRequestGet({ request, env, data }) {
   const student = data.user;
   if (student.role !== 'student') return err('forbidden', 403);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const url = new URL(request.url);
+  const date = url.searchParams.get('date') || new Date().toISOString().slice(0, 10);
 
   const challenge = await env.DB.prepare(
     `SELECT dc.*, 
@@ -12,7 +13,7 @@ export async function onRequestGet({ request, env, data }) {
             (SELECT cp.completed FROM challenge_participants cp WHERE cp.challenge_id = dc.id AND cp.student_id = ?) AS my_completed
      FROM daily_challenges dc
      WHERE dc.school_id = ? AND dc.challenge_date = ?`
-  ).bind(student.id, student.school_id, today).first();
+  ).bind(student.id, student.school_id, date).first();
 
-  return json({ challenge: challenge || null, today });
+  return json({ challenge: challenge || null });
 }

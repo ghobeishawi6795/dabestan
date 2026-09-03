@@ -66,6 +66,7 @@ if (user && !user.isSuper) window.location.href = 'login.html';
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
 function logout(){Auth.clear();window.location.href='login.html';}
 const toFa=n=>String(n==null?'—':n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const escAttr=s=>String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 async function load(){
   try{
     const [st, sc] = await Promise.all([apiFetch('/super/stats'), apiFetch('/super/list-schools')]);
@@ -75,7 +76,11 @@ async function load(){
       <div class="row">
         <div class="main"><div class="t">🏫 ${x.name} ${x.enabled?'<span class="badge on">فعال</span>':'<span class="badge off">غیرفعال</span>'}</div>
         <div class="meta">${x.city||''} · 👩‍🏫 ${toFa(x.teacher_count)} معلم · 🧒 ${toFa(x.student_count)} دانش‌آموز · ساخته: ${x.created_at?x.created_at.slice(0,10):'—'}</div></div>
-        <button class="btn ${x.enabled?'ghost':''}" onclick="toggle(${x.id},${x.enabled?0:1})">${x.enabled?'⛔ غیرفعال':'✅ فعال'}</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn ${x.enabled?'ghost':''}" onclick="toggle(${x.id},${x.enabled?0:1})">${x.enabled?'⛔ غیرفعال':'✅ فعال'}</button>
+          <button class="btn ghost" onclick="resetAdminPassword(${x.id},'${escAttr(x.name)}')">🔑 ریست رمز</button>
+          <button class="btn ghost" style="border-color:var(--coral)" onclick="deleteSchool(${x.id},'${escAttr(x.name)}')">🗑️ حذف مدرسه</button>
+        </div>
       </div>`).join('')||'<p style="color:var(--soft)">مدرسه‌ای نیست.</p>';
   }catch(e){toast('خطا: '+e.message);}
 }
@@ -88,6 +93,35 @@ async function createSchool(){
 }
 async function toggle(id,en){
   try{await apiFetch('/super/toggle-school',{method:'POST',body:{schoolId:id,enable:!!en}});toast(en?'مدرسه فعال شد ✅':'مدرسه غیرفعال شد ⛔');load();}catch(e){toast('خطا: '+e.message);}
+}
+async function resetAdminPassword(schoolId,schoolName){
+  try{
+    const res=await apiFetch('/super/list-school-admins?schoolId='+schoolId);
+    const admins=res.admins||[];
+    if(admins.length===0){toast('این مدرسه مدیری ندارد');return;}
+    let target=admins[0];
+    if(admins.length>1){
+      const list=admins.map(a=>a.username).join('، ');
+      const picked=prompt(`مدرسهٔ «${schoolName}» چند مدیر دارد: ${list}\nنام کاربری مدیر مورد نظر رو تایپ کن:`);
+      if(picked===null)return;
+      target=admins.find(a=>a.username===picked.trim());
+      if(!target){toast('نام کاربری پیدا نشد');return;}
+    }
+    const pass=prompt(`رمز جدید برای «${target.username}» (مدیر «${schoolName}») — حداقل ۸ کاراکتر:`);
+    if(pass===null)return;
+    if(pass.length<8){toast('رمز باید حداقل ۸ کاراکتر باشد');return;}
+    await apiFetch('/super/reset-school-admin-password',{method:'POST',body:{adminId:target.id,newPassword:pass}});
+    toast('رمز «'+target.username+'» ریست شد ✅');
+  }catch(e){toast('خطا: '+e.message);}
+}
+async function deleteSchool(schoolId,schoolName){
+  const typed=prompt(`⚠️ حذف کامل «${schoolName}» غیرقابل بازگشت است — همهٔ کلاس‌ها، معلم‌ها، دانش‌آموزان، تکالیف و اطلاعات این مدرسه پاک می‌شود.\nبرای تأیید، نام دقیق مدرسه رو تایپ کن:`);
+  if(typed===null)return;
+  if(typed.trim()!==schoolName){toast('نام مطابقت نداشت، حذف لغو شد');return;}
+  try{
+    await apiFetch('/super/delete-school',{method:'POST',body:{schoolId,confirmName:typed.trim()}});
+    toast('مدرسه «'+schoolName+'» حذف شد 🗑️');load();
+  }catch(e){toast('خطا: '+e.message);}
 }
 if(user)load();
 </script>
