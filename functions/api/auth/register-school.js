@@ -10,7 +10,31 @@ export async function onRequestPost({ request, env }) {
   if (!schoolName || !adminUsername || !adminPassword || !adminFullName) {
     return err('schoolName, adminUsername, adminPassword, adminFullName are required');
   }
-  if (adminPassword.length < 8) return err('password must be at least 8 characters');
+
+  if (
+    typeof schoolName !== 'string' ||
+    typeof adminUsername !== 'string' ||
+    typeof adminPassword !== 'string' ||
+    typeof adminFullName !== 'string'
+  ) {
+    return err('invalid input');
+  }
+
+  if (schoolName.trim().length < 2 || schoolName.length > 120) {
+    return err('schoolName must be between 2 and 120 characters');
+  }
+
+  if (adminUsername.length < 2 || adminUsername.length > 80) {
+    return err('adminUsername must be between 2 and 80 characters');
+  }
+
+  if (adminFullName.trim().length < 2 || adminFullName.length > 120) {
+    return err('adminFullName must be between 2 and 120 characters');
+  }
+
+  if (adminPassword.length < 8 || adminPassword.length > 200) {
+    return err('password must be between 8 and 200 characters');
+  }
 
   const school = await env.DB.prepare('INSERT INTO schools (name) VALUES (?) RETURNING id')
     .bind(schoolName)

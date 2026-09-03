@@ -20,11 +20,18 @@ export async function onRequestPost({ request, env, data }) {
   ).bind(challenge.id, student.id).first();
   if (existing && existing.completed) return err('این چالش رو قبلاً تکمیل کردی', 400);
 
-  await env.DB.prepare(
+  const completionResult = await env.DB.prepare(
     `INSERT INTO challenge_participants (challenge_id, student_id, completed, completed_at)
      VALUES (?, ?, 1, datetime('now'))
-     ON CONFLICT (challenge_id, student_id) DO UPDATE SET completed = 1, completed_at = datetime('now')`
+     ON CONFLICT (challenge_id, student_id) DO UPDATE SET
+       completed = 1,
+       completed_at = datetime('now')
+     WHERE completed = 0`
   ).bind(challenge.id, student.id).run();
+
+  if (!completionResult.meta?.changes) {
+    return err('این چالش رو قبلاً تکمیل کردی', 409);
+  }
 
   await env.DB.prepare(
     'UPDATE users SET growth_points = growth_points + ? WHERE id = ?'

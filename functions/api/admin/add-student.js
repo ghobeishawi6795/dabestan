@@ -10,7 +10,7 @@ function generateSecureParentCode() {
 import { hashPassword } from '../_lib/auth.js';
 import { json, err } from '../_lib/http.js';
 
-function randomCode(len = 8) {
+function randomCode(len = 26) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars (0/O, 1/I)
   const bytes = crypto.getRandomValues(new Uint8Array(len));
   return [...bytes].map((b) => chars[b % chars.length]).join('');

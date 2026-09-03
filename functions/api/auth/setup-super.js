@@ -24,10 +24,19 @@ export async function onRequestPost({ request, env }) {
 
   const { hash, salt } = await hashPassword(password);
 
-  await env.DB.prepare(
+  // این INSERT به‌صورت اتمیک بررسی می‌کند که هنوز سوپرادمینی وجود نداشته باشد.
+  // بنابراین دو درخواست همزمان نمی‌توانند هر دو از check اولیه عبور کنند.
+  const created = await env.DB.prepare(
     `INSERT INTO users (school_id, role, username, password_hash, password_salt, full_name, is_super, is_active)
-     VALUES (?, 'admin', ?, ?, ?, ?, 1, 1)`
+     SELECT ?, 'admin', ?, ?, ?, ?, 1, 1
+     WHERE NOT EXISTS (
+       SELECT 1 FROM users WHERE is_super = 1 LIMIT 1
+     )`
   ).bind(school.id, username, hash, salt, fullName).run();
+
+  if (!created.meta?.changes) {
+    return err('super admin already exists', 409);
+  }
 
   return json({ ok: true, message: 'اولین سوپرادمین ساخته شد! حالا از تب «ورود» وارد شو.' });
 }
