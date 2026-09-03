@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS schools (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   city TEXT,
-  skip_cards_enabled INTEGER NOT NULL DEFAULT 1,
   theme_color TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -32,7 +31,6 @@ CREATE TABLE IF NOT EXISTS users (
   avatar TEXT,
   avatar_photo TEXT,
   growth_points INTEGER NOT NULL DEFAULT 0,
-  coins INTEGER NOT NULL DEFAULT 0,
   is_active INTEGER NOT NULL DEFAULT 1,
   is_super INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -217,59 +215,6 @@ CREATE TABLE IF NOT EXISTS due_soon_reminders_sent (
   PRIMARY KEY (assignment_id, student_id)
 );
 
-CREATE TABLE IF NOT EXISTS pets (
-  student_id INTEGER PRIMARY KEY REFERENCES users(id),
-  species TEXT NOT NULL,
-  accessories TEXT NOT NULL DEFAULT '[]',
-  last_fed_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS shop_purchases (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  student_id INTEGER NOT NULL REFERENCES users(id),
-  item_code TEXT NOT NULL,
-  item_type TEXT NOT NULL CHECK (item_type IN ('accessory', 'skip_card')),
-  used_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS duels (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  school_id INTEGER NOT NULL REFERENCES schools(id),
-  class_id INTEGER NOT NULL REFERENCES classes(id),
-  challenger_id INTEGER NOT NULL REFERENCES users(id),
-  opponent_id INTEGER NOT NULL REFERENCES users(id),
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','active','finished','declined')),
-  question_count INTEGER NOT NULL DEFAULT 5,
-  winner_id INTEGER REFERENCES users(id),
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  started_at TEXT,
-  finished_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS duel_questions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  duel_id INTEGER NOT NULL REFERENCES duels(id),
-  position INTEGER NOT NULL,
-  operand_a INTEGER NOT NULL,
-  operand_b INTEGER NOT NULL,
-  operator TEXT NOT NULL,
-  answer INTEGER NOT NULL,
-  UNIQUE (duel_id, position)
-);
-
-CREATE TABLE IF NOT EXISTS duel_answers (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  duel_id INTEGER NOT NULL REFERENCES duels(id),
-  student_id INTEGER NOT NULL REFERENCES users(id),
-  position INTEGER NOT NULL,
-  submitted_answer INTEGER,
-  is_correct INTEGER NOT NULL DEFAULT 0,
-  answered_at TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (duel_id, student_id, position)
-);
-
 -- 010: چالش روزانه، های‌فایو، یادداشت والدین
 CREATE TABLE IF NOT EXISTS daily_challenges (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -277,7 +222,6 @@ CREATE TABLE IF NOT EXISTS daily_challenges (
   title TEXT NOT NULL,
   description TEXT,
   challenge_date TEXT NOT NULL,
-  reward_coins INTEGER NOT NULL DEFAULT 10,
   reward_xp INTEGER NOT NULL DEFAULT 20,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE (school_id, challenge_date)
@@ -331,11 +275,6 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_r
 CREATE INDEX IF NOT EXISTS idx_parent_messages_student ON parent_messages(student_id);
 CREATE INDEX IF NOT EXISTS idx_parent_messages_teacher ON parent_messages(teacher_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_assignment_templates_teacher ON assignment_templates(teacher_id);
-CREATE INDEX IF NOT EXISTS idx_shop_purchases_student ON shop_purchases(student_id);
-CREATE INDEX IF NOT EXISTS idx_shop_purchases_skip_unused ON shop_purchases(student_id, item_type, used_at);
-CREATE INDEX IF NOT EXISTS idx_duels_challenger ON duels(challenger_id, status);
-CREATE INDEX IF NOT EXISTS idx_duels_opponent ON duels(opponent_id, status);
-CREATE INDEX IF NOT EXISTS idx_duel_answers_duel_student ON duel_answers(duel_id, student_id);
 CREATE INDEX IF NOT EXISTS idx_daily_challenges_school_date ON daily_challenges(school_id, challenge_date);
 CREATE INDEX IF NOT EXISTS idx_challenge_participants_student ON challenge_participants(student_id);
 CREATE INDEX IF NOT EXISTS idx_high_fives_from ON high_fives(from_student_id);
@@ -356,5 +295,4 @@ INSERT OR IGNORE INTO badges (code, name, icon, description) VALUES
   ('creative_bank', 'از ۵ نوع سؤال استفاده کردی', '🎨', 'معلم خلاق'),
   ('popular_teacher', 'میانگین رضایت والدین بالای ۴ از ۵', '💛', 'محبوب والدین'),
   ('lesson_builder', 'اولین فصل درسی را ساختی', '🏗️', 'برنامه‌ریز'),
-  ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی'),
-  ('duel_champion', 'قهرمان نبرد', '⚔️', 'سه نبرد ریاضی رو بردی');
+  ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی');

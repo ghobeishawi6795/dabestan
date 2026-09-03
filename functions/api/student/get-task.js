@@ -47,7 +47,7 @@ export async function onRequestGet({ request, env, data }) {
 
   // ---------- حالت لیست (student.html loadAll) ----------
   if (!student.class_id) {
-    return json({ assignments: [], streak: 0, doneCount: 0, avgScore: null, skipCredits: 0, skipCardsEnabled: false });
+    return json({ assignments: [], streak: 0, doneCount: 0, avgScore: null });
   }
 
   const { results } = await env.DB.prepare(
@@ -68,17 +68,10 @@ export async function onRequestGet({ request, env, data }) {
      WHERE student_id = ? AND status IN ('submitted','reviewed') AND assignment_id IN (SELECT id FROM assignments WHERE class_id = ?)`
   ).bind(student.id, student.class_id).first();
 
-  const skipCreditsRow = await env.DB.prepare(
-    `SELECT COUNT(*) AS n FROM shop_purchases WHERE student_id = ? AND item_type = 'skip_card' AND used_at IS NULL`
-  ).bind(student.id).first();
-  const school = await env.DB.prepare('SELECT skip_cards_enabled FROM schools WHERE id = ?').bind(student.school_id).first();
-
   return json({
     assignments: results,
     streak,
     doneCount: doneRow.n,
     avgScore: doneRow.avg !== null ? Math.round(doneRow.avg) : null,
-    skipCredits: skipCreditsRow.n,
-    skipCardsEnabled: !!school?.skip_cards_enabled,
   });
 }

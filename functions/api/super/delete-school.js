@@ -37,15 +37,11 @@ export async function onRequestPost({ request, env, data }) {
     db.prepare(`DELETE FROM due_soon_reminders_sent WHERE assignment_id IN (SELECT id FROM assignments WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM assignment_questions WHERE assignment_id IN (SELECT id FROM assignments WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM question_versions WHERE question_id IN (SELECT id FROM question_bank WHERE school_id = ?)`).bind(schoolId),
-    db.prepare(`DELETE FROM duel_questions WHERE duel_id IN (SELECT id FROM duels WHERE school_id = ?)`).bind(schoolId),
-    db.prepare(`DELETE FROM duel_answers WHERE duel_id IN (SELECT id FROM duels WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM challenge_participants WHERE challenge_id IN (SELECT id FROM daily_challenges WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM high_fives WHERE from_student_id IN (SELECT id FROM users WHERE school_id = ?) OR to_student_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId, schoolId),
     db.prepare(`DELETE FROM parent_notes WHERE student_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM parent_messages WHERE student_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
-    db.prepare(`DELETE FROM pets WHERE student_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
-    db.prepare(`DELETE FROM shop_purchases WHERE student_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM user_badges WHERE user_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM daily_rewards WHERE user_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare('DELETE FROM messages WHERE school_id = ?').bind(schoolId),
@@ -54,12 +50,11 @@ export async function onRequestPost({ request, env, data }) {
     db.prepare(`DELETE FROM submissions WHERE assignment_id IN (SELECT id FROM assignments WHERE school_id = ?)`).bind(schoolId),
     db.prepare('DELETE FROM assignments WHERE school_id = ?').bind(schoolId),
     db.prepare('DELETE FROM lessons WHERE school_id = ?').bind(schoolId),
-    db.prepare('DELETE FROM duels WHERE school_id = ?').bind(schoolId),
     db.prepare('DELETE FROM daily_challenges WHERE school_id = ?').bind(schoolId),
     db.prepare('DELETE FROM assignment_templates WHERE school_id = ?').bind(schoolId),
     db.prepare('DELETE FROM question_bank WHERE school_id = ?').bind(schoolId),
 
-    // --- classes (now unreferenced by users, assignments, lessons, duels) ---
+    // --- classes (now unreferenced by users, assignments, lessons) ---
     db.prepare('DELETE FROM classes WHERE school_id = ?').bind(schoolId),
 
     // --- users (now unreferenced by classes, since classes rows are gone) ---

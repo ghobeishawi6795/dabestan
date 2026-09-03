@@ -328,78 +328,12 @@ p { margin: 0; color: var(--ink-soft); line-height: 1.9; }
   h1 { font-size: 1.4rem; }
 }
 
-/* ===== حیوان خانگی + جشنواره + فروشگاه + کارت‌های کلکسیونی ===== */
+/* ===== جشنواره ===== */
 .festival-banner {
   display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, #FDECD8, #F6E3C4);
   border: 1px solid var(--sun-dark); border-radius: var(--radius-md); padding: 12px 16px; margin: 18px 0 4px;
   font-size: .85rem; font-weight: 700; color: var(--coral-dark);
 }
-
-.pet-panel {
-  display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 14px 18px; margin: 16px 0;
-}
-.pet-avatar { font-size: 2.4rem; }
-.pet-info { flex: 1; }
-.pet-name { font-weight: 800; font-size: .92rem; }
-.pet-accessories { font-size: 1.1rem; margin-top: 2px; }
-
-.pet-choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.pet-choice-btn {
-  background: var(--bg-soft); border: 2px solid var(--line); border-radius: var(--radius-md);
-  padding: 16px 8px; cursor: pointer; transition: border-color .15s;
-}
-.pet-choice-btn:hover { border-color: var(--leaf); }
-
-.shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 50vh; overflow-y: auto; }
-.shop-item {
-  background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px;
-}
-.shop-item-icon { font-size: 1.8rem; }
-.shop-item-name { font-size: .8rem; font-weight: 700; }
-.shop-item-cost { font-size: .74rem; color: var(--ink-soft); }
-
-.task-skip-btn { width: 100%; font-size: .72rem; padding: 6px 8px; }
-
-.card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 55vh; overflow-y: auto; }
-.collectible-card {
-  border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; border: 2px solid;
-}
-.collectible-card-tag { font-weight: 800; font-size: .85rem; }
-.collectible-card-tier { font-size: .72rem; margin-top: 4px; font-weight: 700; }
-.collectible-card-count { font-size: .7rem; color: var(--ink-soft); margin-top: 2px; }
-.tier-bronze { background: #F3E3D3; border-color: #C08A56; }
-.tier-silver { background: #E9EDF0; border-color: #9FADB8; }
-.tier-gold { background: #FCEFC4; border-color: var(--sun-dark); }
-
-/* ===== نبرد ریاضی ===== */
-.duel-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-.duel-tab { flex: 1; padding: 8px 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); font-size: .78rem; font-weight: 700; cursor: pointer; color: var(--ink-soft); }
-.duel-tab.active { background: var(--leaf); color: #fff; border-color: var(--leaf); }
-.duel-panel { display: none; max-height: 48vh; overflow-y: auto; }
-.duel-panel.active { display: block; }
-.duel-list-item {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  padding: 10px 12px; margin-bottom: 8px; font-size: .82rem;
-}
-.duel-list-item .who { font-weight: 700; }
-.duel-list-item .meta { color: var(--ink-soft); font-size: .74rem; margin-top: 2px; }
-.duel-list-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.duel-list-actions .btn { padding: 7px 12px; font-size: .76rem; }
-.classmate-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: .85rem;
-}
-.classmate-row:last-child { border-bottom: none; }
-.duel-question-box { text-align: center; padding: 20px 10px; }
-.duel-question-nums { font-size: 2.1rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 14px; }
-.duel-progress-row { display: flex; justify-content: space-between; font-size: .78rem; color: var(--ink-soft); margin-bottom: 14px; }
-.duel-result-outcome { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
-.duel-result-outcome.win { color: var(--leaf-dark); }
-.duel-result-outcome.lose { color: var(--coral-dark); }
-.duel-result-outcome.draw { color: var(--ink-soft); }
 
 /* ===== راهنمای هر داشبورد (help accordion) — مشترک بین admin/teacher/student/parent ===== */
 .help-icon-btn {

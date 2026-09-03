@@ -541,20 +541,14 @@
 <div class="modal-backdrop" id="modalDailyChallenge">
   <div class="modal" style="max-width:440px;">
     <h3 style="margin-bottom:4px;">☀️ چالش روزانه</h3>
-    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">یه چالش برای امروز برای دانش‌آموزات تعریف کن — با انجامش سکه و XP می‌گیرن.</div>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">یه چالش برای امروز برای دانش‌آموزات تعریف کن — با انجامش XP می‌گیرن.</div>
     <label style="font-size:.82rem; font-weight:700;">عنوان چالش</label>
     <input type="text" id="dcTitle" placeholder="مثلاً: امروز ۱۰ دقیقه کتاب بخون" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin:6px 0 12px;">
     <label style="font-size:.82rem; font-weight:700;">توضیح (اختیاری)</label>
     <textarea id="dcDescription" rows="2" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin:6px 0 12px; resize:vertical;"></textarea>
-    <div style="display:flex; gap:10px; margin-bottom:14px;">
-      <div style="flex:1;">
-        <label style="font-size:.82rem; font-weight:700;">پاداش سکه 🪙</label>
-        <input type="number" id="dcCoins" value="10" min="0" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin-top:6px;">
-      </div>
-      <div style="flex:1;">
-        <label style="font-size:.82rem; font-weight:700;">پاداش XP</label>
-        <input type="number" id="dcXp" value="20" min="0" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin-top:6px;">
-      </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:.82rem; font-weight:700;">پاداش XP</label>
+      <input type="number" id="dcXp" value="20" min="0" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin-top:6px;">
     </div>
     <div id="msgDailyChallenge" style="margin-bottom:8px; color:var(--coral); font-size:.85rem;"></div>
     <div class="modal-actions">
@@ -1015,7 +1009,6 @@
   async function submitDailyChallenge() {
     const title = document.getElementById('dcTitle').value.trim();
     const description = document.getElementById('dcDescription').value.trim();
-    const rewardCoins = Number(document.getElementById('dcCoins').value) || 0;
     const rewardXp = Number(document.getElementById('dcXp').value) || 0;
     const msg = document.getElementById('msgDailyChallenge');
     if (!title) { msg.textContent = 'عنوان چالش رو بنویس.'; return; }
@@ -1023,7 +1016,7 @@
     try {
       await apiFetch('/teacher/create-daily-challenge', {
         method: 'POST',
-        body: { title, description: description || null, challengeDate, rewardCoins, rewardXp },
+        body: { title, description: description || null, challengeDate, rewardXp },
       });
       msg.style.color = 'var(--leaf-dark)';
       msg.textContent = 'چالش امروز ثبت شد ✅';

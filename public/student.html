@@ -38,11 +38,9 @@
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes sway { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
 @keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
-@keyframes coinPulse { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 100% { transform: scale(1); } }
 @keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
 .sprout-wrap svg { animation: sway 4s ease-in-out infinite; transform-origin: 50% 90%; }
 .sprout-wrap.wiggle svg { animation: wiggle .45s ease; }
-.pet-avatar { animation: floaty 2.6s ease-in-out infinite; cursor: pointer; }
 .task-card { animation: popIn .45s ease both; }
 .task-card:nth-child(1) { animation-delay: .05s; }
 .task-card:nth-child(2) { animation-delay: .12s; }
@@ -50,7 +48,6 @@
 .task-card:nth-child(4) { animation-delay: .26s; }
 button, .btn { transition: transform .12s ease; }
 button:active, .btn:active { transform: scale(.95); }
-#coinsChip.pulse { animation: coinPulse .5s ease; }
 </style>
 <script src="/assets/install-pwa.js" defer></script>
 </head>
@@ -63,9 +60,6 @@ button:active, .btn:active { transform: scale(.95); }
       <li><a class="nav-item active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span> خانه</a></li>
       <li><a class="nav-item" href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span> تکالیف من</a></li>
       <li><a class="nav-item" href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span> باغچهٔ من</a></li>
-      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openShopModal();"><span class="ic">🛍️</span> فروشگاه</a></li>
-      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openCardsModal();"><span class="ic">🎴</span> کارت‌های من</a></li>
-      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDuelsModal();"><span class="ic">⚔️</span> نبرد ریاضی</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDiaryModal();"><span class="ic">📔</span> دفترچهٔ باغچه</a></li>
       <li><a class="nav-item" href="#" onclick="comingSoon(event)"><span class="ic">🏆</span> نشان‌ها</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
@@ -91,7 +85,6 @@ button:active, .btn:active { transform: scale(.95); }
         </button>
         <button type="button" class="help-icon-btn" onclick="openModal('help')" title="راهنما">❓</button>
         <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
-        <div class="streak-chip" style="background:var(--sun); color:#3a2c00;" id="coinsChip">🪙 ۰</div>
       </div>
     </div>
 
@@ -129,17 +122,6 @@ button:active, .btn:active { transform: scale(.95); }
         <h3 style="margin:0; font-size:.95rem;">چالش امروز</h3>
       </div>
       <div id="dailyChallengeContent">در حال بارگذاری...</div>
-    </section>
-
-    <section class="pet-panel" id="petPanel" style="display:none;">
-      <div class="pet-avatar" id="petAvatar">🐾</div>
-      <div class="pet-info">
-        <div class="pet-name" id="petMoodLabel">—</div>
-        <div class="pet-accessories" id="petAccessories"></div>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn btn-ghost" style="font-size:.8rem;" onclick="openShopModal()">🛍️ فروشگاه</button>
-      </div>
     </section>
 
     <div class="section-head" id="tasksSection"><h2>کارهای امروز</h2><a class="see-all" href="#tasksSection">همه ↓</a></div>
@@ -210,45 +192,12 @@ button:active, .btn:active { transform: scale(.95); }
   </div>
 </div>
 
-<!-- ===== مودال انتخاب حیوان خانگی ===== -->
-<div class="modal-backdrop" id="modalChoosePet">
-  <div class="modal" style="text-align:center;">
-    <h3 style="margin-bottom:6px;">یه همراه برای باغچه‌ت انتخاب کن 🌱</h3>
-    <div style="color:var(--ink-soft); font-size:.85rem; margin-bottom:14px;">این همراه کنار نهالت زندگی می‌کنه و با هر تکلیفی که بفرستی تغذیه می‌شه.</div>
-    <div class="pet-choice-grid" id="petChoiceGrid"></div>
-    <div id="msgChoosePet" style="margin-top:10px; color:var(--coral); font-size:.85rem;"></div>
-  </div>
-</div>
-
-<!-- ===== مودال فروشگاه امتیاز ===== -->
-<div class="modal-backdrop" id="modalShop">
-  <div class="modal" style="max-width:480px;">
-    <h3 style="margin-bottom:4px;">🛍️ فروشگاه امتیاز</h3>
-    <div style="color:var(--ink-soft); font-size:.85rem; margin-bottom:12px;">موجودی: <span id="shopCoins">۰</span> 🪙</div>
-    <div class="shop-grid" id="shopGrid">در حال بارگذاری...</div>
-    <div id="msgShop" style="margin-top:8px; color:var(--coral); font-size:.85rem;"></div>
-    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('shop')">بستن</button>
-  </div>
-</div>
-
-<!-- ===== مودال کارت‌های کلکسیونی ===== -->
-<div class="modal-backdrop" id="modalCards">
-  <div class="modal" style="max-width:480px;">
-    <h3 style="margin-bottom:12px;">🎴 کارت‌های من</h3>
-    <div class="card-grid" id="cardGrid">در حال بارگذاری...</div>
-    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('cards')">بستن</button>
-  </div>
-</div>
-
 <!-- ===== مودال «بیشتر» (فقط موبایل — چون سایدبار اونجا مخفیه) ===== -->
 <div class="modal-backdrop" id="modalMore">
   <div class="modal" style="max-width:340px; text-align:center;">
     <h3 style="margin-bottom:14px;">بیشتر</h3>
     <button type="button" id="logoutMoreBtn" class="btn btn-ghost" onclick="logout()" style="width:100%;margin-top:10px;">🚪 خروج از حساب</button>
     <div style="display:flex; flex-direction:column; gap:10px;">
-      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openShopModal();">🛍️ فروشگاه</button>
-      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openCardsModal();">🎴 کارت‌های من</button>
-      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDuelsModal();">⚔️ نبرد ریاضی</button>
       <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDiaryModal();">📔 دفترچهٔ باغچه</button>
     </div>
     
@@ -258,46 +207,6 @@ button:active, .btn:active { transform: scale(.95); }
     </div>
 
     <button type="button" class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal('more')">بستن</button>
-  </div>
-</div>
-
-<!-- ===== مودال نبرد ریاضی — فهرست ===== -->
-<div class="modal-backdrop" id="modalDuels">
-  <div class="modal" style="max-width:440px;">
-    <h3 style="margin-bottom:4px;">⚔️ نبرد ریاضی</h3>
-    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">بردهای تو: <b id="duelWinsCount">۰</b> 🏆</div>
-    <div class="duel-tabs">
-      <button type="button" class="duel-tab active" data-tab="challenge" onclick="switchDuelTab('challenge')">شروع نبرد</button>
-      <button type="button" class="duel-tab" data-tab="incoming" onclick="switchDuelTab('incoming')">دعوت‌ها</button>
-      <button type="button" class="duel-tab" data-tab="active" onclick="switchDuelTab('active')">فعال</button>
-      <button type="button" class="duel-tab" data-tab="history" onclick="switchDuelTab('history')">تاریخچه</button>
-    </div>
-    <div class="duel-panel active" id="duelPanelChallenge"><div id="classmateList">در حال بارگذاری...</div></div>
-    <div class="duel-panel" id="duelPanelIncoming"><div id="duelIncomingList"></div></div>
-    <div class="duel-panel" id="duelPanelActive"><div id="duelActiveList"></div></div>
-    <div class="duel-panel" id="duelPanelHistory"><div id="duelHistoryList"></div></div>
-    <div id="msgDuels" style="margin-top:8px; color:var(--coral); font-size:.85rem;"></div>
-    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('duels'); stopDuelListPolling();">بستن</button>
-  </div>
-</div>
-
-<!-- ===== مودال نبرد ریاضی — صحنهٔ بازی ===== -->
-<div class="modal-backdrop" id="modalDuelPlay">
-  <div class="modal" style="max-width:380px;">
-    <h3 style="margin-bottom:2px;" id="duelPlayTitle">نبرد با —</h3>
-    <div class="duel-progress-row">
-      <span id="duelPlayMyProgress">تو: ۰/۰</span>
-      <span id="duelPlayOppProgress">حریف: ۰/۰</span>
-    </div>
-    <div id="duelPlayBody">
-      <div class="duel-question-box">
-        <div class="duel-question-nums" id="duelQuestionText">—</div>
-        <input type="number" id="duelAnswerInput" placeholder="جواب رو بنویس" style="width:100%; text-align:center; font-size:1.1rem; padding:10px; border-radius:10px; border:1px solid var(--line); margin-bottom:12px;">
-        <button type="button" class="btn btn-primary" style="width:100%;" onclick="submitDuelAnswer()">ثبت جواب</button>
-        <div id="duelAnswerFeedback" style="margin-top:8px; font-size:.85rem; font-weight:700;"></div>
-      </div>
-    </div>
-    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('duelPlay'); stopDuelPlayPolling();">بستن</button>
   </div>
 </div>
 
@@ -326,45 +235,16 @@ button:active, .btn:active { transform: scale(.95); }
     </details>
 
     <details class="help-section">
-      <summary>🐣 حیوان خانگی</summary>
-      <div class="help-body">
-        <p>یه حیوون خانگی برای خودت انتخاب می‌کنی که هر بار تکلیف بفرستی بهش غذا می‌دی و خوشحال‌تر می‌شه. می‌تونی از فروشگاه براش لباس/وسیله بخری.</p>
-      </div>
-    </details>
-
-    <details class="help-section">
       <summary>📋 تکالیف من</summary>
       <div class="help-body">
         <p>تکلیف‌هایی که معلمت فرستاده اینجا میان — هرکدوم یه آیکون داره که نشون می‌ده چه‌جور تکلیفیه (نوشتنی، صوتی، نقاشی، رنگ‌آمیزی، چندگزینه‌ای و...).</p>
-        <p>اگه مدرسه‌ت کارت «رد کردن تکلیف» رو فعال کرده باشه، یه دکمهٔ مخصوص روی تکلیف می‌بینی که می‌تونی باهاش یه تکلیف رو (با محدودیت تعداد) رد کنی.</p>
-      </div>
-    </details>
-
-    <details class="help-section">
-      <summary>🛍️ فروشگاه</summary>
-      <div class="help-body">
-        <p>هر تکلیفی که بفرستی، <b>سکه</b> می‌گیری. با سکه‌ها می‌تونی از فروشگاه برای حیوون خانگیت وسیله بخری یا کارت «رد کردن تکلیف» بگیری.</p>
-      </div>
-    </details>
-
-    <details class="help-section">
-      <summary>🎴 کارت‌های من</summary>
-      <div class="help-body">
-        <p>هر مبحثی (تگی) که ازش تکلیف انجام بدی، براش یه کارت جمع‌آوری می‌گیری — هرچی بیشتر روی همون مبحث تمرین کنی، سطح کارتش بالاتر می‌ره.</p>
-      </div>
-    </details>
-
-    <details class="help-section">
-      <summary>⚔️ نبرد ریاضی</summary>
-      <div class="help-body">
-        <p>می‌تونی یه هم‌کلاسی رو به یه مسابقهٔ سریع محاسبهٔ ذهنی دعوت کنی. هرکی سریع‌تر و درست‌تر جواب بده، برنده می‌شه.</p>
       </div>
     </details>
 
     <details class="help-section">
       <summary>📔 دفترچهٔ باغچه</summary>
       <div class="help-body">
-        <p>یه خلاصهٔ روزانه از کارهایی که این ماه انجام دادی (تکلیف، نشان، نبرد، خرید) — والدینت هم می‌تونن همینو از صفحهٔ خودشون ببینن.</p>
+        <p>یه خلاصهٔ روزانه از کارهایی که این ماه انجام دادی (تکلیف، نشان) — والدینت هم می‌تونن همینو از صفحهٔ خودشون ببینن.</p>
       </div>
     </details>
 
@@ -392,12 +272,10 @@ button:active, .btn:active { transform: scale(.95); }
     loadNotifications();
     celebratePendingBadges();
     loadProgressChart();
-    loadPetAndFestival();
+    loadFestival();
     loadDailyChallenge();
   }
 
-  // اعتبار کارت معافیت + فعال‌بودنش، از پاسخ get-tasks (نه get-overview) پر می‌شه — چون loadAll جدا صداش می‌زنه.
-  const state = { skipCredits: 0, skipCardsEnabled: false };
 
   function logout() { try { Auth.clear(); } catch(e) { console.error('logout error:', e); } window.location.href = 'login.html'; }
 
@@ -448,8 +326,6 @@ button:active, .btn:active { transform: scale(.95); }
     try {
       const tasksData = await apiFetch('/student/get-tasks');
       renderGrowth(user.growthPoints ?? 0);
-      state.skipCredits = tasksData.skipCredits || 0;
-      state.skipCardsEnabled = !!tasksData.skipCardsEnabled;
       renderTasks(tasksData.assignments);
       document.getElementById('streakNum').textContent = toFa(tasksData.streak);
       document.getElementById('statStreak').textContent = toFa(tasksData.streak);
@@ -499,17 +375,12 @@ button:active, .btn:active { transform: scale(.95); }
       const cls = TYPE_CLASS[a.primary_type] || 't-match';
       const badgeLabel = excused ? 'معاف شدی' : (done ? 'انجام شد' : 'جدید');
       const badgeClass = excused ? 'badge-done' : (done ? 'badge-done' : 'badge-new');
-      const canSkip = !done && state.skipCardsEnabled && state.skipCredits > 0;
-      const skipBtn = canSkip
-        ? `<button type="button" class="btn btn-ghost task-skip-btn" onclick="event.preventDefault(); event.stopPropagation(); redeemSkip(${a.id});">🎫 معاف شدن (${toFa(state.skipCredits)})</button>`
-        : '';
       return `
       <a class="task-card" href="task.html?id=${a.id}" style="color:inherit;">
         <div class="task-type-icon ${cls}">${icon}</div>
         <span class="task-badge ${badgeClass}">${badgeLabel}</span>
         <div class="subject">${escapeHtml(a.title)}</div>
         <div class="due">${a.due_at ? 'تا ' + formatJalali(a.due_at) : 'بدون موعد'}</div>
-        ${skipBtn}
       </a>`;
     }).join('');
   }
@@ -592,7 +463,7 @@ button:active, .btn:active { transform: scale(.95); }
   }
 
   // ===== اعلان‌ها =====
-  const NOTIF_ICON = { new_assignment: '📋', grade_ready: '🎉', parent_message: '💬', due_soon: '⏰', duel_challenge: '⚔️', duel_accepted: '⚔️', duel_declined: '⚔️', duel_result: '⚔️' };
+  const NOTIF_ICON = { new_assignment: '📋', grade_ready: '🎉', parent_message: '💬', due_soon: '⏰' };
 
   async function loadNotifications() {
     try {
@@ -658,29 +529,15 @@ button:active, .btn:active { transform: scale(.95); }
     } catch (e) { console.error(e); }
   }
 
-  // ===== حیوان خانگی + جشنواره + سکه (از get-overview) =====
-  const PET_ICON = { cat: '🐱', rabbit: '🐰', hedgehog: '🦔' };
-  const PET_NAME = { cat: 'گربه', rabbit: 'خرگوش', hedgehog: 'جوجه‌تیغی' };
-  const ACCESSORY_ICON = { hat_party: '🎉', bow_tie: '🎀', glasses: '🕶️', crown: '👑', scarf: '🧣' };
-  let currentPet = null;
-
-  async function loadPetAndFestival() {
+  // ===== جشنواره (از get-overview) =====
+  async function loadFestival() {
     try {
       const overview = await apiFetch('/student/get-overview');
-      document.getElementById('coinsChip').textContent = `🪙 ${toFa(overview.coins)}`;
 
       if (overview.festival) {
         const banner = document.getElementById('festivalBanner');
         banner.style.display = 'flex';
         banner.innerHTML = `<span style="font-size:1.4rem;">${overview.festival.icon}</span> <span>${escapeHtml(overview.festival.name)} شروع شده — با فرستادن تکلیف توی این بازه نشان ویژه می‌گیری!</span>`;
-      }
-
-      currentPet = overview.pet;
-      if (!currentPet) {
-        renderPetChoiceGrid();
-        openModal('choosePet');
-      } else {
-        renderPet();
       }
 
       renderGardenWeather(overview.gardenWeather);
@@ -694,324 +551,6 @@ button:active, .btn:active { transform: scale(.95); }
     box.title = weather.label;
     document.getElementById('gwIcon').textContent = weather.icon;
     document.getElementById('gwLabel').textContent = weather.code === 'new' ? '' : weather.label.split('—')[0].trim();
-  }
-
-  function renderPetChoiceGrid() {
-    const species = [
-      { code: 'cat', name: 'گربه', icon: '🐱' },
-      { code: 'rabbit', name: 'خرگوش', icon: '🐰' },
-      { code: 'hedgehog', name: 'جوجه‌تیغی', icon: '🐦' },
-    ];
-    document.getElementById('petChoiceGrid').innerHTML = species.map(s => `
-      <button type="button" class="pet-choice-btn" onclick="choosePet('${s.code}')">
-        <div style="font-size:2.4rem;">${s.icon}</div>
-        <div style="font-size:.82rem; font-weight:700; margin-top:4px;">${s.name}</div>
-      </button>`).join('');
-  }
-
-  async function choosePet(species) {
-    try {
-      await apiFetch('/student/choose-pet', { method: 'POST', body: { species } });
-      currentPet = { species, accessories: [], lastFedAt: new Date().toISOString() };
-      closeModal('choosePet');
-      renderPet();
-    } catch (e) { document.getElementById('msgChoosePet').textContent = e.message; }
-  }
-
-  function petMood() {
-    if (!currentPet?.lastFedAt) return { label: 'منتظرته 🌱', hungry: false };
-    const hoursSinceFed = (Date.now() - new Date(currentPet.lastFedAt).getTime()) / 3600000;
-    // بعد از ۴۸ ساعت بدون تکلیف جدید، همراهت دلتنگت می‌شه — نه «می‌میره»، فقط یادت می‌ندازه برگردی.
-    return hoursSinceFed > 48 ? { label: 'دلتنگته 🥺', hungry: true } : { label: 'خوشحاله 😊', hungry: false };
-  }
-
-  function renderPet() {
-    if (!currentPet) return;
-    const panel = document.getElementById('petPanel');
-    panel.style.display = 'flex';
-    document.getElementById('petAvatar').textContent = PET_ICON[currentPet.species] || '🐾';
-    const mood = petMood();
-    document.getElementById('petMoodLabel').textContent = `${PET_NAME[currentPet.species] || 'همراه'} — ${mood.label}`;
-    document.getElementById('petAccessories').textContent = currentPet.accessories.map(c => ACCESSORY_ICON[c] || '').join(' ');
-  }
-
-  // ===== فروشگاه امتیاز =====
-  async function openShopModal() {
-    openModal('shop');
-    document.getElementById('shopGrid').textContent = 'در حال بارگذاری...';
-    document.getElementById('msgShop').textContent = '';
-    try {
-      const data = await apiFetch('/student/get-shop');
-      document.getElementById('shopCoins').textContent = toFa(data.coins);
-      renderShop(data.items);
-    } catch (e) { document.getElementById('msgShop').textContent = e.message; }
-  }
-
-  function renderShop(items) {
-    document.getElementById('shopGrid').innerHTML = items.map(i => {
-      if (i.type === 'skip_card') {
-        return `
-        <div class="shop-item">
-          <div class="shop-item-icon">${i.icon}</div>
-          <div class="shop-item-name">${escapeHtml(i.name)}</div>
-          <div class="shop-item-cost">${toFa(i.cost)} 🪙</div>
-          <button type="button" class="btn btn-primary" style="font-size:.78rem;" onclick="buyItem('${i.code}')">خرید</button>
-        </div>`;
-      }
-      const equipped = currentPet && currentPet.accessories.includes(i.code);
-      return `
-      <div class="shop-item">
-        <div class="shop-item-icon">${i.icon}</div>
-        <div class="shop-item-name">${escapeHtml(i.name)}</div>
-        <div class="shop-item-cost">${toFa(i.cost)} 🪙</div>
-        ${i.owned
-          ? `<button type="button" class="btn ${equipped ? 'btn-primary' : 'btn-ghost'}" style="font-size:.78rem;" onclick="equipItem('${i.code}', ${!equipped})">${equipped ? 'پوشیده ✓' : 'پوشیدن'}</button>`
-          : `<button type="button" class="btn btn-primary" style="font-size:.78rem;" onclick="buyItem('${i.code}')">خرید</button>`}
-      </div>`;
-    }).join('');
-  }
-
-  async function buyItem(code) {
-    try {
-      await apiFetch('/student/buy-item', { method: 'POST', body: { itemCode: code } });
-      await openShopModal();
-      loadPetAndFestival();
-      loadAll();
-    } catch (e) { document.getElementById('msgShop').textContent = e.message; }
-  }
-
-  async function equipItem(code, equip) {
-    try {
-      const res = await apiFetch('/student/equip-item', { method: 'POST', body: { itemCode: code, equip } });
-      currentPet.accessories = res.accessories;
-      renderPet();
-      openShopModal();
-    } catch (e) { document.getElementById('msgShop').textContent = e.message; }
-  }
-
-  // ===== کارت‌های کلکسیونی =====
-  async function openCardsModal() {
-    openModal('cards');
-    document.getElementById('cardGrid').textContent = 'در حال بارگذاری...';
-    try {
-      const data = await apiFetch('/student/get-cards');
-      if (!data.cards.length) {
-        document.getElementById('cardGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--ink-soft); font-size:.85rem;">هنوز کارتی نگرفتی — با جواب درست به سؤالای هر موضوع، کارتش رو می‌گیری 🎴</div>';
-        return;
-      }
-      document.getElementById('cardGrid').innerHTML = data.cards.map(c => `
-        <div class="collectible-card tier-${c.tier}">
-          <div class="collectible-card-tag">${escapeHtml(c.tag)}</div>
-          <div class="collectible-card-tier">${c.label}</div>
-          <div class="collectible-card-count">${toFa(c.count)} بار</div>
-        </div>`).join('');
-    } catch (e) { document.getElementById('cardGrid').textContent = e.message; }
-  }
-
-  // ===== معاف شدن با کارت =====
-  async function redeemSkip(assignmentId) {
-    if (!confirm('یک کارت معافیت مصرف بشه و این تکلیف بدون پاسخ بسته بشه؟')) return;
-    try {
-      const res = await apiFetch('/student/redeem-skip', { method: 'POST', body: { assignmentId } });
-      state.skipCredits = res.skipCredits;
-      const t = document.getElementById('toastMini');
-      t.textContent = 'معاف شدی 🎫';
-      t.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
-      loadAll();
-    } catch (e) {
-      const t = document.getElementById('toastMini');
-      t.textContent = e.message;
-      t.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
-    }
-  }
-
-  // ===== نبرد ریاضی =====
-  const DUEL_OP_LABEL = { '+': '+', '-': '−', '×': '×' };
-  let duelListTimer = null;
-
-  function openDuelsModal() {
-    openModal('duels');
-    document.getElementById('msgDuels').textContent = '';
-    switchDuelTab('challenge');
-    loadDuelsList();
-    clearInterval(duelListTimer);
-    duelListTimer = setInterval(loadDuelsList, 5000);
-  }
-
-  function stopDuelListPolling() { clearInterval(duelListTimer); duelListTimer = null; }
-
-  function switchDuelTab(tab) {
-    document.querySelectorAll('.duel-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    document.querySelectorAll('.duel-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(`duelPanel${cap(tab)}`).classList.add('active');
-    if (tab === 'challenge' && !window.__classmatesLoaded) loadClassmates();
-  }
-
-  async function loadClassmates() {
-    try {
-      const data = await apiFetch('/student/list-classmates');
-      window.__classmatesLoaded = true;
-      const box = document.getElementById('classmateList');
-      if (!data.classmates.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هم‌کلاسی‌ای برای دعوت پیدا نشد.</div>'; return; }
-      box.innerHTML = data.classmates.map(c => `
-        <div class="classmate-row">
-          <span>${escapeHtml(c.full_name)}</span>
-          <button type="button" class="btn btn-primary" style="padding:6px 14px; font-size:.76rem;" onclick="challengeClassmate(${c.id})">دعوت به نبرد</button>
-        </div>`).join('');
-    } catch (e) { document.getElementById('msgDuels').textContent = e.message; }
-  }
-
-  async function challengeClassmate(id) {
-    try {
-      await apiFetch('/student/challenge-duel', { method: 'POST', body: { opponentId: id } });
-      document.getElementById('msgDuels').textContent = '';
-    } catch (e) { document.getElementById('msgDuels').textContent = e.message; return; }
-    switchDuelTab('incoming');
-    loadDuelsList();
-  }
-
-  async function loadDuelsList() {
-    try {
-      const data = await apiFetch('/student/list-duels');
-      document.getElementById('duelWinsCount').textContent = toFa(data.wins);
-
-      const incomingBox = document.getElementById('duelIncomingList');
-      const incomingAll = [...data.incoming, ...data.sent];
-      incomingBox.innerHTML = incomingAll.length ? incomingAll.map(d => {
-        const mine = d.challenger_id === user.id;
-        return `
-        <div class="duel-list-item">
-          <div>
-            <div class="who">${escapeHtml(d.opponentName)}</div>
-            <div class="meta">${mine ? 'منتظر پاسخ اونه' : 'دعوتت کرده'}</div>
-          </div>
-          ${mine ? '' : `
-          <div class="duel-list-actions">
-            <button type="button" class="btn btn-primary" onclick="respondDuel(${d.id}, true)">قبول</button>
-            <button type="button" class="btn btn-ghost" onclick="respondDuel(${d.id}, false)">رد</button>
-          </div>`}
-        </div>`;
-      }).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">دعوتی در انتظار نیست.</div>';
-
-      const activeBox = document.getElementById('duelActiveList');
-      activeBox.innerHTML = data.active.length ? data.active.map(d => `
-        <div class="duel-list-item">
-          <div><div class="who">${escapeHtml(d.opponentName)}</div><div class="meta">نبرد در جریانه</div></div>
-          <div class="duel-list-actions"><button type="button" class="btn btn-primary" onclick="openDuelPlay(${d.id})">ادامه</button></div>
-        </div>`).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">نبرد فعالی نداری.</div>';
-
-      const historyBox = document.getElementById('duelHistoryList');
-      historyBox.innerHTML = data.history.length ? data.history.map(d => {
-        const outcome = d.winner_id === user.id ? 'بردی 🏆' : (d.winner_id === null ? 'مساوی' : 'باختی');
-        return `<div class="duel-list-item"><div><div class="who">${escapeHtml(d.opponentName)}</div><div class="meta">${outcome}</div></div></div>`;
-      }).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز نبردی تمام نشده.</div>';
-    } catch (e) { console.error(e); }
-  }
-
-  async function respondDuel(duelId, accept) {
-    try {
-      await apiFetch('/student/respond-duel', { method: 'POST', body: { duelId, accept } });
-      loadDuelsList();
-      if (accept) openDuelPlay(duelId);
-    } catch (e) { document.getElementById('msgDuels').textContent = e.message; }
-  }
-
-  // ===== صحنهٔ بازی نبرد =====
-  let duelPlayTimer = null, currentDuelId = null;
-
-  function openDuelPlay(duelId) {
-    currentDuelId = duelId;
-    renderedDuelPosition = null;
-    closeModal('duels'); stopDuelListPolling();
-    openModal('duelPlay');
-    pollDuelPlay();
-    clearInterval(duelPlayTimer);
-    duelPlayTimer = setInterval(pollDuelPlay, 2500);
-  }
-
-  function stopDuelPlayPolling() { clearInterval(duelPlayTimer); duelPlayTimer = null; currentDuelId = null; }
-
-  async function pollDuelPlay() {
-    if (!currentDuelId) return;
-    try {
-      const d = await apiFetch(`/student/get-duel?id=${currentDuelId}`);
-      document.getElementById('duelPlayTitle').textContent = `نبرد با ${d.opponentName}`;
-      document.getElementById('duelPlayMyProgress').textContent = `تو: ${toFa(d.myAnswered)}/${toFa(d.questionCount)}`;
-      document.getElementById('duelPlayOppProgress').textContent = `حریف: ${toFa(d.opponentAnswered)}/${toFa(d.questionCount)}`;
-
-      if (d.status === 'finished' && d.result) {
-        stopDuelPlayPolling();
-        renderDuelResult(d.result);
-        loadPetAndFestival();
-        return;
-      }
-      if (d.currentQuestion) {
-        renderDuelQuestion(d.currentQuestion);
-      } else if (d.status === 'active') {
-        document.getElementById('duelPlayBody').innerHTML = `
-          <div class="duel-question-box">
-            <div style="font-size:1rem; color:var(--ink-soft);">همهٔ سؤالاتو جواب دادی — منتظر حریفت باش... ⏳</div>
-          </div>`;
-      }
-    } catch (e) { console.error(e); }
-  }
-
-  let renderedDuelPosition = null;
-  function renderDuelQuestion(q) {
-    if (renderedDuelPosition === q.position) return; // از رندر دوباره جلوگیری کن تا ورودی کاربر پاک نشه
-    renderedDuelPosition = q.position;
-    document.getElementById('duelPlayBody').innerHTML = `
-      <div class="duel-question-box">
-        <div class="duel-question-nums">${toFa(q.operandA)} ${DUEL_OP_LABEL[q.operator]} ${toFa(q.operandB)} = ؟</div>
-        <input type="number" id="duelAnswerInput" placeholder="جواب رو بنویس" style="width:100%; text-align:center; font-size:1.1rem; padding:10px; border-radius:10px; border:1px solid var(--line); margin-bottom:12px;">
-        <button type="button" class="btn btn-primary" style="width:100%;" onclick="submitDuelAnswer(${q.position})">ثبت جواب</button>
-        <div id="duelAnswerFeedback" style="margin-top:8px; font-size:.85rem; font-weight:700;"></div>
-      </div>`;
-    document.getElementById('duelAnswerInput').focus();
-  }
-
-  async function submitDuelAnswer(position) {
-    const input = document.getElementById('duelAnswerInput');
-    const val = input.value.trim();
-    if (val === '') return;
-    try {
-      const res = await apiFetch('/student/answer-duel', { method: 'POST', body: { duelId: currentDuelId, position, answer: Number(val) } });
-      const fb = document.getElementById('duelAnswerFeedback');
-      fb.style.color = res.isCorrect ? 'var(--leaf-dark)' : 'var(--coral-dark)';
-      fb.textContent = res.isCorrect ? 'درست بود! ✅' : `اشتباه بود — جواب درست: ${toFa(res.correctAnswer)}`;
-      input.disabled = true;
-      renderedDuelPosition = null;
-
-      if (res.newlyEarnedBadges && res.newlyEarnedBadges.length) {
-        try {
-          const overview = await apiFetch('/student/get-overview');
-          badgeCelebrateQueue.push(...res.newlyEarnedBadges.map(code => overview.badges.find(b => b.code === code)).filter(Boolean));
-        } catch { /* ignore */ }
-      }
-
-      if (res.finished && res.result) {
-        stopDuelPlayPolling();
-        setTimeout(() => { renderDuelResult(res.result); loadPetAndFestival(); showNextBadgeCelebration(); }, 900);
-      } else {
-        setTimeout(pollDuelPlay, 1200);
-      }
-    } catch (e) {
-      document.getElementById('duelAnswerFeedback').style.color = 'var(--coral-dark)';
-      document.getElementById('duelAnswerFeedback').textContent = e.message;
-    }
-  }
-
-  function renderDuelResult(result) {
-    const label = result.outcome === 'win' ? 'بردی! 🏆' : (result.outcome === 'lose' ? 'باختی' : 'مساوی شد');
-    document.getElementById('duelPlayBody').innerHTML = `
-      <div class="duel-question-box">
-        <div class="duel-result-outcome ${result.outcome}">${label}</div>
-        <div style="color:var(--ink-soft); font-size:.9rem;">امتیاز: ${toFa(result.myScore)} - ${toFa(result.opponentScore)}</div>
-      </div>`;
   }
 
   // ===== دفترچهٔ باغچه =====
@@ -1050,13 +589,13 @@ button:active, .btn:active { transform: scale(.95); }
         box.innerHTML = `
           <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(c.title)}</div>
           ${desc}
-          <div style="color:var(--leaf-dark); font-size:.85rem; font-weight:700;">تکمیل شد! ✅ +${toFa(c.reward_coins)} 🪙 +${toFa(c.reward_xp)} XP</div>`;
+          <div style="color:var(--leaf-dark); font-size:.85rem; font-weight:700;">تکمیل شد! ✅ +${toFa(c.reward_xp)} XP</div>`;
       } else {
         box.innerHTML = `
           <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(c.title)}</div>
           ${desc}
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <span style="font-size:.8rem; color:var(--ink-soft);">پاداش: 🪙 ${toFa(c.reward_coins)} — ${toFa(c.reward_xp)} XP</span>
+            <span style="font-size:.8rem; color:var(--ink-soft);">پاداش: ${toFa(c.reward_xp)} XP</span>
             <button type="button" class="btn btn-primary" style="padding:8px 16px; font-size:.8rem;" onclick="completeDailyChallenge(${c.id})">انجامش دادم!</button>
           </div>`;
       }
@@ -1068,9 +607,9 @@ button:active, .btn:active { transform: scale(.95); }
   async function completeDailyChallenge(challengeId) {
     try {
       const res = await apiFetch('/student/complete-daily-challenge', { method: 'POST', body: { challengeId } });
-      aliveToast(`آفرین! 🪙+${toFa(res.coins)} XP+${toFa(res.xp)}`);
+      aliveToast(`آفرین! XP+${toFa(res.xp)}`);
       loadDailyChallenge();
-      loadPetAndFestival();
+      loadFestival();
     } catch (e) {
       document.getElementById('dailyChallengeContent').insertAdjacentHTML('beforeend', `<div style="color:var(--coral); font-size:.8rem; margin-top:6px;">${escapeHtml(e.message)}</div>`);
     }
@@ -1162,21 +701,6 @@ document.querySelector('.sprout-wrap')?.addEventListener('click', () => {
   aliveToast(pick(['دارم بزرگ می‌شم! 🌱', 'یه تکلیف دیگه بفرست! ✨', 'داره جوانه می‌زنه! 🌿', 'به‌به! ادامه بده 🌟']));
   navigator.vibrate?.(20);
 });
-document.getElementById('petAvatar')?.addEventListener('click', () => {
-  aliveToast(pick(['چه خبر؟ 😊', 'دلم برات تنگ شده بود! 💚', 'بریم تکلیف حل کنیم؟ 🎒']));
-  navigator.vibrate?.(15);
-});
-(function () {
-  const chip = document.getElementById('coinsChip');
-  if (!chip) return;
-  let last = chip.textContent;
-  new MutationObserver(() => {
-    if (chip.textContent !== last) {
-      chip.classList.remove('pulse'); void chip.offsetWidth; chip.classList.add('pulse');
-    }
-    last = chip.textContent;
-  }).observe(chip, { childList: true, characterData: true, subtree: true });
-})();
 </script>
 
 <!-- ===== مودال های‌فایو ===== -->

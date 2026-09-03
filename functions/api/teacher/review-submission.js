@@ -41,11 +41,10 @@ export async function onRequestPost({ request, env, data }) {
   await env.DB.prepare(`UPDATE submissions SET status = 'reviewed', score = ?, reviewed_at = ? WHERE id = ?`)
     .bind(finalScore, new Date().toISOString(), body.submissionId).run();
 
-  // ⭐ اصلاح: هم امتیاز رشد هم سکه — هم‌راستا با اقتصاد submit-task
   if (newlyCorrectCount > 0) {
     const pts = newlyCorrectCount * POINTS_PER_CORRECT;
-    await env.DB.prepare('UPDATE users SET growth_points = growth_points + ?, coins = coins + ? WHERE id = ?')
-      .bind(pts, pts, submission.student_id).run();
+    await env.DB.prepare('UPDATE users SET growth_points = growth_points + ? WHERE id = ?')
+      .bind(pts, submission.student_id).run();
   }
 
   await notify(env, submission.student_id, 'grade_ready', 'نمره‌ت آماده شد! 🎉', submission.assignment_title, body.submissionId);

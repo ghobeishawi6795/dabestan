@@ -27,8 +27,8 @@ export async function onRequestPost({ request, env, data }) {
   ).bind(challenge.id, student.id).run();
 
   await env.DB.prepare(
-    'UPDATE users SET coins = coins + ?, growth_points = growth_points + ? WHERE id = ?'
-  ).bind(challenge.reward_coins, challenge.reward_xp, student.id).run();
+    'UPDATE users SET growth_points = growth_points + ? WHERE id = ?'
+  ).bind(challenge.reward_xp, student.id).run();
 
-  return json({ ok: true, coins: challenge.reward_coins, xp: challenge.reward_xp });
+  return json({ ok: true, xp: challenge.reward_xp });
 }
