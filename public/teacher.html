@@ -639,7 +639,6 @@
   if (user) {
     document.getElementById('whoami').textContent = `${user.fullName} (معلم)`;
     document.getElementById('teacherName').textContent = `سلام ${user.fullName}`;
-    let bankState = { own:'me', subject:'', grade:'', type:'', difficulty:'', favorite:false, search:'', sort:'newest' };
 loadAll();
     loadBadges();
     loadInbox();
@@ -647,6 +646,17 @@ loadAll();
     loadParentChatBadge();
     renderTypeFields();
   }
+
+  let bankState = {
+    own: 'me',
+    subject: '',
+    grade: '',
+    type: '',
+    difficulty: '',
+    favorite: false,
+    search: '',
+    sort: 'newest'
+  };
 
   function logout() { try { Auth.clear(); } catch(e) { console.error('logout error:', e); } window.location.href = 'login.html'; }
 
