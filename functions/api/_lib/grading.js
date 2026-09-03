@@ -64,7 +64,17 @@ export function gradeAnswer(question, answer) {
       return { autoGraded: true, correct: Number(answer) === content.correctIndex };
 
     case 'true_false':
-      return { autoGraded: true, correct: Boolean(answer) === Boolean(content.correct) };
+      // Fix: Compare string values properly, not Boolean() which treats "false" as truthy
+      const studentAns = String(answer).trim().toLowerCase();
+      const correctAns = String(content.correct).trim().toLowerCase();
+      const isCorrect = (
+        studentAns === 'true' && correctAns === 'true' ||
+        studentAns === 'false' && correctAns === 'false' ||
+        studentAns === '1' && correctAns === 'true' ||
+        studentAns === '0' && correctAns === 'false' ||
+        studentAns === correctAns
+      );
+      return { autoGraded: true, correct: isCorrect };
 
     case 'fill_blank':
       return { autoGraded: true, correct: normalize(answer) === normalize(content.answer) };

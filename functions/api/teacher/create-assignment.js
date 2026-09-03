@@ -23,8 +23,8 @@ export async function onRequestPost({ request, env, data }) {
   // (this was an IDOR gap in an earlier version of this project; fixed here from the start).
   const placeholders = questionIds.map(() => '?').join(',');
   const { results: ownedQuestions } = await env.DB.prepare(
-    `SELECT id FROM question_bank WHERE school_id = ? AND id IN (${placeholders})`
-  ).bind(teacher.school_id, ...questionIds).all();
+    `SELECT id FROM question_bank WHERE school_id = ? AND id IN (${placeholders}) AND (visibility = 'public' OR teacher_id = ?)`
+  ).bind(teacher.school_id, ...questionIds, teacher.id).all();
   if (ownedQuestions.length !== questionIds.length) {
     return err('one or more questionIds are invalid for this school', 400);
   }
@@ -37,7 +37,7 @@ export async function onRequestPost({ request, env, data }) {
   // نسخهٔ فعلی هر سؤال رو پین می‌کنیم تا ویرایش‌های بعدی، تکلیف قبلی رو تغییر نده
   const { results: versionRows } = await env.DB.prepare(
     `SELECT id, version FROM question_bank WHERE school_id = ? AND id IN (${questionIds.map(() => '?').join(',')})`
-  ).bind(teacher.school_id, ...questionIds).all();
+  ).bind(teacher.school_id, ...questionIds, teacher.id).all();
   const versionMap = new Map(versionRows.map((r) => [r.id, r.version || 1]));
 
   const inserts = questionIds.map((qid, i) =>
