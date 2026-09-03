@@ -647,17 +647,6 @@ loadAll();
     renderTypeFields();
   }
 
-  let bankState = {
-    own: 'me',
-    subject: '',
-    grade: '',
-    type: '',
-    difficulty: '',
-    favorite: false,
-    search: '',
-    sort: 'newest'
-  };
-
   function logout() { try { Auth.clear(); } catch(e) { console.error('logout error:', e); } window.location.href = 'login.html'; }
 
   function scrollToId(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
