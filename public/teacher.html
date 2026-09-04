@@ -2462,6 +2462,7 @@ ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف
   </div>
 
   <div id="classLearningAnalysisBox" style="margin-top:15px;"></div>
+  <div id="teacherActionCenter" style="margin-top:18px;"></div>
 </section>
 
 <script>
@@ -2535,6 +2536,172 @@ async function createSmartAssignment() {
   }
 }
 
+async function loadTeacherActionCenter(classId) {
+  const box = document.getElementById('teacherActionCenter');
+
+  if (!box || !classId) {
+    if (box) box.innerHTML = '';
+    return;
+  }
+
+  try {
+    const data = await apiFetch(
+      '/teacher/get-action-center?class_id=' +
+      encodeURIComponent(classId)
+    );
+
+    if (!data?.ok) {
+      throw new Error('action center request failed');
+    }
+
+    const summary = data.summary || {};
+    const students = Array.isArray(data.students)
+      ? data.students
+      : [];
+    const skills = Array.isArray(data.skills)
+      ? data.skills
+      : [];
+    const recommendations = data.recommendations || {};
+
+    const studentHtml = students.length
+      ? students.map(student => `
+          <div style="padding:9px 0;border-top:1px solid #e5e7eb;">
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              gap:8px;
+              align-items:center;
+            ">
+              <strong>${escapeHtml(student.name || '—')}</strong>
+              <span style="
+                padding:4px 8px;
+                border-radius:999px;
+                background:#fef2f2;
+                color:#991b1b;
+                font-size:12px;
+              ">
+                ${student.averageScore}٪
+              </span>
+            </div>
+          </div>
+        `).join('')
+      : '<div style="color:#64748b;font-size:13px;margin-top:8px;">مورد فوری وجود ندارد.</div>';
+
+    const skillHtml = skills.length
+      ? skills.map(skill => `
+          <div style="padding:9px 0;border-top:1px solid #e5e7eb;">
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              gap:8px;
+              align-items:center;
+            ">
+              <strong>${escapeHtml(skill.name || '—')}</strong>
+              <span style="
+                padding:4px 8px;
+                border-radius:999px;
+                background:#fffbeb;
+                color:#92400e;
+                font-size:12px;
+              ">
+                ${skill.mastery}٪
+              </span>
+            </div>
+          </div>
+        `).join('')
+      : '<div style="color:#64748b;font-size:13px;margin-top:8px;">دادهٔ مهارتی کافی وجود ندارد.</div>';
+
+    box.innerHTML = `
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:16px;
+        padding:15px;
+      ">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:10px;
+          flex-wrap:wrap;
+        ">
+          <div>
+            <h3 style="margin:0;">🎯 مرکز اقدام معلم</h3>
+            <div style="
+              margin-top:4px;
+              color:#64748b;
+              font-size:13px;
+            ">
+              مهم‌ترین مواردی که الان ارزش پیگیری دارند.
+            </div>
+          </div>
+
+          <div style="font-size:12px;color:#64748b;">
+            نیازمند توجه:
+            <strong>${summary.needsAttention || 0}</strong>
+            · در حال پیشرفت:
+            <strong>${summary.developingStudents || 0}</strong>
+            · مهارت ضعیف:
+            <strong>${summary.weakSkills || 0}</strong>
+          </div>
+        </div>
+
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+          gap:12px;
+          margin-top:14px;
+        ">
+          <div style="
+            padding:12px;
+            border-radius:14px;
+            background:#fff7f7;
+          ">
+            <strong>👤 دانش‌آموزان نیازمند توجه</strong>
+            ${studentHtml}
+          </div>
+
+          <div style="
+            padding:12px;
+            border-radius:14px;
+            background:#fffcf3;
+          ">
+            <strong>📚 مهارت‌های ضعیف</strong>
+            ${skillHtml}
+          </div>
+        </div>
+
+        <div style="
+          margin-top:12px;
+          padding:12px;
+          border-radius:14px;
+          background:#f8fafc;
+          color:#475569;
+          font-size:13px;
+          line-height:1.9;
+        ">
+          <strong>💡 پیشنهاد بعدی</strong><br>
+          ${escapeHtml(recommendations.studentAction || '')}<br>
+          ${escapeHtml(recommendations.skillAction || '')}
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error('loadTeacherActionCenter:', error);
+
+    box.innerHTML = `
+      <div style="
+        padding:12px;
+        border-radius:12px;
+        background:#f8fafc;
+        color:#64748b;
+        font-size:13px;
+      ">
+        مرکز اقدام فعلاً در دسترس نیست.
+      </div>
+    `;
+  }
+}
+
 async function loadClassLearningAnalysis() {
   const select = document.getElementById('classAnalysisSelect');
   const box = document.getElementById('classLearningAnalysisBox');
@@ -2563,6 +2730,9 @@ async function loadClassLearningAnalysis() {
 
     const data = response;
     const summary = data.summary || {};
+
+    loadTeacherActionCenter(classId);
+
     const students = Array.isArray(data.students)
       ? data.students
       : [];
