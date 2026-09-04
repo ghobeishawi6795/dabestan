@@ -588,38 +588,129 @@ function nextQuestion() {
   }
 }
 
-function renderFinished() {
-  document.getElementById('practiceArea').innerHTML = `
+async function submitPractice() {
+  const answersList = Object.entries(answers).map(([questionId, answer]) => ({
+    questionId: Number(questionId),
+    answer
+  }));
+
+  if (!answersList.length) {
+    throw new Error('هیچ پاسخی ثبت نشده است.');
+  }
+
+  const response = await apiFetch('/api/student/submit-practice', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      answers: answersList
+    })
+  });
+
+  if (!response?.ok) {
+    throw new Error(response?.error || 'ثبت تمرین ناموفق بود.');
+  }
+
+  return response;
+}
+
+async function renderFinished() {
+  const area = document.getElementById('practiceArea');
+
+  area.innerHTML = `
     <div class="practice-card success">
-      <div class="big">🌱</div>
-      <h2>آفرین!</h2>
+      <div class="big">⏳</div>
+      <h2>در حال ثبت نتیجه...</h2>
       <p style="color:var(--ink-soft);line-height:1.9;">
-        این دور تمرین را تمام کردی.
-        <br>
-        پاسخ‌ها برای مرحله بعدی سیستم یادگیری آماده‌اند.
+        پاسخ‌ها در حال بررسی هستند.
       </p>
-
-      <div style="
-        display:flex;
-        gap:9px;
-        justify-content:center;
-        flex-wrap:wrap;
-        margin-top:16px;">
-
-        <button
-          type="button"
-          class="btn btn-primary"
-          onclick="restartPractice()">
-          🔄 تمرین دوباره
-        </button>
-
-        <a
-          href="student.html"
-          class="btn btn-ghost">
-          خانه
-        </a>
-      </div>
     </div>`;
+
+  try {
+    const result = await submitPractice();
+
+    const scoreText =
+      result.score === null || result.score === undefined
+        ? 'نیازمند بررسی معلم'
+        : `${toFa(result.score)}٪`;
+
+    area.innerHTML = `
+      <div class="practice-card success">
+        <div class="big">🌱</div>
+
+        <h2>آفرین!</h2>
+
+        <div style="
+          font-size:1.7rem;
+          font-weight:800;
+          margin:12px 0;">
+          ${scoreText}
+        </div>
+
+        <p style="
+          color:var(--ink-soft);
+          line-height:1.9;">
+          ${toFa(result.correctCount || 0)}
+          پاسخ درست از
+          ${toFa(result.autoGradableCount || 0)}
+          سؤال خودکار.
+        </p>
+
+        <p style="
+          color:var(--ink-soft);
+          line-height:1.9;
+          font-size:.82rem;">
+          نتیجه تمرین در سیستم یادگیری ثبت شد.
+        </p>
+
+        <div style="
+          display:flex;
+          gap:9px;
+          justify-content:center;
+          flex-wrap:wrap;
+          margin-top:16px;">
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="restartPractice()">
+            🔄 تمرین دوباره
+          </button>
+
+          <a
+            href="student.html"
+            class="btn btn-ghost">
+            خانه
+          </a>
+        </div>
+      </div>`;
+  } catch (error) {
+    console.error('submitPractice:', error);
+
+    area.innerHTML = `
+      <div class="practice-card">
+        <div class="big">⚠️</div>
+
+        <h2>ثبت نتیجه انجام نشد</h2>
+
+        <p style="
+          color:var(--ink-soft);
+          line-height:1.9;">
+          پاسخ‌های این تمرین هنوز ثبت نشده‌اند.
+          لطفاً دوباره تلاش کن.
+        </p>
+
+        <div style="margin-top:16px;">
+          <button
+            type="button"
+            class="btn btn-primary"
+            onclick="renderFinished()">
+            دوباره تلاش کن
+          </button>
+        </div>
+      </div>`;
+  }
 }
 
 function restartPractice() {
