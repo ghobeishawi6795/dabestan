@@ -3,6 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <script src="assets/theme.js">
+
+async function loadLearningAnalysis() {
+  const box = document.getElementById('learningAnalysisBox');
+  const hint = document.getElementById('learningAnalysisHint');
+
+  if (!box) return;
+
+  try {
+    hint.textContent = 'در حال دریافت تحلیل...';
+
+    const response = await apiFetch('/api/student/get-learning-analysis');
+
+    if (!response.ok) {
+      throw new Error('analysis request failed');
+    }
+
+    const data = await response.json();
+    const summary = data.summary || {};
+
+    const avg = summary.averageScore == null
+      ? '—'
+      : `${summary.averageScore}٪`;
+
+    const mastery = Number(summary.overallMastery || 0);
+
+    let levelIcon = '🌱';
+
+    if (mastery >= 80) {
+      levelIcon = '🏆';
+    } else if (mastery >= 60) {
+      levelIcon = '📈';
+    } else if (mastery > 0) {
+      levelIcon = '💪';
+    }
+
+    hint.textContent =
+      `${levelIcon} وضعیت کلی: ${summary.level || 'شروع نشده'}`;
+
+    box.innerHTML = `
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+        gap:10px;
+      ">
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">میانگین نمرات</div>
+          <strong style="font-size:24px;">${avg}</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">تسلط کلی</div>
+          <strong style="font-size:24px;">${mastery}٪</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">مهارت‌های قوی</div>
+          <strong style="font-size:24px;">${Number(summary.masteredSkills || 0)}</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">نیازمند تمرین</div>
+          <strong style="font-size:24px;">${Number(summary.weakSkills || 0)}</strong>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <h3 style="margin-bottom:10px;">🎯 مهارت‌های نیازمند توجه</h3>
+        <div id="analysisWeakSkills"></div>
+      </div>
+    `;
+
+    const weakBox = document.getElementById('analysisWeakSkills');
+    const weakSkills = Array.isArray(data.weakSkills)
+      ? data.weakSkills
+      : [];
+
+    if (!weakSkills.length) {
+      weakBox.innerHTML = `
+        <div style="padding:14px;border-radius:12px;background:#f8fafc;">
+          🎉 فعلاً مهارتی با تسلط کمتر از ۶۰٪ وجود ندارد.
+        </div>
+      `;
+    } else {
+      weakBox.innerHTML = weakSkills.map(skill => `
+        <div style="
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid #e5e7eb;
+          border-radius:12px;
+        ">
+          <div style="display:flex;justify-content:space-between;gap:10px;">
+            <strong>${skill.name}</strong>
+            <span>${Number(skill.mastery || 0)}٪</span>
+          </div>
+
+          <div style="
+            height:8px;
+            background:#e5e7eb;
+            border-radius:99px;
+            margin-top:8px;
+            overflow:hidden;
+          ">
+            <div style="
+              width:${Math.max(0, Math.min(100, Number(skill.mastery || 0)))}%;
+              height:100%;
+              background:#f59e0b;
+            "></div>
+          </div>
+
+          <div style="font-size:12px;color:#64748b;margin-top:6px;">
+            ${skill.correctCount || 0} پاسخ درست از ${skill.answerCount || 0}
+          </div>
+
+          <a
+            href="practice.html?skill_id=${encodeURIComponent(skill.id)}"
+            style="display:inline-block;margin-top:8px;"
+          >
+            تمرین این مهارت →
+          </a>
+        </div>
+      `).join('');
+    }
+
+  } catch (error) {
+    console.error('loadLearningAnalysis:', error);
+
+    hint.textContent = 'دریافت تحلیل با خطا مواجه شد.';
+
+    box.innerHTML = `
+      <div style="padding:14px;border-radius:12px;background:#fef2f2;color:#991b1b;">
+        امکان دریافت تحلیل یادگیری وجود ندارد.
+      </div>
+    `;
+  }
+}
+
 async function loadStudentSkills() {
   try {
     const r = await fetch('/api/student/get-progress');
@@ -185,6 +321,24 @@ button:active, .btn:active { transform: scale(.95); }
   </div>
 </section>
 
+
+<!-- ===== تحلیل پیشرفته یادگیری ===== -->
+<section id="learningAnalysisSection" class="card" style="margin-top:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin:0;">📊 تحلیل یادگیری من</h2>
+      <p id="learningAnalysisHint" style="margin:6px 0 0;color:#64748b;">
+        در حال دریافت تحلیل...
+      </p>
+    </div>
+    <button type="button" onclick="loadLearningAnalysis()">
+      🔄 بروزرسانی
+    </button>
+  </div>
+
+  <div id="learningAnalysisBox" style="margin-top:15px;"></div>
+</section>
+
 <!-- ===== مهارت‌های من ===== -->
 <div class="section-head" id="mySkillsSection" style="margin-top:24px;">
   <h2>🧠 مهارت‌های من</h2>
@@ -336,6 +490,7 @@ button:active, .btn:active { transform: scale(.95); }
     loadFestival();
     loadDailyChallenge();
     loadSmartPracticePreview();
+    loadLearningAnalysis();
   }
 
 
