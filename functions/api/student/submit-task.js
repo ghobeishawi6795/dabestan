@@ -1,6 +1,7 @@
 import { json, err } from '../_lib/http.js';
 import { gradeAnswer } from '../_lib/grading.js';
 import { checkAndAwardBadges } from '../_lib/badges.js';
+import { notify } from '../_lib/notify.js';
 import { recordSkillResults } from '../_lib/skill-results.js';
 
 const POINTS_PER_CORRECT = 10;
@@ -262,6 +263,25 @@ export async function onRequestPost({ request, env, data }) {
 
   const newlyEarnedBadges =
     await checkAndAwardBadges(env, student.id);
+
+  // اعلان نشان‌های تازه کسب‌شده
+  for (const badge of newlyEarnedBadges || []) {
+    const badgeTitle =
+      badge?.name ||
+      badge?.title ||
+      badge?.badge_name ||
+      badge?.code ||
+      'نشان جدید';
+
+    await notify(
+      env,
+      student.id,
+      'badge_earned',
+      'نشان جدید گرفتی 🏅',
+      String(badgeTitle),
+      badge?.id ?? null
+    );
+  }
 
   return json({
     ok: true,
