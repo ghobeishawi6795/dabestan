@@ -2536,6 +2536,35 @@ async function createSmartAssignment() {
   }
 }
 
+async function prepareSmartAssignment(classId, studentId, studentName) {
+  const classSelect = document.getElementById('smartAssignmentClass');
+  const studentSelect = document.getElementById('smartAssignmentStudent');
+  const titleInput = document.getElementById('smartAssignmentTitle');
+
+  if (!classSelect || !studentSelect || !titleInput) {
+    return;
+  }
+
+  classSelect.value = String(classId);
+
+  await loadSmartAssignmentStudents();
+
+  studentSelect.value = String(studentId);
+
+  titleInput.value = `تمرین هدفمند ${studentName}`;
+
+  const section = document.getElementById('smartAssignmentSection');
+
+  if (section) {
+    section.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
+  titleInput.focus();
+}
+
 async function loadTeacherActionCenter(classId) {
   const box = document.getElementById('teacherActionCenter');
 
@@ -2606,6 +2635,15 @@ async function loadTeacherActionCenter(classId) {
                 onclick='openParentChatThread(${Number(student.id)}, ${JSON.stringify(student.name || "—")})'
               >
                 💬 پیام به والدین
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                style="font-size:12px;padding:6px 9px;"
+                onclick='prepareSmartAssignment(${Number(classId)}, ${Number(student.id)}, ${JSON.stringify(student.name || "—")})'
+              >
+                🤖 تکلیف هوشمند
               </button>
             </div>
           </div>
