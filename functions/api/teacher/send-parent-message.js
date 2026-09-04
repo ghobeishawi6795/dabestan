@@ -31,6 +31,7 @@ export async function onRequestPost({ request, env, data }) {
       SELECT
         s.id,
         s.full_name,
+        s.parent_code,
         c.teacher_id
       FROM users s
       JOIN classes c ON c.id = s.class_id
@@ -64,10 +65,36 @@ export async function onRequestPost({ request, env, data }) {
       message
     ).first();
 
+    // پیدا کردن حساب والد با parent_code
+    let parent = null;
+
+    if (student.parent_code) {
+      parent = await env.DB.prepare(`
+        SELECT id
+        FROM users
+        WHERE parent_code = ?
+          AND role = 'parent'
+        LIMIT 1
+      `).bind(student.parent_code).first();
+    }
+
+    // اگر والد حساب کاربری داشته باشد، اعلان داخل‌اپی برای او ساخته می‌شود.
+    if (parent?.id) {
+      await notify(
+        env,
+        parent.id,
+        'teacher_message',
+        'پیام جدید از معلم 👩‍🏫',
+        message,
+        row.id
+      );
+    }
+
     return json({
       ok: true,
       id: row.id,
-      createdAt: row.created_at
+      createdAt: row.created_at,
+      notifiedParent: Boolean(parent?.id)
     });
   } catch (e) {
     console.error('teacher send-parent-message error:', e);
