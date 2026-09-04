@@ -209,50 +209,78 @@ button:active, .btn:active { transform: scale(.95); }
 /* ===== رشد واقعی گیاه بر اساس پیشرفت یادگیری ===== */
 .sprout-wrap {
   position: relative;
-  transition: transform .45s ease, filter .45s ease, opacity .45s ease;
+  transition: transform .55s ease, filter .55s ease, opacity .55s ease;
+}
+
+.sprout-wrap svg {
+  transition: filter .55s ease;
 }
 
 .sprout-wrap[data-growth-stage="0"] {
-  transform: scale(.78);
-  opacity: .78;
+  transform: scale(.68);
+  opacity: .68;
+  filter: saturate(.72);
 }
 
 .sprout-wrap[data-growth-stage="1"] {
-  transform: scale(.88);
-  opacity: .9;
+  transform: scale(.82);
+  opacity: .86;
+  filter: saturate(.86);
 }
 
 .sprout-wrap[data-growth-stage="2"] {
-  transform: scale(1);
+  transform: scale(.98);
   opacity: 1;
+  filter: saturate(1);
 }
 
 .sprout-wrap[data-growth-stage="3"] {
-  transform: scale(1.07);
+  transform: scale(1.08);
   opacity: 1;
+  filter: saturate(1.08);
 }
 
 .sprout-wrap[data-growth-stage="4"] {
-  transform: scale(1.14);
+  transform: scale(1.16);
   opacity: 1;
+  filter: saturate(1.14);
+}
+
+.sprout-wrap[data-growth-stage="0"] svg {
+  filter: grayscale(.18);
+}
+
+.sprout-wrap[data-growth-stage="1"] svg {
+  filter: brightness(.97);
 }
 
 .sprout-wrap[data-growth-stage="3"]::after,
 .sprout-wrap[data-growth-stage="4"]::after {
   content: "🌸";
   position: absolute;
-  top: 4px;
-  right: 8px;
+  top: 2px;
+  right: 7px;
   font-size: 1.45rem;
   animation: plantFlower .9s ease both;
   pointer-events: none;
 }
 
+.sprout-wrap.sprout-stage-change {
+  animation: plantStageChange .9s ease;
+}
+
+@keyframes plantStageChange {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.18); }
+  65% { transform: scale(.98); }
+  100% { transform: scale(1); }
+}
+
 .sprout-wrap[data-growth-stage="4"]::before {
   content: "🍎  🍎";
   position: absolute;
-  top: 42px;
-  left: 3px;
+  top: 40px;
+  left: 2px;
   font-size: 1rem;
   animation: plantFruit 1s ease both;
   pointer-events: none;
@@ -639,6 +667,7 @@ button:active, .btn:active { transform: scale(.95); }
 
     const { current } = stageFor(points);
     const stageIndex = Math.max(0, STAGES.findIndex(stage => stage === current));
+    const previousStage = wrap.dataset.growthStage;
 
     wrap.dataset.growthStage = String(stageIndex);
 
@@ -647,9 +676,20 @@ button:active, .btn:active { transform: scale(.95); }
       'aria-label',
       `رشد یادگیری تو: ${stageName}`
     );
+
+    if (previousStage !== undefined && previousStage !== String(stageIndex)) {
+      wrap.classList.remove('sprout-stage-change');
+      void wrap.offsetWidth;
+      wrap.classList.add('sprout-stage-change');
+
+      setTimeout(() => {
+        wrap.classList.remove('sprout-stage-change');
+      }, 900);
+    }
   }
 
   function renderGrowth(points) {
+    window.__studentGrowthPoints = Number(points) || 0;
     const { current, next } = stageFor(points);
     updatePlantVisual(points);
     document.getElementById('sproutStage').textContent = `رشد یادگیری تو: «${current.name}» ${current.icon}`;
@@ -1248,11 +1288,47 @@ function aliveToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1800);
 }
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 document.querySelector('.sprout-wrap')?.addEventListener('click', () => {
   const w = document.querySelector('.sprout-wrap');
-  w.classList.remove('wiggle'); void w.offsetWidth; w.classList.add('wiggle');
-  aliveToast(pick(['دارم بزرگ می‌شم! 🌱', 'یه تکلیف دیگه بفرست! ✨', 'داره جوانه می‌زنه! 🌿', 'به‌به! ادامه بده 🌟']));
+  w.classList.remove('wiggle');
+  void w.offsetWidth;
+  w.classList.add('wiggle');
+
+  const points = Number(window.__studentGrowthPoints || 0);
+  const { current } = stageFor(points);
+
+  const messages = {
+    'دانه': [
+      'هر یادگیری از یک قدم کوچک شروع می‌شود. 🌱',
+      'امروز یک قدم بردار؛ باغچه‌ات منتظر توست. ✨',
+      'با هر تمرین، ریشه‌های یادگیریت قوی‌تر می‌شود. 🌰'
+    ],
+    'جوانه‌زن': [
+      'جوانه‌ات دارد رشد می‌کند؛ ادامه بده! 🌱',
+      'تلاش‌هایت کم‌کم خودش را نشان می‌دهد. 🌿',
+      'یک قدم دیگر بردار تا جوانه‌ات قوی‌تر شود. ✨'
+    ],
+    'غنچه': [
+      'یادگیریت وارد مرحلهٔ تازه‌ای شده. 🌿',
+      'مهارت‌هایت دارند شکل می‌گیرند؛ تمرین را ادامه بده. 💪',
+      'غنچه آمادهٔ شکوفایی است؛ تسلیم نشو! 🌱'
+    ],
+    'شکوفا': [
+      'نتیجهٔ تلاش‌هایت دارد شکوفا می‌شود. 🌸',
+      'آفرین! رشدت فقط یک عدد نیست؛ مهارت‌هایت هم قوی‌تر شده‌اند. ✨',
+      'همین مسیر را ادامه بده؛ شکوفایی نزدیک‌تر می‌شود. 🌸'
+    ],
+    'درخت پربار': [
+      'باغچه‌ات نتیجهٔ تلاش‌هایت را نشان می‌دهد. 🌳',
+      'تو فقط امتیاز نگرفتی؛ قدم‌به‌قدم قوی‌تر شدی. 🏆',
+      'درختت پربار شده؛ حالا وقت حفظ این مسیر است. 🌳'
+    ]
+  };
+
+  const pool = messages[current.name] || messages['دانه'];
+  const message = pool[Math.floor(Math.random() * pool.length)];
+
+  aliveToast(message);
   navigator.vibrate?.(20);
 });
 </script>
