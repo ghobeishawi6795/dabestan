@@ -298,6 +298,310 @@ button:active, .btn:active { transform: scale(.95); }
 
 </style>
 <script src="/assets/install-pwa.js" defer></script>
+
+<style>
+
+/* =========================================================
+   STAGE 20 — DASHBOARD REDESIGN
+   UI/UX polish only — no data/API behavior changes
+   ========================================================= */
+
+:root {
+  --dash-radius: 18px;
+  --dash-radius-sm: 14px;
+  --dash-gap: 14px;
+  --dash-shadow: 0 8px 26px rgba(38,51,43,.07);
+  --dash-shadow-hover: 0 12px 30px rgba(38,51,43,.11);
+}
+
+/* ---------- عمومی ---------- */
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.main {
+  scroll-behavior: smooth;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.card {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  box-shadow: var(--dash-shadow);
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+}
+
+.card:hover {
+  box-shadow: var(--dash-shadow-hover);
+}
+
+.section-head {
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+
+.section-head h2 {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -.01em;
+}
+
+.section-head .see-all {
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.card-stat {
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-stat .num {
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.card-stat .label {
+  margin-top: 7px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.btn,
+.primary-btn,
+.secondary-btn {
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.simple-table {
+  width: 100%;
+}
+
+.simple-table th {
+  white-space: nowrap;
+  font-weight: 900;
+  font-size: .73rem;
+}
+
+.simple-table td {
+  font-size: .78rem;
+  vertical-align: middle;
+}
+
+.progress-bar {
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+/* ---------- موبایل ---------- */
+
+@media (max-width: 900px) {
+  .main {
+    padding-bottom: 90px;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+  }
+
+  .section-head {
+    margin-top: 20px;
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+
+  .simple-table {
+    min-width: 620px;
+  }
+
+  .card:has(.simple-table) {
+    overflow-x: auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    gap: 8px;
+    align-items: center;
+  }
+
+  .greeting {
+    min-width: 0;
+  }
+
+  .greeting h1 {
+    font-size: 1rem;
+  }
+
+  .greeting p {
+    font-size: .7rem;
+  }
+
+  .grid.grid-4,
+  .grid.grid-3,
+  .grid.grid-2 {
+    gap: 9px;
+  }
+
+  .card {
+    padding: 13px;
+  }
+
+  .card-stat {
+    min-height: 82px;
+  }
+
+  .card-stat .num {
+    font-size: 1.25rem;
+  }
+
+  .card-stat .label {
+    font-size: .66rem;
+  }
+
+  .section-head h2 {
+    font-size: .9rem;
+  }
+
+  .btn,
+  .primary-btn,
+  .secondary-btn {
+    font-size: .74rem;
+  }
+}
+
+/* ---------- حالت لمس ---------- */
+
+@media (hover: none) {
+  .card:hover {
+    box-shadow: var(--dash-shadow);
+  }
+
+  button,
+  .btn,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* =========================================================
+   دانش‌آموز
+   ========================================================= */
+
+#top > .section-head:first-of-type {
+  margin-top: 18px;
+}
+
+#tasksSection + .task-scroll {
+  margin-bottom: 4px;
+}
+
+.task-scroll {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.task-card {
+  border-radius: var(--dash-radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--dash-shadow);
+}
+
+.sprout-panel {
+  border-radius: 22px;
+  box-shadow: var(--dash-shadow);
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+}
+
+#learningSection + *,
+#mySkillsSection + * {
+  border-radius: var(--dash-radius);
+}
+
+#progressChartCard {
+  min-height: 190px;
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    z-index: 40;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    padding: 7px 8px;
+  }
+
+  .sidebar .brand,
+  .sidebar-foot {
+    display: none;
+  }
+
+  .sidebar .nav-list {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sidebar .nav-list li {
+    min-width: 0;
+  }
+
+  .sidebar .nav-item {
+    min-height: 48px;
+    padding: 5px 2px;
+    border-radius: 11px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    font-size: .58rem;
+    text-align: center;
+  }
+
+  .sidebar .nav-item .ic {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  .main {
+    margin-right: 0 !important;
+    padding-bottom: 82px;
+  }
+
+  .topbar {
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+</style>
 </head>
 <body>
 <div class="app-shell">
