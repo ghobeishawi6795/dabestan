@@ -2387,5 +2387,190 @@ ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف
     } catch (e) { box.innerHTML = `<div class="msg msg-err">${escapeHtml(e.message)}</div>`; }
   }
 </script>
+
+<!-- ===== تحلیل یادگیری کلاس ===== -->
+<section id="classLearningAnalysisSection" class="card" style="margin-top:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin:0;">📊 تحلیل یادگیری کلاس</h2>
+      <p id="classLearningAnalysisHint" style="margin:6px 0;color:#64748b;">
+        یک کلاس را انتخاب کنید.
+      </p>
+    </div>
+    <select id="classAnalysisSelect" onchange="loadClassLearningAnalysis()">
+      <option value="">انتخاب کلاس</option>
+    </select>
+  </div>
+
+  <div id="classLearningAnalysisBox" style="margin-top:15px;"></div>
+</section>
+
+<script>
+async function loadClassLearningAnalysis() {
+  const select = document.getElementById('classAnalysisSelect');
+  const box = document.getElementById('classLearningAnalysisBox');
+  const hint = document.getElementById('classLearningAnalysisHint');
+
+  const classId = Number(select?.value || 0);
+
+  if (!classId) {
+    box.innerHTML = '';
+    hint.textContent = 'یک کلاس را انتخاب کنید.';
+    return;
+  }
+
+  try {
+    hint.textContent = 'در حال دریافت تحلیل...';
+    box.innerHTML = '';
+
+    const response = await apiFetch(
+      '/api/teacher/get-class-learning-analysis?class_id=' +
+      encodeURIComponent(classId)
+    );
+
+    if (!response.ok) {
+      throw new Error('class analysis request failed');
+    }
+
+    const data = await response.json();
+    const summary = data.summary || {};
+    const students = Array.isArray(data.students)
+      ? data.students
+      : [];
+
+    hint.textContent =
+      `کلاس: ${data.class?.name || '—'} · ${summary.studentCount || 0} دانش‌آموز`;
+
+    box.innerHTML = `
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+        gap:10px;
+      ">
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">میانگین نمره</div>
+          <strong style="font-size:24px;">
+            ${summary.averageScore == null ? '—' : summary.averageScore + '٪'}
+          </strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">تسلط میانگین</div>
+          <strong style="font-size:24px;">
+            ${summary.averageMastery == null ? '—' : summary.averageMastery + '٪'}
+          </strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">نیازمند حمایت</div>
+          <strong style="font-size:24px;">${summary.needsSupport || 0}</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">مسلط</div>
+          <strong style="font-size:24px;">${summary.mastered || 0}</strong>
+        </div>
+      </div>
+
+      <h3 style="margin:20px 0 10px;">👥 وضعیت دانش‌آموزان</h3>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:right;padding:10px;">دانش‌آموز</th>
+              <th style="padding:10px;">تمرین</th>
+              <th style="padding:10px;">میانگین</th>
+              <th style="padding:10px;">تسلط</th>
+              <th style="padding:10px;">وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${students.map(student => {
+              let label = 'شروع نشده';
+
+              if (student.status === 'needs_support') {
+                label = 'نیازمند حمایت';
+              } else if (student.status === 'developing') {
+                label = 'در حال پیشرفت';
+              } else if (student.status === 'mastered') {
+                label = 'مسلط';
+              }
+
+              return `
+                <tr style="border-top:1px solid #e5e7eb;">
+                  <td style="padding:10px;">
+                    <strong>${student.name || '—'}</strong>
+                  </td>
+                  <td style="text-align:center;padding:10px;">
+                    ${student.submissionCount || 0}
+                  </td>
+                  <td style="text-align:center;padding:10px;">
+                    ${student.averageScore == null ? '—' : student.averageScore + '٪'}
+                  </td>
+                  <td style="text-align:center;padding:10px;">
+                    ${student.answerCount ? student.mastery + '٪' : '—'}
+                  </td>
+                  <td style="text-align:center;padding:10px;">
+                    ${label}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+  } catch (error) {
+    console.error('loadClassLearningAnalysis:', error);
+
+    hint.textContent = 'خطا در دریافت تحلیل کلاس.';
+    box.innerHTML = `
+      <div style="padding:14px;border-radius:12px;background:#fef2f2;color:#991b1b;">
+        تحلیل کلاس دریافت نشد.
+      </div>
+    `;
+  }
+}
+
+async function loadClassAnalysisOptions() {
+  const select = document.getElementById('classAnalysisSelect');
+
+  if (!select) return;
+
+  try {
+    const response = await apiFetch('/api/teacher/list-classes');
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    const classes = Array.isArray(data.classes)
+      ? data.classes
+      : Array.isArray(data.results)
+        ? data.results
+        : [];
+
+    if (!classes.length) return;
+
+    select.innerHTML =
+      '<option value="">انتخاب کلاس</option>' +
+      classes.map(c => `
+        <option value="${c.id}">
+          ${c.name || ('کلاس ' + c.id)}
+        </option>
+      `).join('');
+
+  } catch (error) {
+    console.error('loadClassAnalysisOptions:', error);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadClassAnalysisOptions();
+});
+</script>
+
 </body>
   </html>
