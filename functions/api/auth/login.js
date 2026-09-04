@@ -1,5 +1,6 @@
 import { json, err } from '../_lib/http.js';
 import { verifyPassword, createSessionToken } from '../_lib/auth.js';
+import { rateLimit } from '../_lib/rate-limit.js';
 
 export async function onRequestPost({ request, env }) {
   const body = await request.json().catch(() => null);
@@ -7,6 +8,29 @@ export async function onRequestPost({ request, env }) {
 
   const { schoolId, username, password } = body;
   if (!schoolId || !username || !password) return err('schoolId, username, password are required');
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const normalizedUsername = String(username).trim().toLowerCase();
+
+  const ipLimit = await rateLimit(
+    env,
+    `login-ip:${ip}`,
+    30
+  );
+
+  if (!ipLimit.allowed) {
+    return err(`too many login attempts; retry after ${ipLimit.retryAfter} seconds`, 429);
+  }
+
+  const accountLimit = await rateLimit(
+    env,
+    `login-account:${ip}:${String(schoolId)}:${normalizedUsername}`,
+    8
+  );
+
+  if (!accountLimit.allowed) {
+    return err(`too many login attempts; retry after ${accountLimit.retryAfter} seconds`, 429);
+  }
 
   const user = await env.DB.prepare(
     'SELECT id, school_id, role, username, password_hash, password_salt, full_name, is_active, growth_points, is_super FROM users WHERE school_id = ? AND username = ?'

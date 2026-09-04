@@ -347,3 +347,14 @@ CREATE INDEX IF NOT EXISTS idx_submissions_student_status ON submissions(student
 CREATE INDEX IF NOT EXISTS idx_submission_answers_submission_question ON submission_answers(submission_id, question_id, id);
 CREATE INDEX IF NOT EXISTS idx_assignments_teacher_class ON assignments(teacher_id, school_id, class_id);
 CREATE INDEX IF NOT EXISTS idx_assignment_questions_assignment_question ON assignment_questions(assignment_id, question_id);
+
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key_hash TEXT NOT NULL,
+  bucket INTEGER NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (key_hash, bucket)
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_bucket
+ON rate_limits(bucket);
