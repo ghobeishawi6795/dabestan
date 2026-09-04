@@ -6,7 +6,7 @@ async function getStudent(request, env) {
     FROM users
     WHERE id = ? AND role = 'student'
     LIMIT 1
-  `).bind(request.user.id).first();
+  `).bind(data.user.id).first();
 
   return data;
 }
@@ -69,7 +69,7 @@ function normalizeGoal(goal) {
   };
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, data }) {
   const student = await getStudent(request, env);
 
   if (!student) {
@@ -127,7 +127,7 @@ export async function onRequestGet({ request, env }) {
   });
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, data }) {
   const student = await getStudent(request, env);
 
   if (!student) {
@@ -213,7 +213,7 @@ export async function onRequestPost({ request, env }) {
   }, 201);
 }
 
-export async function onRequestPatch({ request, env }) {
+export async function onRequestPatch({ request, env, data }) {
   const student = await getStudent(request, env);
 
   if (!student) {
@@ -284,7 +284,7 @@ export async function onRequestPatch({ request, env }) {
   });
 }
 
-export async function onRequestDelete({ request, env }) {
+export async function onRequestDelete({ request, env, data }) {
   const student = await getStudent(request, env);
 
   if (!student) {

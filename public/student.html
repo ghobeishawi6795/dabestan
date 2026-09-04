@@ -1013,6 +1013,61 @@ body{
   <div id="learningAnalysisBox" style="margin-top:15px;"></div>
 </section>
 
+<!-- ===== هدف‌های یادگیری من ===== -->
+<section id="studentGoalsSection" class="card" style="margin-top:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin:0;">🎯 هدف‌های یادگیری من</h2>
+      <p style="margin:6px 0 0;color:#64748b;">
+        برای هر مهارت، یک هدف مشخص برای بهتر شدن تعیین کن.
+      </p>
+    </div>
+    <button type="button" onclick="loadStudentGoals()">
+      🔄 بروزرسانی
+    </button>
+  </div>
+
+  <div id="studentGoalForm" style="margin-top:15px;padding:14px;border:1px solid #e2e8f0;border-radius:14px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+      <select id="studentGoalSkill" class="input">
+        <option value="">انتخاب مهارت</option>
+      </select>
+
+      <input id="studentGoalTitle" class="input"
+             placeholder="عنوان هدف">
+
+      <input id="studentGoalTarget" class="input"
+             type="number"
+             min="1"
+             max="100"
+             value="80"
+             placeholder="درصد هدف">
+
+      <input id="studentGoalDueDate" class="input"
+             type="date">
+    </div>
+
+    <textarea id="studentGoalDescription"
+              class="input"
+              rows="2"
+              style="margin-top:10px;width:100%;box-sizing:border-box;"
+              placeholder="توضیح کوتاه درباره این هدف (اختیاری)"></textarea>
+
+    <button type="button"
+            class="btn btn-primary"
+            style="margin-top:10px;"
+            onclick="createStudentGoal()">
+      🎯 ثبت هدف
+    </button>
+  </div>
+
+  <div id="studentGoalsList" style="margin-top:15px;">
+    <div style="text-align:center;color:var(--ink-soft);padding:20px;">
+      در حال بارگذاری هدف‌ها...
+    </div>
+  </div>
+</section>
+
 <!-- ===== مهارت‌های من ===== -->
 <div class="section-head" id="mySkillsSection" style="margin-top:24px;">
   <h2>🧠 مهارت‌های من</h2>
@@ -1187,6 +1242,7 @@ body{
     loadDailyChallenge();
     loadSmartPracticePreview();
     loadLearningAnalysis();
+    loadStudentGoals();
   }
 
 
@@ -1868,6 +1924,73 @@ async function loadProgressChart() {
         </div>`).join('');
     } catch (e) { box.textContent = e.message; }
   }
+
+async function loadStudentGoals() {
+  const list = document.getElementById("studentGoalsList");
+  const skillSelect = document.getElementById("studentGoalSkill");
+  if (!list || !skillSelect) return;
+  const [goalsData, progressData] = await Promise.all([apiFetch("/student/goals"), apiFetch("/student/get-progress")]);
+  const skills = Array.isArray(progressData.skills) ? progressData.skills : [];
+  const goals = Array.isArray(goalsData.goals) ? goalsData.goals : [];
+  skillSelect.innerHTML = "<option value=\"\">انتخاب مهارت</option>" + skills.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("");
+  list.innerHTML = goals.length ? goals.map(g => `<div style="border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin-bottom:10px;"><b>🎯 ${escapeHtml(g.title)}</b><div style="font-size:.8rem;color:var(--ink-soft);margin-top:4px;">مهارت: ${escapeHtml(g.skill_name || "—")}</div><div style="margin-top:8px;">پیشرفت: ${Number(g.current_mastery) || 0}٪ از هدف ${Number(g.target_mastery) || 0}٪</div><div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:${Number(g.progress) || 0}%;background:var(--leaf);"></div></div></div>`).join("") : "<div style=\"text-align:center;color:var(--ink-soft);padding:20px;\">هنوز هدفی ثبت نکرده‌ای. 🎯</div>";
+}
+
+
+async function createStudentGoal() {
+  const skillId = Number(document.getElementById("studentGoalSkill")?.value);
+  const title = document.getElementById("studentGoalTitle")?.value.trim();
+  const description = document.getElementById("studentGoalDescription")?.value.trim();
+  const target = Number(document.getElementById("studentGoalTarget")?.value || 80);
+  const dueDate = document.getElementById("studentGoalDueDate")?.value || null;
+  if (!skillId || !title) { aliveToast("مهارت و عنوان هدف را وارد کن."); return; }
+  try {
+    await apiFetch("/student/goals", { method: "POST", body: { skill_id: skillId, title, description, target_mastery: target, due_date: dueDate } });
+    document.getElementById("studentGoalTitle").value = "";
+    document.getElementById("studentGoalDescription").value = "";
+    document.getElementById("studentGoalTarget").value = "80";
+    document.getElementById("studentGoalDueDate").value = "";
+    aliveToast("🎯 هدف یادگیری ثبت شد.");
+    await loadStudentGoals();
+  } catch (e) { aliveToast(e.message || "ثبت هدف ناموفق بود."); }
+}
+
+async function deleteStudentGoal(goalId) {
+  if (!confirm("این هدف حذف شود؟")) return;
+  try {
+    await apiFetch("/student/goals?id=" + encodeURIComponent(goalId), { method: "DELETE" });
+    aliveToast("هدف حذف شد.");
+    await loadStudentGoals();
+  } catch (e) { aliveToast(e.message || "حذف هدف ناموفق بود."); }
+}
+
+
+async function editStudentGoal(goal) {
+  const title = prompt("عنوان هدف:", goal.title || "");
+  if (title === null) return;
+  const target = prompt("درصد هدف (۱ تا ۱۰۰):", String(goal.target_mastery || 80));
+  if (target === null) return;
+  const dueDate = prompt("تاریخ هدف (YYYY-MM-DD، اختیاری):", goal.due_date || "");
+  if (dueDate === null) return;
+
+  try {
+    await apiFetch("/student/goals", {
+      method: "PATCH",
+      body: {
+        id: goal.id,
+        title: title.trim(),
+        description: goal.description || "",
+        target_mastery: Number(target),
+        due_date: dueDate || null
+      }
+    });
+    aliveToast("🎯 هدف ویرایش شد.");
+    await loadStudentGoals();
+  } catch (e) {
+    aliveToast(e.message || "ویرایش هدف ناموفق بود.");
+  }
+}
+
 
 // ===== janbakhshi: واکنش‌ها ⚡ =====
 function aliveToast(msg) {
