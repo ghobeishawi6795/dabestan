@@ -615,6 +615,67 @@ async function submitPractice() {
   return response;
 }
 
+async function loadPracticeFeedback(submissionId) {
+  const box = document.getElementById('resultBox');
+  if (!box || !submissionId) return;
+
+  try {
+    const response = await apiFetch(
+      `/api/student/get-practice-feedback?submission_id=${submissionId}`
+    );
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+
+    let html = `
+      <div style="margin-top:18px;padding:16px;border-radius:14px;background:#f8fafc;">
+        <h3 style="margin-top:0;">📚 بازخورد یادگیری</h3>
+        <p>${data.recommendation || 'تمرین خوبی بود!'}</p>
+    `;
+
+    if (skills.length) {
+      html += `
+        <div style="display:grid;gap:10px;margin-top:12px;">
+      `;
+
+      for (const skill of skills) {
+        const mastery = Number(skill.mastery || 0);
+
+        let icon = '🏆';
+        if (mastery < 60) icon = '🟠';
+        else if (mastery < 80) icon = '🟡';
+
+        html += `
+          <div style="padding:12px;border-radius:12px;background:white;border:1px solid #e5e7eb;">
+            <div style="font-weight:700;">
+              ${icon} ${skill.name}
+            </div>
+            <div style="font-size:13px;color:#64748b;margin-top:5px;">
+              ${skill.correctCount} پاسخ درست از ${skill.answerCount}
+              · تسلط ${mastery}٪
+            </div>
+            <div style="font-size:13px;margin-top:5px;">
+              ${skill.message || ''}
+            </div>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+
+    box.insertAdjacentHTML('beforeend', html);
+
+  } catch (error) {
+    console.error('loadPracticeFeedback:', error);
+  }
+}
+
 async function renderFinished() {
   const area = document.getElementById('practiceArea');
 
@@ -629,6 +690,10 @@ async function renderFinished() {
 
   try {
     const result = await submitPractice();
+
+    if (result && result.submissionId) {
+      await loadPracticeFeedback(result.submissionId);
+    }
 
     const scoreText =
       result.score === null || result.score === undefined
