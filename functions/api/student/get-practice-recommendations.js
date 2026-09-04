@@ -15,6 +15,7 @@ export async function onRequestGet({ request, env, data }) {
   const url = new URL(request.url);
 
   const requestedLimit = Number(url.searchParams.get('limit') || 10);
+  const requestedSkillId = Number(url.searchParams.get('skill_id') || 0);
   const limit = clamp(
     Number.isFinite(requestedLimit) ? Math.floor(requestedLimit) : 10,
     1,
@@ -66,6 +67,9 @@ export async function onRequestGet({ request, env, data }) {
           COALESCE(SUM(ssr.correct_count), 0) * 100.0 /
           COALESCE(SUM(ssr.answer_count), 1)
         ) < 80
+       AND (
+         ? = 0 OR ls.id = ?
+       )
      ORDER BY
        mastery ASC,
        answer_count DESC,
@@ -86,6 +90,7 @@ export async function onRequestGet({ request, env, data }) {
       weakSkills: [],
       meta: {
         limit,
+        skillId: requestedSkillId || null,
         reason: 'no_weak_started_skills',
       },
     });
@@ -287,6 +292,7 @@ export async function onRequestGet({ request, env, data }) {
     weakSkills: normalizedWeakSkills,
     meta: {
       limit,
+      skillId: requestedSkillId || null,
       candidateCount: candidates.length,
       recommendationCount: recommendations.length,
       reason: recommendations.length
