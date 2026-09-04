@@ -227,6 +227,7 @@
   function render(data) {
     document.getElementById('codeScreen').style.display = 'none';
     document.getElementById('resultScreen').style.display = 'block';
+    window.parentStudentId = data.student.id;
     applySchoolThemeColor(data.student.schoolThemeColor);
     const stage = stageFor(data.student.growthPoints);
     document.getElementById('pStage').textContent = `نهال ${data.student.fullName}: «${stage.name}» ${stage.icon}`;
@@ -252,26 +253,21 @@ async function loadLearningReport() {
   if (!summaryBox) return;
 
   try {
-    /*
-     * parent.html قبلاً فرزند را در متغیر student نگه می‌دارد.
-     * اگر نام متغیر متفاوت باشد، از student_id موجود در URL استفاده می‌کنیم.
-     */
-    const studentId =
-      window.parentStudentId ||
-      new URLSearchParams(location.search).get('student_id');
+    // سیستم والد بدون سشن است (فقط parent_code) — نباید از apiFetch با توکن استفاده کرد.
+    const studentId = window.parentStudentId || null;
 
-    if (!studentId) {
+    if (!parentCode || !studentId) {
       summaryBox.innerHTML =
         '<div class="muted">شناسهٔ فرزند پیدا نشد.</div>';
       return;
     }
 
-    const data = await apiFetch(
-      '/parent/get-learning-report?student_id=' +
-      encodeURIComponent(studentId)
+    const res = await fetch(
+      `/api/parent/get-learning-report?code=${encodeURIComponent(parentCode)}&student_id=${encodeURIComponent(studentId)}`
     );
+    const data = await res.json().catch(() => ({}));
 
-    if (!data?.ok) {
+    if (!res.ok || !data?.ok) {
       throw new Error(data?.error || 'گزارش دریافت نشد');
     }
 

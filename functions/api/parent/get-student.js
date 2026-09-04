@@ -74,6 +74,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({
       student: {
+        id: student.id,
         fullName: student.full_name,
         className: student.class_name,
         schoolName: student.school_name,

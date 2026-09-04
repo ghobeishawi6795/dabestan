@@ -2530,7 +2530,7 @@ async function loadClassLearningAnalysis() {
     box.innerHTML = '';
 
     const response = await apiFetch(
-      '/api/teacher/get-class-learning-analysis?class_id=' +
+      '/teacher/get-class-learning-analysis?class_id=' +
       encodeURIComponent(classId)
     );
 
@@ -2538,7 +2538,7 @@ async function loadClassLearningAnalysis() {
       throw new Error('class analysis request failed');
     }
 
-    const data = await response.json();
+    const data = response;
     const summary = data.summary || {};
     const students = Array.isArray(data.students)
       ? data.students
@@ -2646,11 +2646,11 @@ async function loadClassAnalysisOptions() {
   if (!select) return;
 
   try {
-    const response = await apiFetch('/api/teacher/list-classes');
+    const response = await apiFetch('/teacher/list-classes');
 
     if (!response.ok) return;
 
-    const data = await response.json();
+    const data = response;
 
     const classes = Array.isArray(data.classes)
       ? data.classes

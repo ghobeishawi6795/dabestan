@@ -296,3 +296,54 @@ INSERT OR IGNORE INTO badges (code, name, icon, description) VALUES
   ('popular_teacher', 'میانگین رضایت والدین بالای ۴ از ۵', '💛', 'محبوب والدین'),
   ('lesson_builder', 'اولین فصل درسی را ساختی', '🏗️', 'برنامه‌ریز'),
   ('mehregan_1405', 'نشان مهرگان', '🍂', 'توی جشنوارهٔ مهر حداقل یک تکلیف فرستادی');
+
+-- حوزهٔ یادگیری (از migrations 012 و 014) — قبلاً اینجا نبود، فقط در migration ها بود
+-- که باعث می‌شد نصب تازه (بدون اجرای دستی migration ها) این بخش را از کار می‌انداخت.
+CREATE TABLE IF NOT EXISTS learning_skills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  school_id INTEGER NOT NULL REFERENCES schools(id),
+  subject TEXT NOT NULL,
+  grade INTEGER,
+  code TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  parent_id INTEGER REFERENCES learning_skills(id),
+  position INTEGER NOT NULL DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (school_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS question_skills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  question_id INTEGER NOT NULL REFERENCES question_bank(id),
+  skill_id INTEGER NOT NULL REFERENCES learning_skills(id),
+  weight REAL NOT NULL DEFAULT 1,
+  UNIQUE (question_id, skill_id)
+);
+
+CREATE TABLE IF NOT EXISTS student_skill_results (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  submission_id INTEGER NOT NULL REFERENCES submissions(id),
+  student_id INTEGER NOT NULL REFERENCES users(id),
+  skill_id INTEGER NOT NULL REFERENCES learning_skills(id),
+  correct_count INTEGER NOT NULL DEFAULT 0,
+  answer_count INTEGER NOT NULL DEFAULT 0,
+  mastery REAL NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (submission_id, skill_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_learning_skills_school ON learning_skills(school_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_learning_skills_parent ON learning_skills(parent_id);
+CREATE INDEX IF NOT EXISTS idx_question_skills_question ON question_skills(question_id);
+CREATE INDEX IF NOT EXISTS idx_question_skills_skill ON question_skills(skill_id);
+CREATE INDEX IF NOT EXISTS idx_question_skills_skill_question ON question_skills(skill_id, question_id);
+CREATE INDEX IF NOT EXISTS idx_student_skill_results_student ON student_skill_results(student_id, skill_id);
+CREATE INDEX IF NOT EXISTS idx_student_skill_results_skill ON student_skill_results(skill_id);
+
+-- ایندکس‌های کارایی (از migration 013)
+CREATE INDEX IF NOT EXISTS idx_submissions_student_status ON submissions(student_id, status, reviewed_at);
+CREATE INDEX IF NOT EXISTS idx_submission_answers_submission_question ON submission_answers(submission_id, question_id, id);
+CREATE INDEX IF NOT EXISTS idx_assignments_teacher_class ON assignments(teacher_id, school_id, class_id);
+CREATE INDEX IF NOT EXISTS idx_assignment_questions_assignment_question ON assignment_questions(assignment_id, question_id);

@@ -598,7 +598,7 @@ async function submitPractice() {
     throw new Error('هیچ پاسخی ثبت نشده است.');
   }
 
-  const response = await apiFetch('/api/student/submit-practice', {
+  const response = await apiFetch('/student/submit-practice', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -621,12 +621,12 @@ async function loadPracticeFeedback(submissionId) {
 
   try {
     const response = await apiFetch(
-      `/api/student/get-practice-feedback?submission_id=${submissionId}`
+      `/student/get-practice-feedback?submission_id=${submissionId}`
     );
 
     if (!response.ok) return;
 
-    const data = await response.json();
+    const data = response;
 
     const skills = Array.isArray(data.skills) ? data.skills : [];
 

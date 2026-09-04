@@ -13,13 +13,13 @@ async function loadLearningAnalysis() {
   try {
     hint.textContent = 'در حال دریافت تحلیل...';
 
-    const response = await apiFetch('/api/student/get-learning-analysis');
+    const response = await apiFetch('/student/get-learning-analysis');
 
     if (!response.ok) {
       throw new Error('analysis request failed');
     }
 
-    const data = await response.json();
+    const data = response;
     const summary = data.summary || {};
 
     const avg = summary.averageScore == null
@@ -923,7 +923,7 @@ async function loadSmartPracticePreview() {
   if (!box) return;
 
   try {
-    const data = await apiFetch('/api/student/get-practice-recommendations?limit=3');
+    const data = await apiFetch('/student/get-practice-recommendations?limit=3');
 
     if (!data?.ok) {
       throw new Error(data?.error || 'practice recommendations failed');
