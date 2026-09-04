@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="assets/theme.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تمرین هوشمند — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
+
+<style>
+  body {
+    padding-bottom: 80px;
+  }
+
+  .practice-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+
+  .practice-head {
+    margin-bottom: 16px;
+  }
+
+  .practice-head a {
+    color: var(--leaf);
+    font-weight: 700;
+    font-size: .85rem;
+  }
+
+  .practice-head h1 {
+    margin: 10px 0 5px;
+    font-size: 1.35rem;
+  }
+
+  .practice-head p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: .85rem;
+  }
+
+  .practice-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+  }
+
+  .skill-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    background: var(--bg-soft);
+  }
+
+  .skill-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .skill-name {
+    font-weight: 800;
+  }
+
+  .skill-meta {
+    color: var(--ink-soft);
+    font-size: .72rem;
+    margin-top: 3px;
+  }
+
+  .mastery {
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .mastery-bar {
+    height: 8px;
+    background: var(--surface);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 9px;
+  }
+
+  .mastery-bar > div {
+    height: 100%;
+    background: var(--coral);
+    border-radius: 99px;
+  }
+
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .question-number {
+    color: var(--ink-soft);
+    font-size: .78rem;
+    margin-bottom: 8px;
+  }
+
+  .question-skill {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: var(--leaf-pale);
+    color: var(--leaf-dark);
+    font-size: .72rem;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+
+  .question-title {
+    font-size: 1.08rem;
+    font-weight: 850;
+    line-height: 1.9;
+    margin-bottom: 18px;
+  }
+
+  .option {
+    width: 100%;
+    text-align: right;
+    padding: 13px 15px;
+    margin-bottom: 9px;
+    border-radius: 13px;
+    border: 2px solid var(--line);
+    background: var(--bg-soft);
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .option.selected {
+    border-color: var(--leaf);
+    background: var(--leaf-pale);
+  }
+
+  .tf {
+    display: flex;
+    gap: 10px;
+  }
+
+  .tf .option {
+    text-align: center;
+  }
+
+  .fill-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    border-radius: 13px;
+    border: 2px solid var(--line);
+    background: var(--bg-soft);
+    font-family: inherit;
+    font-size: .95rem;
+  }
+
+  .practice-nav {
+    display: flex;
+    gap: 9px;
+    margin-top: 16px;
+  }
+
+  .practice-nav button {
+    flex: 1;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 25px 10px;
+    line-height: 2;
+  }
+
+  .loading {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 25px;
+  }
+
+  .success {
+    text-align: center;
+    padding: 30px 10px;
+  }
+
+  .success .big {
+    font-size: 3rem;
+  }
+
+  .priority {
+    font-size: .7rem;
+    color: var(--ink-soft);
+    margin-top: 5px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="practice-wrap">
+
+  <div class="practice-head">
+    <a href="student.html">← بازگشت به خانه</a>
+    <h1>🧠 تمرین هوشمند</h1>
+    <p>
+      تمرین‌ها بر اساس مهارت‌هایی انتخاب شده‌اند که نیاز به تمرین بیشتری دارند.
+    </p>
+  </div>
+
+  <div class="practice-card">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+      <div>
+        <div style="font-weight:850;">مهارت‌هایی که باید بیشتر تمرین کنی</div>
+        <div style="font-size:.75rem;color:var(--ink-soft);margin-top:3px;">
+          انتخاب تمرین‌ها بر اساس عملکرد واقعی تو
+        </div>
+      </div>
+      <span style="font-size:1.5rem;">🎯</span>
+    </div>
+
+    <div id="weakSkillsBox" style="margin-top:14px;">
+      <div class="loading">در حال بررسی مهارت‌ها...</div>
+    </div>
+  </div>
+
+  <div id="practiceArea">
+    <div class="practice-card">
+      <div class="loading">در حال آماده‌سازی تمرین‌ها...</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="assets/api.js"></script>
+
+<script>
+const user = requireAuth(['student']);
+
+let recommendations = [];
+let current = 0;
+const answers = {};
+
+if (user) {
+  loadPractice();
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>\"']/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '\"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+
+function toFa(n) {
+  return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+async function loadPractice() {
+  try {
+    const data = await apiFetch('/student/get-practice-recommendations?limit=10');
+
+    renderWeakSkills(data.weakSkills || []);
+
+    recommendations = Array.isArray(data.recommendations)
+      ? data.recommendations
+      : [];
+
+    if (!recommendations.length) {
+      renderEmpty(data.meta?.reason);
+      return;
+    }
+
+    renderQuestion();
+
+  } catch (e) {
+    document.getElementById('practiceArea').innerHTML = `
+      <div class="practice-card">
+        <div class="empty">
+          دریافت تمرین‌ها با خطا روبه‌رو شد.<br>
+          <small>${escapeHtml(e.message)}</small>
+        </div>
+      </div>`;
+  }
+}
+
+function renderWeakSkills(skills) {
+  const box = document.getElementById('weakSkillsBox');
+
+  if (!skills.length) {
+    box.innerHTML = `
+      <div style="font-size:.82rem;color:var(--ink-soft);line-height:1.9;">
+        هنوز مهارتی با پاسخ ثبت‌شده برای پیشنهاد تمرین پیدا نشد.
+        بعد از انجام چند سؤال، پیشنهادهای شخصی‌سازی‌شده اینجا ظاهر می‌شوند. 🌱
+      </div>`;
+    return;
+  }
+
+  box.innerHTML = skills.map(skill => {
+    const mastery = Math.max(0, Math.min(100, Number(skill.mastery || 0)));
+
+    return `
+      <div class="skill-card">
+        <div class="skill-top">
+          <div>
+            <div class="skill-name">${escapeHtml(skill.name)}</div>
+            <div class="skill-meta">
+              ${escapeHtml(skill.subject || '')}
+              ${skill.code ? ' · ' + escapeHtml(skill.code) : ''}
+              · ${toFa(skill.answerCount || 0)} پاسخ
+            </div>
+          </div>
+
+          <div class="mastery">
+            ${toFa(Math.round(mastery))}٪
+          </div>
+        </div>
+
+        <div class="mastery-bar">
+          <div style="width:${mastery}%"></div>
+        </div>
+
+        <div style="font-size:.7rem;color:var(--ink-soft);margin-top:6px;">
+          ${skill.status === 'needs_support'
+            ? 'نیاز به تمرین بیشتر'
+            : 'در حال پیشرفت'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderEmpty(reason) {
+  let text = 'فعلاً تمرین پیشنهادی جدیدی وجود ندارد.';
+
+  if (reason === 'no_weak_started_skills') {
+    text = `
+      هنوز مهارتی که نیاز به تمرین بیشتر داشته باشد پیدا نشده. 🌱
+      <br>
+      با انجام تکلیف‌ها، پیشنهادهای هوشمند فعال می‌شوند.
+    `;
+  }
+
+  if (reason === 'no_new_questions') {
+    text = `
+      سؤال جدیدی برای مهارت‌های ضعیف باقی نمانده. 🎉
+      <br>
+      وقتی سؤال‌های جدید اضافه شوند، اینجا نمایش داده می‌شوند.
+    `;
+  }
+
+  document.getElementById('practiceArea').innerHTML = `
+    <div class="practice-card">
+      <div class="empty">${text}</div>
+      <div style="text-align:center;">
+        <a class="btn btn-primary" href="student.html">بازگشت به خانه</a>
+      </div>
+    </div>`;
+}
+
+function getQuestionData(item) {
+  const q = item.question || {};
+
+  let data = {};
+
+  try {
+    data = q.content_json
+      ? JSON.parse(q.content_json)
+      : {};
+  } catch {
+    data = {};
+  }
+
+  return {
+    id: Number(q.id),
+    title: q.title || '',
+    type: q.question_type || data.type || 'multiple_choice',
+    prompt: data.prompt || data.question || q.title || '',
+    options: Array.isArray(data.options) ? data.options : [],
+    items: Array.isArray(data.items) ? data.items : [],
+    leftItems: Array.isArray(data.leftItems) ? data.leftItems : [],
+    rightItems: Array.isArray(data.rightItems) ? data.rightItems : [],
+  };
+}
+
+function renderQuestion() {
+  const item = recommendations[current];
+
+  if (!item) {
+    renderFinished();
+    return;
+  }
+
+  const q = getQuestionData(item);
+
+  const area = document.getElementById('practiceArea');
+
+  area.innerHTML = `
+    <div class="question-card">
+
+      <div class="question-number">
+        تمرین ${toFa(current + 1)} از ${toFa(recommendations.length)}
+      </div>
+
+      <div class="question-skill">
+        🎯 ${escapeHtml(item.skill?.name || 'تمرین پیشنهادی')}
+        · ${toFa(Math.round(Number(item.skill?.mastery || 0)))}٪
+      </div>
+
+      <div class="question-title">
+        ${escapeHtml(q.prompt)}
+      </div>
+
+      <div id="answerArea"></div>
+
+      <div class="priority">
+        اولویت تمرین: ${toFa(item.priority || 0)}
+      </div>
+
+      <div class="practice-nav">
+        <button
+          type="button"
+          class="btn btn-ghost"
+          onclick="previousQuestion()"
+          ${current === 0 ? 'disabled style="opacity:.4"' : ''}>
+          قبلی
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="nextQuestion()">
+          ${current === recommendations.length - 1 ? 'پایان تمرین' : 'بعدی'}
+        </button>
+      </div>
+
+    </div>`;
+
+  renderAnswer(q);
+}
+
+function renderAnswer(q) {
+  const box = document.getElementById('answerArea');
+
+  if (q.type === 'multiple_choice') {
+    if (!q.options.length) {
+      renderFallback(box);
+      return;
+    }
+
+    box.innerHTML = q.options.map((option, i) => `
+      <button
+        type="button"
+        class="option"
+        data-index="${i}">
+        ${escapeHtml(option)}
+      </button>
+    `).join('');
+
+    box.querySelectorAll('.option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        box.querySelectorAll('.option').forEach(x => {
+          x.classList.remove('selected');
+        });
+
+        btn.classList.add('selected');
+
+        answers[q.id] = Number(btn.dataset.index);
+      });
+    });
+
+    if (answers[q.id] !== undefined) {
+      box.querySelectorAll('.option')[answers[q.id]]
+        ?.classList.add('selected');
+    }
+
+    return;
+  }
+
+  if (q.type === 'true_false') {
+    box.innerHTML = `
+      <div class="tf">
+        <button type="button" class="option" data-value="true">✅ درست</button>
+        <button type="button" class="option" data-value="false">❌ نادرست</button>
+      </div>`;
+
+    box.querySelectorAll('.option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        box.querySelectorAll('.option').forEach(x => {
+          x.classList.remove('selected');
+        });
+
+        btn.classList.add('selected');
+
+        answers[q.id] = btn.dataset.value === 'true';
+      });
+    });
+
+    if (answers[q.id] !== undefined) {
+      box.querySelector(
+        `[data-value="${answers[q.id]}"]`
+      )?.classList.add('selected');
+    }
+
+    return;
+  }
+
+  if (q.type === 'fill_blank') {
+    box.innerHTML = `
+      <input
+        id="practiceFillInput"
+        class="fill-input"
+        type="text"
+        placeholder="پاسخت را بنویس...">`;
+
+    const input = document.getElementById('practiceFillInput');
+
+    if (answers[q.id] !== undefined) {
+      input.value = answers[q.id];
+    }
+
+    input.addEventListener('input', () => {
+      answers[q.id] = input.value;
+    });
+
+    return;
+  }
+
+  renderFallback(box);
+}
+
+function renderFallback(box) {
+  box.innerHTML = `
+    <div style="
+      padding:14px;
+      border-radius:12px;
+      background:var(--bg-soft);
+      color:var(--ink-soft);
+      font-size:.82rem;
+      line-height:1.9;">
+      این نوع سؤال فعلاً در تمرین هوشمند قابل پاسخ‌گویی نیست.
+      می‌توانی از تکلیف اصلی آن را انجام بدهی.
+    </div>`;
+}
+
+function previousQuestion() {
+  if (current <= 0) return;
+
+  current--;
+  renderQuestion();
+}
+
+function nextQuestion() {
+  const item = recommendations[current];
+
+  if (!item) return;
+
+  const q = getQuestionData(item);
+
+  if (
+    q.type === 'multiple_choice' ||
+    q.type === 'true_false' ||
+    q.type === 'fill_blank'
+  ) {
+    if (!(q.id in answers)) {
+      alert('لطفاً اول به این سؤال پاسخ بده.');
+      return;
+    }
+  }
+
+  if (current < recommendations.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    renderFinished();
+  }
+}
+
+function renderFinished() {
+  document.getElementById('practiceArea').innerHTML = `
+    <div class="practice-card success">
+      <div class="big">🌱</div>
+      <h2>آفرین!</h2>
+      <p style="color:var(--ink-soft);line-height:1.9;">
+        این دور تمرین را تمام کردی.
+        <br>
+        پاسخ‌ها برای مرحله بعدی سیستم یادگیری آماده‌اند.
+      </p>
+
+      <div style="
+        display:flex;
+        gap:9px;
+        justify-content:center;
+        flex-wrap:wrap;
+        margin-top:16px;">
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          onclick="restartPractice()">
+          🔄 تمرین دوباره
+        </button>
+
+        <a
+          href="student.html"
+          class="btn btn-ghost">
+          خانه
+        </a>
+      </div>
+    </div>`;
+}
+
+function restartPractice() {
+  current = 0;
+
+  for (const key of Object.keys(answers)) {
+    delete answers[key];
+  }
+
+  renderQuestion();
+}
+</script>
+
+</body>
+</html>

@@ -160,6 +160,31 @@ button:active, .btn:active { transform: scale(.95); }
     </div>
 
 
+
+<!-- ===== تمرین هوشمند ===== -->
+<section id="smartPracticeSection" class="card" style="margin-top:16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin:0;">🧠 تمرین هوشمند</h2>
+      <p id="smartPracticeHint" style="margin:6px 0 0;color:var(--ink-soft);font-size:.84rem;">
+        بر اساس مهارت‌هایی که نیاز به تمرین بیشتری دارند.
+      </p>
+    </div>
+
+    <a
+      href="practice.html"
+      class="btn btn-primary">
+      شروع تمرین
+    </a>
+  </div>
+
+  <div id="smartPracticeBox" style="margin-top:14px;">
+    <div style="color:var(--ink-soft);font-size:.84rem;">
+      در حال بررسی پیشنهادهای تمرینی...
+    </div>
+  </div>
+</section>
+
 <!-- ===== مهارت‌های من ===== -->
 <div class="section-head" id="mySkillsSection" style="margin-top:24px;">
   <h2>🧠 مهارت‌های من</h2>
@@ -310,6 +335,7 @@ button:active, .btn:active { transform: scale(.95); }
     loadProgressChart();
     loadFestival();
     loadDailyChallenge();
+    loadSmartPracticePreview();
   }
 
 
@@ -618,6 +644,101 @@ function renderStudentSkills(skills, summary) {
       </div>
     `;
   }).join('');
+}
+
+
+async function loadSmartPracticePreview() {
+  const box = document.getElementById('smartPracticeBox');
+  const hint = document.getElementById('smartPracticeHint');
+
+  if (!box) return;
+
+  try {
+    const data = await apiFetch('/api/student/get-practice-recommendations?limit=3');
+
+    if (!data?.ok) {
+      throw new Error(data?.error || 'practice recommendations failed');
+    }
+
+    const weakSkills = Array.isArray(data.weakSkills)
+      ? data.weakSkills
+      : [];
+
+    const recommendations = Array.isArray(data.recommendations)
+      ? data.recommendations
+      : [];
+
+    if (!recommendations.length) {
+      box.innerHTML = `
+        <div style="
+          padding:14px;
+          border-radius:12px;
+          background:var(--bg-soft);
+          color:var(--ink-soft);
+          line-height:1.9;
+          font-size:.84rem;">
+          🌱 فعلاً تمرین پیشنهادی جدیدی برایت پیدا نشد.
+          <br>
+          با انجام چند سؤال دیگر، پیشنهادهای هوشمند دقیق‌تر می‌شوند.
+        </div>`;
+      return;
+    }
+
+    if (weakSkills.length) {
+      hint.textContent =
+        'تمرکز پیشنهادی: ' +
+        weakSkills
+          .slice(0, 2)
+          .map(skill => skill.name)
+          .join('، ');
+    }
+
+    box.innerHTML = recommendations.map((item, index) => {
+      const q = item.question || {};
+      const skill = item.skill || {};
+
+      return `
+        <div style="
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid var(--line);
+          border-radius:12px;
+          background:var(--bg-soft);">
+
+          <div style="
+            font-size:.76rem;
+            color:var(--ink-soft);
+            margin-bottom:5px;">
+            ${escapeHtml(skill.name || 'مهارت پیشنهادی')}
+            · ${Number(skill.mastery || 0)}٪ تسلط
+          </div>
+
+          <div style="
+            font-weight:700;
+            line-height:1.8;">
+            ${index + 1}. ${escapeHtml(q.title || 'سؤال تمرینی')}
+          </div>
+        </div>`;
+    }).join('') + `
+      <div style="text-align:center;margin-top:12px;">
+        <a href="practice.html" class="btn btn-ghost">
+          مشاهده همه تمرین‌ها
+        </a>
+      </div>`;
+
+  } catch (error) {
+    console.error('loadSmartPracticePreview:', error);
+
+    box.innerHTML = `
+      <div style="
+        padding:14px;
+        border-radius:12px;
+        background:var(--bg-soft);
+        color:var(--ink-soft);
+        font-size:.82rem;">
+        فعلاً امکان دریافت تمرین هوشمند وجود ندارد.
+      </div>`;
+  }
 }
 
 async function loadProgressChart() {
