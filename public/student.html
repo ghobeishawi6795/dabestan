@@ -205,6 +205,69 @@ document.addEventListener('DOMContentLoaded', () => {
 .task-card:nth-child(4) { animation-delay: .26s; }
 button, .btn { transition: transform .12s ease; }
 button:active, .btn:active { transform: scale(.95); }
+
+/* ===== رشد واقعی گیاه بر اساس پیشرفت یادگیری ===== */
+.sprout-wrap {
+  position: relative;
+  transition: transform .45s ease, filter .45s ease, opacity .45s ease;
+}
+
+.sprout-wrap[data-growth-stage="0"] {
+  transform: scale(.78);
+  opacity: .78;
+}
+
+.sprout-wrap[data-growth-stage="1"] {
+  transform: scale(.88);
+  opacity: .9;
+}
+
+.sprout-wrap[data-growth-stage="2"] {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.sprout-wrap[data-growth-stage="3"] {
+  transform: scale(1.07);
+  opacity: 1;
+}
+
+.sprout-wrap[data-growth-stage="4"] {
+  transform: scale(1.14);
+  opacity: 1;
+}
+
+.sprout-wrap[data-growth-stage="3"]::after,
+.sprout-wrap[data-growth-stage="4"]::after {
+  content: "🌸";
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 1.45rem;
+  animation: plantFlower .9s ease both;
+  pointer-events: none;
+}
+
+.sprout-wrap[data-growth-stage="4"]::before {
+  content: "🍎  🍎";
+  position: absolute;
+  top: 42px;
+  left: 3px;
+  font-size: 1rem;
+  animation: plantFruit 1s ease both;
+  pointer-events: none;
+}
+
+@keyframes plantFlower {
+  from { opacity: 0; transform: scale(.4) rotate(-15deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes plantFruit {
+  from { opacity: 0; transform: translateY(5px) scale(.7); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 </style>
 <script src="/assets/install-pwa.js" defer></script>
 </head>
@@ -570,8 +633,25 @@ button:active, .btn:active { transform: scale(.95); }
     } catch (e) { console.error(e); }
   }
 
+  function updatePlantVisual(points) {
+    const wrap = document.querySelector('.sprout-wrap');
+    if (!wrap) return;
+
+    const { current } = stageFor(points);
+    const stageIndex = Math.max(0, STAGES.findIndex(stage => stage === current));
+
+    wrap.dataset.growthStage = String(stageIndex);
+
+    const stageName = current?.name || 'دانه';
+    wrap.setAttribute(
+      'aria-label',
+      `رشد یادگیری تو: ${stageName}`
+    );
+  }
+
   function renderGrowth(points) {
     const { current, next } = stageFor(points);
+    updatePlantVisual(points);
     document.getElementById('sproutStage').textContent = `رشد یادگیری تو: «${current.name}» ${current.icon}`;
     if (next) {
       const need = next.min - points;
