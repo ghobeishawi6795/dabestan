@@ -72,7 +72,30 @@
       <div class="card card-stat"><div class="num" id="pPending">—</div><div class="label">تکلیف انجام‌نشده</div></div>
     </div>
 
-    <div class="section-head"><h2>آخرین تکالیف</h2></div>
+    
+<div class="section-head" style="margin-top:16px;">
+  <h2>🧠 گزارش هوشمند پیشرفت</h2>
+</div>
+
+<section class="sprout-panel" id="parentLearningReport">
+  <div id="parentReportSummary"
+       style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+    <div class="muted">در حال بارگذاری گزارش...</div>
+  </div>
+
+  <div style="margin-top:18px;">
+    <h3>⚠️ مهارت‌های نیازمند تمرین</h3>
+    <div id="parentWeakSkills"></div>
+  </div>
+
+  <div style="margin-top:18px;">
+    <h3>🏆 نشان‌های فرزند</h3>
+    <div id="parentBadges"
+         style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+    </div>
+  </div>
+</section>
+<div class="section-head"><h2>آخرین تکالیف</h2></div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table class="simple-table">
         <thead><tr><th>تکلیف</th><th>وضعیت</th></tr></thead>
@@ -216,10 +239,125 @@
       <tr><td>${escapeHtml(s.title)}<br><span style="font-size:.75em;color:var(--ink-soft);">معلم: ${escapeHtml(s.teacherName)}</span></td>
       <td>${statusPill(s)}${s.status === 'reviewed' ? ratingWidget(s) : ''}</td></tr>`).join('') : '<tr><td colspan="2">هنوز تکلیفی ثبت نشده.</td></tr>';
     loadChat();
+    loadLearningReport();
     loadDiary();
   }
 
-  async function loadDiary() {
+  
+async function loadLearningReport() {
+  const summaryBox = document.getElementById('parentReportSummary');
+  const weakBox = document.getElementById('parentWeakSkills');
+  const badgesBox = document.getElementById('parentBadges');
+
+  if (!summaryBox) return;
+
+  try {
+    /*
+     * parent.html قبلاً فرزند را در متغیر student نگه می‌دارد.
+     * اگر نام متغیر متفاوت باشد، از student_id موجود در URL استفاده می‌کنیم.
+     */
+    const studentId =
+      window.parentStudentId ||
+      new URLSearchParams(location.search).get('student_id');
+
+    if (!studentId) {
+      summaryBox.innerHTML =
+        '<div class="muted">شناسهٔ فرزند پیدا نشد.</div>';
+      return;
+    }
+
+    const data = await apiFetch(
+      '/parent/get-learning-report?student_id=' +
+      encodeURIComponent(studentId)
+    );
+
+    if (!data?.ok) {
+      throw new Error(data?.error || 'گزارش دریافت نشد');
+    }
+
+    const s = data.summary || {};
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+    const badges = Array.isArray(data.badges) ? data.badges : [];
+
+    summaryBox.innerHTML = `
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:23px;">📚</div>
+        <strong>${s.submissions || 0}</strong>
+        <div class="muted">تکلیف</div>
+      </div>
+
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:23px;">📊</div>
+        <strong>${s.averageScore || 0}%</strong>
+        <div class="muted">میانگین نمره</div>
+      </div>
+
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:23px;">🧠</div>
+        <strong>${s.overallMastery || 0}%</strong>
+        <div class="muted">تسلط کلی</div>
+      </div>
+
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:23px;">🏆</div>
+        <strong>${s.badges || 0}</strong>
+        <div class="muted">نشان</div>
+      </div>
+    `;
+
+    const weak = skills
+      .filter(x => x.status === 'needs_support' || x.status === 'developing')
+      .slice(0, 6);
+
+    if (!weak.length) {
+      weakBox.innerHTML =
+        '<div class="muted">🎉 فعلاً مهارت نگران‌کننده‌ای دیده نمی‌شود.</div>';
+    } else {
+      weakBox.innerHTML = weak.map(x => `
+        <div class="card" style="padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;">
+            <strong>${escapeHtml(x.name || '')}</strong>
+            <strong>${x.mastery}%</strong>
+          </div>
+
+          <div style="height:8px;background:#eee;border-radius:8px;margin-top:8px;overflow:hidden;">
+            <div style="height:100%;width:${Math.min(100,Math.max(0,x.mastery))}%;
+                        background:var(--primary,#5b8c51);"></div>
+          </div>
+
+          <div class="muted" style="font-size:12px;margin-top:5px;">
+            ${x.status === 'needs_support'
+              ? 'نیازمند کمک بیشتر'
+              : 'در حال پیشرفت'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    if (!badges.length) {
+      badgesBox.innerHTML =
+        '<div class="muted">هنوز نشانی کسب نشده است.</div>';
+    } else {
+      badgesBox.innerHTML = badges.map(b => `
+        <div class="card" style="text-align:center;padding:12px;">
+          <div style="font-size:34px;">${escapeHtml(b.icon || '🏆')}</div>
+          <strong>${escapeHtml(b.name || '')}</strong>
+          <div class="muted" style="font-size:12px;margin-top:5px;">
+            ${b.earned_at
+              ? 'کسب شده'
+              : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+  } catch (e) {
+    summaryBox.innerHTML =
+      `<div class="error">خطا در گزارش: ${escapeHtml(e.message || '')}</div>`;
+  }
+}
+
+async function loadDiary() {
     try {
       const res = await fetch(`/api/parent/get-garden-diary?code=${encodeURIComponent(parentCode)}`);
       const data = await res.json();
