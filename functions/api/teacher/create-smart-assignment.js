@@ -20,12 +20,16 @@ export async function onRequestPost({ request, env, data }) {
   }
 
   const student = await env.DB.prepare(`
-    SELECT id, school_id
+    SELECT id, school_id, class_id
     FROM users
     WHERE id = ? AND role = 'student'
   `).bind(studentId).first();
 
-  if (!student || student.school_id !== teacher.school_id) {
+  if (
+    !student ||
+    student.school_id !== teacher.school_id ||
+    Number(student.class_id) !== classId
+  ) {
     return err('student not found', 404);
   }
 
