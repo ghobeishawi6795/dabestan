@@ -2,7 +2,8 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<script src="assets/theme.js">
+<script src="assets/theme.js"></script>
+<script>
 /* =========================================================
    STAGE 6 — LEARNING UI
    ========================================================= */
@@ -20,6 +21,14 @@ function learningEscape(value) {
     .replace(/'/g, '&#039;');
 }
 
+function authFetch(url, options) {
+  options = options || {};
+  var token = (typeof Auth !== 'undefined' && Auth.token) ? Auth.token() : null;
+  var headers = Object.assign({}, options.headers || {}, token ? { Authorization: 'Bearer ' + token } : {});
+  return fetch(url, Object.assign({}, options, { headers: headers }));
+}
+
+
 async function loadLearningSkills() {
   const box = document.getElementById('learningSkillsBox');
   if (!box) return;
@@ -27,7 +36,7 @@ async function loadLearningSkills() {
   box.innerHTML = '<div class="card" style="text-align:center;color:var(--ink-soft);">در حال بارگذاری مهارت‌ها...</div>';
 
   try {
-    const r = await fetch('/api/teacher/list-skills');
+    const r = await authFetch('/api/teacher/list-skills');
     const data = await r.json();
 
     if (!r.ok || !data.ok) {
@@ -189,7 +198,7 @@ async function submitSkill(event) {
 
     if (id) payload.skill_id = Number(id);
 
-    const r = await fetch(endpoint, {
+    const r = await authFetch(endpoint, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
@@ -217,7 +226,7 @@ async function deleteSkill(id) {
   if (!confirm(`مهارت «${skill.name}» غیرفعال شود؟`)) return;
 
   try {
-    const r = await fetch('/api/teacher/delete-skill', {
+    const r = await authFetch('/api/teacher/delete-skill', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({skill_id: Number(id)})
@@ -249,14 +258,14 @@ async function openQuestionSkills(questionId) {
 
   try {
     if (!learningSkillsCache.length) {
-      const rSkills = await fetch('/api/teacher/list-skills');
+      const rSkills = await authFetch('/api/teacher/list-skills');
       const dSkills = await rSkills.json();
       if (rSkills.ok && dSkills.ok) {
         learningSkillsCache = dSkills.skills || [];
       }
     }
 
-    const r = await fetch('/api/teacher/get-question-skills?question_id=' + encodeURIComponent(questionId));
+    const r = await authFetch('/api/teacher/get-question-skills?question_id=' + encodeURIComponent(questionId));
     const data = await r.json();
 
     if (!r.ok || !data.ok) {
@@ -318,7 +327,7 @@ async function linkQuestionSkill() {
   }
 
   try {
-    const r = await fetch('/api/teacher/link-question-skill', {
+    const r = await authFetch('/api/teacher/link-question-skill', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -346,7 +355,7 @@ async function unlinkQuestionSkill(skillId) {
   if (!currentQuestionSkillsId) return;
 
   try {
-    const r = await fetch('/api/teacher/unlink-question-skill', {
+    const r = await authFetch('/api/teacher/unlink-question-skill', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
@@ -376,7 +385,7 @@ async function openLearningClassReport() {
   box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);">در حال دریافت گزارش...</div>';
 
   try {
-    const r = await fetch('/api/teacher/get-class-learning-progress');
+    const r = await authFetch('/api/teacher/get-class-learning-progress');
     const data = await r.json();
 
     if (!r.ok || !data.ok) {
@@ -432,7 +441,7 @@ async function openLearningClassReport() {
 
 async function openStudentLearningReport(studentId) {
   try {
-    const r = await fetch('/api/teacher/get-learning-progress?student_id=' + encodeURIComponent(studentId));
+    const r = await authFetch('/api/teacher/get-learning-progress?student_id=' + encodeURIComponent(studentId));
     const data = await r.json();
 
     if (!r.ok || !data.ok) {
@@ -1304,6 +1313,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let bankQuestions = [];
   let assignmentsCache = [];
   let teacherBadges = [];
+
+  // اینجا زودتر مقداردهی می‌شود چون loadAll() (که loadBank() را صدا می‌زند)
+  // پایین‌تر همین اسکریپت اجرا می‌شود؛ بدون این خط، bankState هنگام اولین
+  // فراخوانی هنوز undefined بود و «Cannot read properties of undefined (reading 'own')» می‌داد.
+  var bankState = {
+    own: 'me',
+    subject: '',
+    grade: '',
+    type: '',
+    difficulty: '',
+    favorite: false,
+    search: '',
+    sort: 'newest'
+  };
 
   if (user) {
     document.getElementById('whoami').textContent = `${user.fullName} (معلم)`;
