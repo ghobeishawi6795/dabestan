@@ -2,7 +2,8 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<script src="assets/theme.js">
+<script src="assets/theme.js"></script>
+<script>
 
 async function loadLearningAnalysis() {
   const box = document.getElementById('learningAnalysisBox');
@@ -858,8 +859,26 @@ body{
 #statStreak,
 #statDone,
 #statScore,
-#streakNum{
+#streakNum,
+#overviewGrid .num{
   font-variant-numeric:tabular-nums;
+}
+
+/* نمای کلی */
+
+#overviewGrid .card-stat{
+  text-align:center;
+}
+#overviewGrid .icon{
+  font-size:1.5rem;
+  margin-bottom:4px;
+}
+
+@media(max-width:750px){
+  #overviewGrid{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
 }
 
 /* نمودار */
@@ -923,6 +942,13 @@ body{
         <button type="button" class="help-icon-btn" onclick="openModal('help')" title="راهنما">❓</button>
         <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
       </div>
+    </div>
+
+    <div class="grid grid-4" id="overviewGrid" style="margin-top:14px;">
+      <div class="card card-stat"><div class="icon">📚</div><div class="num" id="ovOpenTasks">۰</div><div class="label">تکلیف باز</div></div>
+      <div class="card card-stat"><div class="icon">📈</div><div class="num" id="ovAvgScore">—</div><div class="label">میانگین نمرات</div></div>
+      <div class="card card-stat"><div class="icon">🧠</div><div class="num" id="ovMastery">—</div><div class="label">تسلط کلی مهارت‌ها</div></div>
+      <div class="card card-stat"><div class="icon">🏆</div><div class="num" id="ovBadges">۰</div><div class="label">دستاورد</div></div>
     </div>
 
     <div class="festival-banner" id="festivalBanner" style="display:none;"></div>
@@ -1234,6 +1260,7 @@ body{
     document.getElementById('whoami').textContent = `${user.fullName} (دانش‌آموز)`;
     document.getElementById('greetTitle').textContent = `سلام ${user.fullName}!`;
     loadAll();
+    loadOverviewExtras();
     loadProfile();
     loadNotifications();
     celebratePendingBadges();
@@ -1300,9 +1327,28 @@ body{
       document.getElementById('statStreak').textContent = toFa(tasksData.streak);
       document.getElementById('statDone').textContent = toFa(tasksData.doneCount);
       document.getElementById('statScore').textContent = tasksData.avgScore !== null ? `٪${toFa(tasksData.avgScore)}` : '—';
-      document.getElementById('greetSub').textContent = tasksData.assignments.some(a => !a.submission_status || a.submission_status === 'in_progress')
-        ? `امروز ${toFa(tasksData.assignments.filter(a => !a.submission_status || a.submission_status === 'in_progress').length)} تکلیف منتظرتن`
+      const openCount = tasksData.assignments.filter(a => !a.submission_status || a.submission_status === 'in_progress').length;
+      document.getElementById('greetSub').textContent = openCount
+        ? `امروز ${toFa(openCount)} تکلیف منتظرتن`
         : 'همه‌چی رو تموم کردی 🎉';
+      const ovOpenTasks = document.getElementById('ovOpenTasks');
+      const ovAvgScore = document.getElementById('ovAvgScore');
+      if (ovOpenTasks) ovOpenTasks.textContent = toFa(openCount);
+      if (ovAvgScore) ovAvgScore.textContent = tasksData.avgScore !== null ? `٪${toFa(tasksData.avgScore)}` : '—';
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadOverviewExtras() {
+    try {
+      const [analysis, achievements] = await Promise.all([
+        apiFetch('/student/get-learning-analysis'),
+        apiFetch('/student/get-achievements'),
+      ]);
+      const mastery = Number(analysis?.summary?.overallMastery || 0);
+      const ovMastery = document.getElementById('ovMastery');
+      if (ovMastery) ovMastery.textContent = `٪${toFa(mastery)}`;
+      const ovBadges = document.getElementById('ovBadges');
+      if (ovBadges) ovBadges.textContent = toFa(achievements?.summary?.earnedBadges || 0);
     } catch (e) { console.error(e); }
   }
 

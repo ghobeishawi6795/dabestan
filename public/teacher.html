@@ -854,6 +854,18 @@ document.addEventListener('DOMContentLoaded', () => {
   transform: translateY(-2px);
 }
 
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+.action-card:last-child { margin-bottom: 0; }
+.action-card .action-icon { font-size: 1.1rem; }
+
 @media (max-width: 700px) {
   .sidebar {
     width: 100%;
@@ -1131,7 +1143,7 @@ body{
 #actionCenterSection,
 #teacherActionCenter,
 #actionCenter{
-  background:#ffffff !important;
+  background:var(--surface) !important;
   border:1px solid var(--rd-line) !important;
   box-shadow:var(--rd-shadow);
 }
@@ -1225,6 +1237,25 @@ body{
       <div class="card card-stat"><div class="num" id="stOpenTasks">۰</div><div class="label">تکلیف باز</div></div>
       <div class="card card-stat"><div class="num" id="stPendingReview">۰</div><div class="label">منتظر بررسی</div></div>
       <div class="card card-stat"><div class="num" id="stAvgDone">—</div><div class="label">میانگین انجام</div></div>
+    </div>
+
+    <div class="section-head"><h2>🚨 مرکز اقدامات</h2></div>
+    <div class="card" id="actionCenterSection">
+      <div class="action-card">
+        <b><span class="action-icon">⚠️</span> <span id="acNeedsAttentionCount">۰</span> دانش‌آموز نیازمند توجه</b>
+        <p style="margin:0;">افت نمره یا تسلط پایین در بعضی مهارت‌ها</p>
+        <button type="button" class="btn btn-ghost" onclick="scrollToId('learningSection'); showToast('برای دیدن فهرست، یک کلاس رو در «سیستم یادگیری» انتخاب کن.');">مشاهده دانش‌آموزان</button>
+      </div>
+      <div class="action-card">
+        <b><span class="action-icon">📝</span> <span id="acPendingReviewCount">۰</span> تکلیف منتظر بررسی</b>
+        <p style="margin:0;">پاسخ‌های ارسال‌شده آمادهٔ تصحیح هستند.</p>
+        <button type="button" class="btn btn-ghost" onclick="reviewHint()">بررسی تکالیف</button>
+      </div>
+      <div class="action-card">
+        <b><span class="action-icon">💬</span> <span id="acNewMessagesCount">۰</span> گفت‌وگوی جدید</b>
+        <p style="margin:0;">پیام جدید از والدین یا مدیر مدرسه</p>
+        <button type="button" class="btn btn-ghost" onclick="openModal('inbox')">مشاهده گفتگوها</button>
+      </div>
     </div>
 
     <div class="section-head"><h2>نشان‌های من</h2></div>
@@ -1896,6 +1927,7 @@ loadAll();
     loadInbox();
     loadProfile();
     loadParentChatBadge();
+    loadActionCenterSummary();
     renderTypeFields();
   }
 
@@ -1971,6 +2003,27 @@ loadAll();
     try {
       const data = await apiFetch('/teacher/list-pending-reviews');
       document.getElementById('stPendingReview').textContent = toFa(data.pending.length);
+    } catch (e) { console.error(e); }
+  }
+
+  async function loadActionCenterSummary() {
+    try {
+      const classesData = await apiFetch('/teacher/my-classes');
+      const classes = classesData.classes || [];
+      const centers = await Promise.all(
+        classes.map(c => apiFetch('/teacher/get-action-center?class_id=' + c.id).catch(() => null))
+      );
+      const needsAttention = centers.reduce((sum, r) => sum + (r?.summary?.needsAttention || 0), 0);
+      document.getElementById('acNeedsAttentionCount').textContent = toFa(needsAttention);
+
+      const [pending, inbox, parentConvos] = await Promise.all([
+        apiFetch('/teacher/list-pending-reviews').catch(() => ({ pending: [] })),
+        apiFetch('/teacher/list-messages').catch(() => ({ unreadCount: 0 })),
+        apiFetch('/teacher/list-parent-conversations').catch(() => ({ conversations: [] })),
+      ]);
+      document.getElementById('acPendingReviewCount').textContent = toFa(pending.pending?.length || 0);
+      const parentUnread = (parentConvos.conversations || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+      document.getElementById('acNewMessagesCount').textContent = toFa((inbox.unreadCount || 0) + parentUnread);
     } catch (e) { console.error(e); }
   }
 
@@ -3153,7 +3206,7 @@ async function loadTeacherActionCenter(classId) {
 
     const studentHtml = students.length
       ? students.map(student => `
-          <div style="padding:10px 0;border-top:1px solid #e5e7eb;">
+          <div style="padding:10px 0;border-top:1px solid var(--line);">
             <div style="
               display:flex;
               justify-content:space-between;
@@ -3207,11 +3260,11 @@ async function loadTeacherActionCenter(classId) {
             </div>
           </div>
         `).join('')
-      : '<div style="color:#64748b;font-size:13px;margin-top:8px;">مورد فوری وجود ندارد.</div>';
+      : '<div style="color:var(--ink-soft);font-size:13px;margin-top:8px;">مورد فوری وجود ندارد.</div>';
 
     const skillHtml = skills.length
       ? skills.map(skill => `
-          <div style="padding:9px 0;border-top:1px solid #e5e7eb;">
+          <div style="padding:9px 0;border-top:1px solid var(--line);">
             <div style="
               display:flex;
               justify-content:space-between;
@@ -3231,11 +3284,11 @@ async function loadTeacherActionCenter(classId) {
             </div>
           </div>
         `).join('')
-      : '<div style="color:#64748b;font-size:13px;margin-top:8px;">دادهٔ مهارتی کافی وجود ندارد.</div>';
+      : '<div style="color:var(--ink-soft);font-size:13px;margin-top:8px;">دادهٔ مهارتی کافی وجود ندارد.</div>';
 
     box.innerHTML = `
       <div style="
-        border:1px solid #e5e7eb;
+        border:1px solid var(--line);
         border-radius:16px;
         padding:15px;
       ">
@@ -3250,14 +3303,14 @@ async function loadTeacherActionCenter(classId) {
             <h3 style="margin:0;">🎯 مرکز اقدام معلم</h3>
             <div style="
               margin-top:4px;
-              color:#64748b;
+              color:var(--ink-soft);
               font-size:13px;
             ">
               مهم‌ترین مواردی که الان ارزش پیگیری دارند.
             </div>
           </div>
 
-          <div style="font-size:12px;color:#64748b;">
+          <div style="font-size:12px;color:var(--ink-soft);">
             نیازمند توجه:
             <strong>${summary.needsAttention || 0}</strong>
             · در حال پیشرفت:
@@ -3276,7 +3329,7 @@ async function loadTeacherActionCenter(classId) {
           <div style="
             padding:12px;
             border-radius:14px;
-            background:#fff7f7;
+            background:var(--bg-soft);
           ">
             <strong>👤 دانش‌آموزان نیازمند توجه</strong>
             ${studentHtml}
@@ -3285,7 +3338,7 @@ async function loadTeacherActionCenter(classId) {
           <div style="
             padding:12px;
             border-radius:14px;
-            background:#fffcf3;
+            background:var(--bg-soft);
           ">
             <strong>📚 مهارت‌های ضعیف</strong>
             ${skillHtml}
@@ -3297,7 +3350,7 @@ async function loadTeacherActionCenter(classId) {
           padding:12px;
           border-radius:14px;
           background:#f8fafc;
-          color:#475569;
+          color:var(--ink-soft);
           font-size:13px;
           line-height:1.9;
         ">
@@ -3315,7 +3368,7 @@ async function loadTeacherActionCenter(classId) {
         padding:12px;
         border-radius:12px;
         background:#f8fafc;
-        color:#64748b;
+        color:var(--ink-soft);
         font-size:13px;
       ">
         مرکز اقدام فعلاً در دسترس نیست.
