@@ -335,6 +335,272 @@
 }
 
 </style>
+
+<!-- ===== REAL DASHBOARD REDESIGN ===== -->
+<style id="real-dashboard-redesign">
+
+:root{
+  --rd-bg:#f4f7f4;
+  --rd-card:#ffffff;
+  --rd-text:#26332b;
+  --rd-muted:#718075;
+  --rd-line:#e3e9e3;
+  --rd-green:#3f7a52;
+  --rd-green-soft:#edf5ef;
+  --rd-radius:20px;
+  --rd-shadow:0 8px 28px rgba(30,55,38,.08);
+}
+
+/* ---------- پایه ---------- */
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  background:var(--rd-bg) !important;
+  color:var(--rd-text);
+}
+
+button,
+input,
+select,
+textarea{
+  font-family:inherit;
+}
+
+/* ---------- کارت‌های اصلی ---------- */
+
+.card,
+.stat-card,
+.dashboard-card,
+.panel,
+.section-card,
+.report-card{
+  border-radius:var(--rd-radius) !important;
+  border-color:var(--rd-line) !important;
+  box-shadow:var(--rd-shadow);
+}
+
+/* ---------- تیتر بخش ---------- */
+
+section > h2,
+section > h3{
+  letter-spacing:-.2px;
+}
+
+/* ---------- دکمه‌ها ---------- */
+
+.btn,
+.primary-btn,
+.secondary-btn,
+button{
+  border-radius:11px;
+}
+
+/* ---------- جدول ---------- */
+
+table{
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+}
+
+th{
+  background:#f7faf7;
+}
+
+th,
+td{
+  border-bottom:1px solid var(--rd-line);
+}
+
+/* ---------- موبایل ---------- */
+
+@media(max-width:760px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  .card,
+  .stat-card,
+  .dashboard-card,
+  .panel,
+  .section-card,
+  .report-card{
+    border-radius:17px !important;
+  }
+
+  button,
+  .btn{
+    min-height:40px;
+  }
+}
+
+
+/* ==================================================
+   STUDENT
+   ================================================== */
+
+body[data-dashboard="student"] .rd-student-only{
+  display:block;
+}
+
+/* باغچه باید قهرمان صفحه باشد */
+
+.sprout-wrap{
+  position:relative;
+  transition:transform .25s ease,filter .25s ease;
+}
+
+.sprout-wrap:hover{
+  transform:translateY(-2px);
+}
+
+
+/* ==================================================
+   TEACHER
+   ================================================== */
+
+body[data-dashboard="teacher"] .rd-teacher-only{
+  display:block;
+}
+
+/* مرکز اقدامات */
+
+#actionCenterSection,
+#teacherActionCenter,
+#actionCenter{
+  border-radius:22px !important;
+}
+
+/* کارت‌های اقدام */
+
+#actionCenterSection .card,
+#teacherActionCenter .card,
+#actionCenter .card{
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+#actionCenterSection .card:hover,
+#teacherActionCenter .card:hover,
+#actionCenter .card:hover{
+  transform:translateY(-2px);
+}
+
+
+/* ==================================================
+   PARENT
+   ================================================== */
+
+body[data-dashboard="parent"] .rd-parent-only{
+  display:block;
+}
+
+
+/* ==================================================
+   ADMIN
+   ================================================== */
+
+body[data-dashboard="admin"] .rd-admin-only{
+  display:block;
+}
+
+
+/* ==================================================
+   SUPER ADMIN
+   ================================================== */
+
+body[data-dashboard="super"] .rd-super-only{
+  display:block;
+}
+
+
+/* ==================================================
+   GLOBAL RESPONSIVE GRID
+   ================================================== */
+
+@media(max-width:900px){
+
+  [style*="grid-template-columns:repeat(4"],
+  [style*="grid-template-columns: repeat(4"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+
+  [style*="grid-template-columns:repeat(5"],
+  [style*="grid-template-columns: repeat(5"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+}
+
+@media(max-width:560px){
+
+  [style*="grid-template-columns:repeat(3"],
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns:repeat(4"],
+  [style*="grid-template-columns: repeat(4"],
+  [style*="grid-template-columns:repeat(5"],
+  [style*="grid-template-columns: repeat(5"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+
+</style>
+
+<style id="real-admin-dashboard">
+
+body{
+  background:
+    radial-gradient(circle at 90% 0%,#edf5ef 0,transparent 30%),
+    var(--rd-bg) !important;
+}
+
+/* ساختار مدیریتی */
+
+.admin-layout,
+.admin-main{
+  min-height:100vh;
+}
+
+/* KPI */
+
+.kpi-card,
+.stat-card{
+  border-radius:18px !important;
+  background:#fff;
+  box-shadow:var(--rd-shadow);
+}
+
+/* عملیات سریع */
+
+.quick-action,
+.quick-card{
+  border-radius:17px !important;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+.quick-action:hover,
+.quick-card:hover{
+  transform:translateY(-2px);
+}
+
+/* گزارش مدرسه */
+
+.school-report,
+.report-section{
+  border-radius:21px !important;
+}
+
+/* جدول مدیریت */
+
+.admin-table{
+  border-radius:18px;
+  overflow:hidden;
+}
+
+</style>
+
 </head>
 <body>
 <div class="app-shell">
