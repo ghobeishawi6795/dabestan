@@ -2565,7 +2565,7 @@ async function loadTeacherActionCenter(classId) {
 
     const studentHtml = students.length
       ? students.map(student => `
-          <div style="padding:9px 0;border-top:1px solid #e5e7eb;">
+          <div style="padding:10px 0;border-top:1px solid #e5e7eb;">
             <div style="
               display:flex;
               justify-content:space-between;
@@ -2582,6 +2582,31 @@ async function loadTeacherActionCenter(classId) {
               ">
                 ${student.averageScore}٪
               </span>
+            </div>
+
+            <div style="
+              display:flex;
+              gap:7px;
+              flex-wrap:wrap;
+              margin-top:8px;
+            ">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                style="font-size:12px;padding:6px 9px;"
+                onclick='openStudentProgress(${Number(student.id)}, ${JSON.stringify(student.name || "—")})'
+              >
+                📈 روند نمره
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-secondary"
+                style="font-size:12px;padding:6px 9px;"
+                onclick='openParentChatThread(${Number(student.id)}, ${JSON.stringify(student.name || "—")})'
+              >
+                💬 پیام به والدین
+              </button>
             </div>
           </div>
         `).join('')
