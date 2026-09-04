@@ -2,7 +2,503 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<script src="assets/theme.js"></script>
+<script src="assets/theme.js">
+/* =========================================================
+   STAGE 6 — LEARNING UI
+   ========================================================= */
+
+let learningSkillsCache = [];
+let currentQuestionSkillsId = null;
+let currentQuestionSkills = [];
+
+function learningEscape(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+async function loadLearningSkills() {
+  const box = document.getElementById('learningSkillsBox');
+  if (!box) return;
+
+  box.innerHTML = '<div class="card" style="text-align:center;color:var(--ink-soft);">در حال بارگذاری مهارت‌ها...</div>';
+
+  try {
+    const r = await fetch('/api/teacher/list-skills');
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'خطا در دریافت مهارت‌ها');
+    }
+
+    learningSkillsCache = Array.isArray(data.skills) ? data.skills : [];
+    renderLearningSkills();
+  } catch (e) {
+    box.innerHTML = `<div class="card" style="color:#b42318;">${learningEscape(e.message)}</div>`;
+  }
+}
+
+function renderLearningSkills() {
+  const box = document.getElementById('learningSkillsBox');
+  if (!box) return;
+
+  const subject = String(document.getElementById('learningSubjectFilter')?.value || '').trim().toLowerCase();
+  const gradeRaw = String(document.getElementById('learningGradeFilter')?.value || '').trim();
+  const grade = gradeRaw === '' ? null : Number(gradeRaw);
+
+  let rows = learningSkillsCache.filter(x => {
+    if (subject && !String(x.subject || '').toLowerCase().includes(subject)) return false;
+    if (grade !== null && Number(x.grade) !== grade) return false;
+    return true;
+  });
+
+  if (!rows.length) {
+    box.innerHTML = `
+      <div class="card" style="text-align:center;padding:30px;color:var(--ink-soft);">
+        <div style="font-size:2rem;">🧠</div>
+        <div style="font-weight:800;margin-top:8px;">هنوز مهارتی ثبت نشده است</div>
+        <div style="font-size:.85rem;margin-top:5px;">از «مهارت جدید» اولین مهارت را بسازید.</div>
+      </div>`;
+    return;
+  }
+
+  const byParent = new Map();
+  rows.forEach(x => {
+    const key = x.parent_id == null ? 'root' : String(x.parent_id);
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key).push(x);
+  });
+
+  const renderNode = (parentKey, level = 0) => {
+    const items = byParent.get(String(parentKey)) || [];
+    return items.map(x => {
+      const children = renderNode(x.id, level + 1);
+
+      return `
+        <div class="card" style="margin-bottom:8px;margin-right:${Math.min(level * 22, 88)}px;">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:900;">
+                ${learningEscape(x.name)}
+                <span style="font-size:.72rem;color:var(--ink-soft);font-weight:700;">
+                  ${learningEscape(x.code)}
+                </span>
+              </div>
+              <div style="font-size:.78rem;color:var(--ink-soft);margin-top:4px;">
+                ${learningEscape(x.subject)}
+                ${x.grade != null ? ' · پایه ' + learningEscape(x.grade) : ''}
+                ${x.description ? ' · ' + learningEscape(x.description) : ''}
+              </div>
+            </div>
+
+            <div style="display:flex;gap:6px;">
+              <button class="secondary-btn" type="button" onclick="editSkill(${Number(x.id)})">✏️</button>
+              <button class="secondary-btn" type="button" onclick="deleteSkill(${Number(x.id)})">🗑️</button>
+            </div>
+          </div>
+        </div>
+        ${children}
+      `;
+    }).join('');
+  };
+
+  box.innerHTML = renderNode('root');
+}
+
+function populateSkillParents(excludeId = null) {
+  const select = document.getElementById('skillParent');
+  if (!select) return;
+
+  const options = learningSkillsCache
+    .filter(x => Number(x.id) !== Number(excludeId))
+    .map(x => {
+      const grade = x.grade == null ? '' : ` · پایه ${x.grade}`;
+      return `<option value="${Number(x.id)}">${learningEscape(x.subject)} — ${learningEscape(x.name)}${grade}</option>`;
+    })
+    .join('');
+
+  select.innerHTML = '<option value="">بدون والد</option>' + options;
+}
+
+function openSkillModal(id = null) {
+  const form = document.getElementById('skillForm');
+  if (!form) return;
+
+  document.getElementById('skillId').value = '';
+  document.getElementById('skillSubject').value = '';
+  document.getElementById('skillGrade').value = '';
+  document.getElementById('skillCode').value = '';
+  document.getElementById('skillName').value = '';
+  document.getElementById('skillDescription').value = '';
+  document.getElementById('skillPosition').value = '0';
+
+  populateSkillParents(null);
+
+  document.getElementById('skillModalTitle').textContent = '🧠 مهارت جدید';
+
+  if (id != null) {
+    const skill = learningSkillsCache.find(x => Number(x.id) === Number(id));
+    if (!skill) return;
+
+    document.getElementById('skillId').value = skill.id;
+    document.getElementById('skillSubject').value = skill.subject || '';
+    document.getElementById('skillGrade').value = skill.grade ?? '';
+    document.getElementById('skillCode').value = skill.code || '';
+    document.getElementById('skillName').value = skill.name || '';
+    document.getElementById('skillDescription').value = skill.description || '';
+    document.getElementById('skillPosition').value = skill.position ?? 0;
+
+    populateSkillParents(id);
+    document.getElementById('skillParent').value = skill.parent_id ?? '';
+    document.getElementById('skillModalTitle').textContent = '✏️ ویرایش مهارت';
+  }
+
+  openModal('skill');
+}
+
+function editSkill(id) {
+  openSkillModal(id);
+}
+
+async function submitSkill(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('skillId').value.trim();
+
+  const payload = {
+    subject: document.getElementById('skillSubject').value.trim(),
+    grade: document.getElementById('skillGrade').value === ''
+      ? null
+      : Number(document.getElementById('skillGrade').value),
+    code: document.getElementById('skillCode').value.trim(),
+    name: document.getElementById('skillName').value.trim(),
+    description: document.getElementById('skillDescription').value.trim() || null,
+    parent_id: document.getElementById('skillParent').value === ''
+      ? null
+      : Number(document.getElementById('skillParent').value),
+    position: Number(document.getElementById('skillPosition').value || 0)
+  };
+
+  try {
+    const endpoint = id
+      ? '/api/teacher/update-skill'
+      : '/api/teacher/create-skill';
+
+    if (id) payload.skill_id = Number(id);
+
+    const r = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'ذخیره مهارت ناموفق بود');
+    }
+
+    closeModal('skill');
+    showToast(id ? 'مهارت ویرایش شد' : 'مهارت ایجاد شد');
+    await loadLearningSkills();
+
+  } catch (e) {
+    showToast(e.message || 'خطا در ذخیره مهارت');
+  }
+}
+
+async function deleteSkill(id) {
+  const skill = learningSkillsCache.find(x => Number(x.id) === Number(id));
+  if (!skill) return;
+
+  if (!confirm(`مهارت «${skill.name}» غیرفعال شود؟`)) return;
+
+  try {
+    const r = await fetch('/api/teacher/delete-skill', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({skill_id: Number(id)})
+    });
+
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'حذف مهارت ناموفق بود');
+    }
+
+    showToast('مهارت غیرفعال شد');
+    await loadLearningSkills();
+
+  } catch (e) {
+    showToast(e.message || 'خطا در حذف مهارت');
+  }
+}
+
+async function openQuestionSkills(questionId) {
+  currentQuestionSkillsId = Number(questionId);
+
+  const box = document.getElementById('questionSkillsBox');
+  const select = document.getElementById('questionSkillSelect');
+
+  openModal('questionSkills');
+
+  box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);">در حال بارگذاری...</div>';
+
+  try {
+    if (!learningSkillsCache.length) {
+      const rSkills = await fetch('/api/teacher/list-skills');
+      const dSkills = await rSkills.json();
+      if (rSkills.ok && dSkills.ok) {
+        learningSkillsCache = dSkills.skills || [];
+      }
+    }
+
+    const r = await fetch('/api/teacher/get-question-skills?question_id=' + encodeURIComponent(questionId));
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'خطا در دریافت مهارت‌های سؤال');
+    }
+
+    currentQuestionSkills = Array.isArray(data.skills) ? data.skills : [];
+
+    select.innerHTML = learningSkillsCache
+      .map(x => `<option value="${Number(x.id)}">${learningEscape(x.subject)} — ${learningEscape(x.name)} (${learningEscape(x.code)})</option>`)
+      .join('');
+
+    if (!select.options.length) {
+      select.innerHTML = '<option value="">ابتدا یک مهارت بسازید</option>';
+    }
+
+    renderQuestionSkills();
+
+  } catch (e) {
+    box.innerHTML = `<div style="color:#b42318;">${learningEscape(e.message)}</div>`;
+  }
+}
+
+function renderQuestionSkills() {
+  const box = document.getElementById('questionSkillsBox');
+  if (!box) return;
+
+  if (!currentQuestionSkills.length) {
+    box.innerHTML = `
+      <div style="padding:20px;text-align:center;color:var(--ink-soft);">
+        این سؤال هنوز به هیچ مهارتی متصل نشده است.
+      </div>`;
+    return;
+  }
+
+  box.innerHTML = currentQuestionSkills.map(x => `
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:10px 0;">
+      <div>
+        <div style="font-weight:800;">${learningEscape(x.name)}</div>
+        <div style="font-size:.75rem;color:var(--ink-soft);">
+          ${learningEscape(x.subject)} · ${learningEscape(x.code)}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:.8rem;">وزن: ${Number(x.weight || 1)}</span>
+        <button class="secondary-btn" type="button" onclick="unlinkQuestionSkill(${Number(x.skill_id)})">حذف</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function linkQuestionSkill() {
+  const skillId = Number(document.getElementById('questionSkillSelect').value);
+  const weight = Number(document.getElementById('questionSkillWeight').value || 1);
+
+  if (!currentQuestionSkillsId || !skillId || !Number.isFinite(weight) || weight <= 0) {
+    showToast('مهارت و وزن معتبر انتخاب کنید');
+    return;
+  }
+
+  try {
+    const r = await fetch('/api/teacher/link-question-skill', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        question_id: currentQuestionSkillsId,
+        skill_id: skillId,
+        weight
+      })
+    });
+
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'اتصال مهارت ناموفق بود');
+    }
+
+    showToast('مهارت به سؤال متصل شد');
+    await openQuestionSkills(currentQuestionSkillsId);
+
+  } catch (e) {
+    showToast(e.message || 'خطا در اتصال مهارت');
+  }
+}
+
+async function unlinkQuestionSkill(skillId) {
+  if (!currentQuestionSkillsId) return;
+
+  try {
+    const r = await fetch('/api/teacher/unlink-question-skill', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        question_id: currentQuestionSkillsId,
+        skill_id: Number(skillId)
+      })
+    });
+
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'حذف اتصال ناموفق بود');
+    }
+
+    showToast('اتصال مهارت حذف شد');
+    await openQuestionSkills(currentQuestionSkillsId);
+
+  } catch (e) {
+    showToast(e.message || 'خطا در حذف اتصال');
+  }
+}
+
+async function openLearningClassReport() {
+  const box = document.getElementById('learningClassBox');
+  openModal('learningClass');
+
+  box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);">در حال دریافت گزارش...</div>';
+
+  try {
+    const r = await fetch('/api/teacher/get-class-learning-progress');
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'خطا در دریافت گزارش کلاس');
+    }
+
+    const classes = Array.isArray(data.classes) ? data.classes : [];
+
+    if (!classes.length) {
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:25px;">کلاسی برای نمایش وجود ندارد.</div>';
+      return;
+    }
+
+    box.innerHTML = classes.map(c => {
+      const sm = c.summary || {};
+      const students = Array.isArray(c.students) ? c.students : [];
+
+      return `
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:900;">${learningEscape(c.name)}</div>
+              <div style="font-size:.78rem;color:var(--ink-soft);">پایه ${learningEscape(c.grade ?? '—')}</div>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:.75rem;">
+              <span>دانش‌آموز: ${Number(sm.student_count || 0)}</span>
+              <span>تسلط: ${Number(sm.mastery_percent || 0)}٪</span>
+              <span>مسلط: ${Number(sm.mastered_count || 0)}</span>
+              <span>نیازمند حمایت: ${Number(sm.needs_support_count || 0)}</span>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            ${students.length ? students.map(st => `
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:9px 0;">
+                <div>${learningEscape(st.full_name)}</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span>${Number(st.mastery_percent || 0)}٪</span>
+                  <button class="secondary-btn" type="button" onclick="openStudentLearningReport(${Number(st.id)})">جزئیات</button>
+                </div>
+              </div>
+            `).join('') : '<div style="color:var(--ink-soft);padding:10px 0;">داده‌ای ثبت نشده است.</div>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (e) {
+    box.innerHTML = `<div style="color:#b42318;">${learningEscape(e.message)}</div>`;
+  }
+}
+
+async function openStudentLearningReport(studentId) {
+  try {
+    const r = await fetch('/api/teacher/get-learning-progress?student_id=' + encodeURIComponent(studentId));
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'خطا در دریافت پیشرفت دانش‌آموز');
+    }
+
+    const st = data.student || {};
+    const summary = data.summary || {};
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+
+    const box = document.getElementById('learningClassBox');
+
+    box.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <button class="secondary-btn" type="button" onclick="openLearningClassReport()">← بازگشت</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">🧑‍🎓 ${learningEscape(st.full_name)}</h3>
+        <div style="font-size:.8rem;color:var(--ink-soft);margin-bottom:12px;">
+          ${learningEscape(st.class_name || '')}
+          ${st.grade != null ? ' · پایه ' + learningEscape(st.grade) : ''}
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem;">
+          <span>کل مهارت‌ها: ${Number(summary.skill_count || 0)}</span>
+          <span>شروع‌شده: ${Number(summary.started_skill_count || 0)}</span>
+          <span>مسلط: ${Number(summary.mastered_skill_count || 0)}</span>
+          <span>در حال یادگیری: ${Number(summary.developing_skill_count || 0)}</span>
+          <span>نیازمند حمایت: ${Number(summary.needs_support_skill_count || 0)}</span>
+          <span>تسلط کلی: ${Number(summary.mastery_percent || 0)}٪</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        ${skills.length ? skills.map(x => `
+          <div class="card" style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+              <div>
+                <div style="font-weight:850;">${learningEscape(x.name)}</div>
+                <div style="font-size:.75rem;color:var(--ink-soft);">${learningEscape(x.subject)} · ${learningEscape(x.code)}</div>
+              </div>
+              <div style="font-weight:900;">${Number(x.mastery_percent || 0)}٪</div>
+            </div>
+            <div style="font-size:.75rem;color:var(--ink-soft);margin-top:5px;">
+              ${learningEscape(x.status_label || x.status || '')}
+              · پاسخ: ${Number(x.answer_count || 0)}
+            </div>
+          </div>
+        `).join('') : '<div class="card" style="text-align:center;color:var(--ink-soft);">هنوز داده‌ای برای مهارت‌ها ثبت نشده است.</div>'}
+      </div>
+    `;
+
+  } catch (e) {
+    showToast(e.message || 'خطا در دریافت پیشرفت دانش‌آموز');
+  }
+}
+
+/* Load learning data when teacher page is ready */
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('learningSkillsBox')) {
+    loadLearningSkills();
+  }
+});
+
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد معلم — باغچهٔ درس</title>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -118,6 +614,7 @@
       <li><a class="nav-item" href="#" onclick="openModal('packs')"><span class="ic">📦</span> قالب‌های آماده</a></li>
       <li><a class="nav-item" href="#tasksSection" onclick="reviewHint()"><span class="ic">✅</span> مرور و نمره‌دهی</a></li>
       <li><a class="nav-item" href="#classReportSection" onclick="scrollToId('classReportSection')"><span class="ic">📊</span> گزارش کلاس</a></li>
+      <li><a class="nav-item" href="#learningSection" onclick="scrollToId('learningSection')"><span class="ic">🧠</span> سیستم یادگیری</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDailyChallengeModal();"><span class="ic">☀️</span> چالش روزانه</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openParentChatList();"><span class="ic">👪</span> پیام‌های والدین</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
@@ -169,7 +666,31 @@
     <div class="section-head" id="classReportSection"><h2>گزارش کلاس‌ها</h2></div>
     <div id="classReportList"></div>
 
-    <div class="section-head" id="tasksSection"><h2>تکالیف من</h2></div>
+
+<!-- ===== سیستم یادگیری ===== -->
+<div class="section-head" id="learningSection" style="margin-top:28px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <h2>🧠 سیستم یادگیری</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="primary-btn" type="button" onclick="openSkillModal()">＋ مهارت جدید</button>
+      <button class="secondary-btn" type="button" onclick="openLearningClassReport()">📊 گزارش یادگیری</button>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:18px;">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <input id="learningSubjectFilter" class="input" placeholder="فیلتر درس..." oninput="renderLearningSkills()">
+    <input id="learningGradeFilter" class="input" type="number" min="0" placeholder="پایه" oninput="renderLearningSkills()" style="max-width:110px;">
+    <button class="secondary-btn" type="button" onclick="loadLearningSkills()">🔄 تازه‌سازی</button>
+  </div>
+</div>
+
+<div id="learningSkillsBox">
+  <div class="card" style="text-align:center;color:var(--ink-soft);">در حال بارگذاری مهارت‌ها...</div>
+</div>
+
+<div class="section-head" id="tasksSection"><h2>تکالیف من</h2></div>
     <div class="card" style="padding:0; overflow:hidden;">
       <table class="simple-table">
         <thead><tr><th>عنوان</th><th>کلاس</th><th>موعد</th><th>وضعیت انجام</th><th></th></tr></thead>
@@ -248,6 +769,110 @@
 </div>
 
 <!-- ===== مودال سؤال جدید ===== -->
+
+<!-- ===== Skill Modal ===== -->
+<div class="modal-backdrop" id="modalSkill">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-head">
+      <h3 id="skillModalTitle">🧠 مهارت جدید</h3>
+      <button type="button" onclick="closeModal('skill')">✕</button>
+    </div>
+
+    <form id="skillForm" onsubmit="submitSkill(event)">
+      <input type="hidden" id="skillId">
+
+      <div class="form-grid">
+        <label>
+          درس
+          <input id="skillSubject" required placeholder="مثلاً ریاضی">
+        </label>
+
+        <label>
+          پایه
+          <input id="skillGrade" type="number" min="0" placeholder="مثلاً 4">
+        </label>
+
+        <label>
+          کد مهارت
+          <input id="skillCode" required placeholder="مثلاً MATH-4-01">
+        </label>
+
+        <label>
+          جایگاه
+          <input id="skillPosition" type="number" min="0" value="0">
+        </label>
+      </div>
+
+      <label>
+        نام مهارت
+        <input id="skillName" required placeholder="مثلاً جمع اعداد چندرقمی">
+      </label>
+
+      <label>
+        مهارت والد
+        <select id="skillParent">
+          <option value="">بدون والد</option>
+        </select>
+      </label>
+
+      <label>
+        توضیح
+        <textarea id="skillDescription" rows="3" placeholder="توضیح کوتاه درباره مهارت"></textarea>
+      </label>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button type="button" class="secondary-btn" onclick="closeModal('skill')">انصراف</button>
+        <button type="submit" class="primary-btn">💾 ذخیره</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Question Skills Modal ===== -->
+<div class="modal-backdrop" id="modalQuestionSkills">
+  <div class="modal" style="max-width:650px;">
+    <div class="modal-head">
+      <h3>🧠 مهارت‌های سؤال</h3>
+      <button type="button" onclick="closeModal('questionSkills')">✕</button>
+    </div>
+
+    <div id="questionSkillsBox">
+      <div style="text-align:center;color:var(--ink-soft);">در حال بارگذاری...</div>
+    </div>
+
+    <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px;">
+      <div style="font-weight:800;margin-bottom:10px;">افزودن مهارت</div>
+
+      <div style="display:grid;grid-template-columns:1fr 110px auto;gap:8px;align-items:end;">
+        <label>
+          مهارت
+          <select id="questionSkillSelect"></select>
+        </label>
+
+        <label>
+          وزن
+          <input id="questionSkillWeight" type="number" min="0.01" step="0.01" value="1">
+        </label>
+
+        <button class="primary-btn" type="button" onclick="linkQuestionSkill()">＋ افزودن</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Learning Class Report Modal ===== -->
+<div class="modal-backdrop" id="modalLearningClass">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-head">
+      <h3>📊 گزارش سیستم یادگیری</h3>
+      <button type="button" onclick="closeModal('learningClass')">✕</button>
+    </div>
+    <div id="learningClassBox">
+      <div style="text-align:center;color:var(--ink-soft);">در حال بارگذاری...</div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="modalQuestion">
   <div class="modal">
     <h3 style="margin-bottom:14px;">سؤال جدید برای بانک</h3>
@@ -832,7 +1457,7 @@ loadAll();
   };
 
   const DIFFICULTY_LABEL = { easy: '🟢 آسان', medium: '🟡 متوسط', hard: '🔴 سخت' };
-  
+
   let bankAllQuestions = [];
 
   var bankState = {
@@ -936,7 +1561,8 @@ loadAll();
           <button onclick="duplicateQuestion(${q.id})">📄 کپی</button>
           <button onclick="openQuestionAnalytics(${q.id})">📊 آمار</button>
           <button onclick="openQuestionHistory(${q.id})">🕘 تاریخچه</button>
-          ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف</button>` : ''}
+          ${isMine ? `<button onclick="openQuestionSkills(${q.id})">🧠 مهارت‌ها</button>` : ''}
+${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف</button>` : ''}
         </div>
       </div>`;
     }).join('');

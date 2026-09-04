@@ -2,7 +2,30 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<script src="assets/theme.js"></script>
+<script src="assets/theme.js">
+async function loadStudentSkills() {
+  try {
+    const r = await fetch('/api/student/get-progress');
+    const data = await r.json();
+
+    if (!r.ok) throw new Error(data.error || 'خطا در دریافت مهارت‌ها');
+
+    renderStudentSkills(data.skills || [], data.summary || {});
+  } catch (e) {
+    const box = document.getElementById('studentSkillsBox');
+    if (box) {
+      box.innerHTML = `<div style="color:#b42318;text-align:center;padding:20px;">${String(e.message || 'خطا')}</div>`;
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('studentSkillsBox')) {
+    loadStudentSkills();
+  }
+});
+
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد دانش‌آموز — باغچهٔ درس</title>
 <link rel="manifest" href="/manifest.webmanifest">
@@ -114,7 +137,7 @@ button:active, .btn:active { transform: scale(.95); }
       <div class="sprout-progress"><div id="sproutBar" style="width:0%"></div></div>
     </section>
 
-    
+
     <!-- چالش روزانه -->
     <section class="card" id="dailyChallengeSection" style="margin-top:14px;">
       <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
@@ -136,7 +159,20 @@ button:active, .btn:active { transform: scale(.95); }
       <div class="card card-stat"><div class="num" id="statStreak">۰</div><div class="label">روز پیاپی</div></div>
     </div>
 
-    <div class="section-head"><h2>📈 روند نمره‌ها</h2></div>
+
+<!-- ===== مهارت‌های من ===== -->
+<div class="section-head" id="mySkillsSection" style="margin-top:24px;">
+  <h2>🧠 مهارت‌های من</h2>
+</div>
+
+<div class="card">
+  <div id="studentSkillSummary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
+  <div id="studentSkillsBox">
+    <div style="text-align:center;color:var(--ink-soft);padding:20px;">در حال بارگذاری...</div>
+  </div>
+</div>
+
+<div class="section-head"><h2>📈 روند نمره‌ها</h2></div>
     <div class="card" id="progressChartCard">
       <div id="progressChartBox" style="min-height:140px; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:.85rem;">در حال بارگذاری...</div>
     </div>
@@ -200,7 +236,7 @@ button:active, .btn:active { transform: scale(.95); }
     <div style="display:flex; flex-direction:column; gap:10px;">
       <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDiaryModal();">📔 دفترچهٔ باغچه</button>
     </div>
-    
+
     <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
       <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openHighFivesModal();">🙌 های‌فایو به همکلاسی‌ها</button>
       <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openParentNotesModal();">💌 یادداشت والدین</button>
@@ -521,7 +557,70 @@ button:active, .btn:active { transform: scale(.95); }
   }
 
   // ===== نمودار روند نمره‌ها =====
-  async function loadProgressChart() {
+
+function renderStudentSkills(skills, summary) {
+  const box = document.getElementById('studentSkillsBox');
+  const summaryBox = document.getElementById('studentSkillSummary');
+  if (!box) return;
+
+  skills = Array.isArray(skills) ? skills : [];
+  summary = summary || {};
+
+  if (summaryBox) {
+    summaryBox.innerHTML = `
+      <span style="font-size:.78rem;">کل مهارت‌ها: ${Number(summary.totalSkills || 0)}</span>
+      <span style="font-size:.78rem;">شروع‌شده: ${Number(summary.startedSkills || 0)}</span>
+      <span style="font-size:.78rem;">مسلط: ${Number(summary.masteredSkills || 0)}</span>
+      <span style="font-size:.78rem;">در حال یادگیری: ${Number(summary.developingSkills || 0)}</span>
+      <span style="font-size:.78rem;">نیازمند حمایت: ${Number(summary.needsSupportSkills || 0)}</span>
+    `;
+  }
+
+  if (!skills.length) {
+    box.innerHTML = `
+      <div style="text-align:center;color:var(--ink-soft);padding:25px;">
+        هنوز مهارتی برای شما ثبت نشده است.
+      </div>`;
+    return;
+  }
+
+  const statusLabel = {
+    mastered: 'مسلط',
+    developing: 'در حال یادگیری',
+    needs_support: 'نیازمند حمایت',
+    not_started: 'شروع نشده'
+  };
+
+  box.innerHTML = skills.map(skill => {
+    const mastery = Number(skill.mastery || 0);
+    const status = statusLabel[skill.status] || skill.status || '';
+
+    return `
+      <div style="border-top:1px solid var(--line);padding:12px 0;">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+          <div>
+            <div style="font-weight:850;">${String(skill.name || '')}</div>
+            <div style="font-size:.72rem;color:var(--ink-soft);">
+              ${String(skill.subject || '')}
+              ${skill.code ? ' · ' + String(skill.code) : ''}
+            </div>
+          </div>
+          <div style="font-weight:900;">${mastery}٪</div>
+        </div>
+
+        <div style="height:8px;background:var(--bg-soft);border-radius:99px;overflow:hidden;margin-top:8px;">
+          <div style="height:100%;width:${Math.max(0, Math.min(100, mastery))}%;background:var(--leaf);border-radius:99px;"></div>
+        </div>
+
+        <div style="font-size:.72rem;color:var(--ink-soft);margin-top:5px;">
+          ${status} · ${Number(skill.answerCount || 0)} پاسخ
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadProgressChart() {
     try {
       const data = await apiFetch('/student/get-progress');
       const points = data.history.map(h => ({ y: Math.round(h.score), label: `${h.title}: ${Math.round(h.score)}٪` }));
