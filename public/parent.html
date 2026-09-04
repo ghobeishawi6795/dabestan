@@ -121,6 +121,92 @@ body {
 }
 
 </style>
+
+<style>
+
+/* =========================================================
+   STAGE 20 — PARENT DASHBOARD REDESIGN
+   UI/UX polish only — no data/API behavior changes
+   ========================================================= */
+
+:root {
+  --parent-shadow: 0 8px 26px rgba(38,51,43,.07);
+  --parent-shadow-hover: 0 12px 30px rgba(38,51,43,.11);
+}
+
+body {
+  padding: 18px 14px 40px;
+}
+
+.wrap {
+  max-width: 920px;
+}
+
+#codeScreen {
+  max-width: 500px;
+  margin: 30px auto;
+  border-radius: 22px;
+  box-shadow: var(--parent-shadow);
+}
+
+#resultScreen {
+  width: 100%;
+}
+
+#resultScreen > .sprout-panel:first-child {
+  border-radius: 22px;
+  box-shadow: var(--parent-shadow);
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+}
+
+#resultScreen > .grid {
+  gap: 12px;
+}
+
+#resultScreen > .card,
+#resultScreen .card {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  box-shadow: var(--parent-shadow);
+}
+
+#parentLearningReport {
+  border-radius: 20px;
+}
+
+.simple-table {
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 10px 9px 28px;
+  }
+
+  #codeScreen {
+    margin: 18px auto;
+    padding: 20px;
+  }
+
+  #resultScreen > .grid.grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #resultScreen .section-head {
+    margin-top: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  #resultScreen > .grid.grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .simple-table {
+    min-width: 430px;
+  }
+}
+
+</style>
 </head>
 <body>
 <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن" style="position:fixed; top:14px; left:14px; z-index:10;">🌙</button>

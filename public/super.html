@@ -135,6 +135,105 @@ h1{font-size:1.15rem;margin:0}
 }
 
 </style>
+
+<style>
+
+/* =========================================================
+   STAGE 20 — SUPER ADMIN DASHBOARD REDESIGN
+   UI/UX polish only — no data/API behavior changes
+   ========================================================= */
+
+:root {
+  --super-shadow: 0 8px 26px rgba(38,51,43,.07);
+  --super-shadow-hover: 0 12px 30px rgba(38,51,43,.11);
+}
+
+.wrap {
+  max-width: 1040px;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 10px 0 14px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.card,
+.row {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  box-shadow: var(--super-shadow);
+}
+
+.card:hover,
+.row:hover {
+  box-shadow: var(--super-shadow-hover);
+}
+
+#stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 9px;
+}
+
+#stats .chip {
+  border-radius: 14px;
+  padding: 11px 10px;
+  text-align: center;
+}
+
+.row {
+  border-radius: 17px;
+}
+
+@media (max-width: 700px) {
+  .wrap {
+    padding: 10px 9px 35px;
+  }
+
+  #stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .row {
+    align-items: flex-start;
+  }
+
+  .row .main {
+    min-width: 100%;
+  }
+
+  .row > div:last-child {
+    width: 100%;
+  }
+
+  .row > div:last-child .btn {
+    flex: 1;
+  }
+
+  .row > div:last-child {
+    display: flex;
+  }
+}
+
+@media (max-width: 430px) {
+  #stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .row > div:last-child {
+    flex-direction: column;
+  }
+
+  .row > div:last-child .btn {
+    width: 100%;
+  }
+}
+
+</style>
 </head>
 <body>
 <div class="wrap">
