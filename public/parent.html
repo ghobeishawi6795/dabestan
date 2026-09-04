@@ -656,7 +656,11 @@ body{
     parentCode = code;
     document.getElementById('codeMsg').innerHTML = '';
     try {
-      const res = await fetch(`/api/parent/get-student?code=${encodeURIComponent(code)}`);
+      const res = await fetch('/api/parent/get-student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
       const data = await res.json();
       if (!res.ok) { document.getElementById('codeMsg').innerHTML = `<div class="msg-err">کد نامعتبره — دوباره چک کن.</div>`; return; }
       render(data);
@@ -701,9 +705,11 @@ async function loadLearningReport() {
       return;
     }
 
-    const res = await fetch(
-      `/api/parent/get-learning-report?code=${encodeURIComponent(parentCode)}&student_id=${encodeURIComponent(studentId)}`
-    );
+    const res = await fetch('/api/parent/get-learning-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: parentCode, student_id: studentId })
+    });
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok || !data?.ok) {
@@ -794,7 +800,11 @@ async function loadLearningReport() {
 
 async function loadDiary() {
     try {
-      const res = await fetch(`/api/parent/get-garden-diary?code=${encodeURIComponent(parentCode)}`);
+      const res = await fetch('/api/parent/get-garden-diary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: parentCode })
+    });
       const data = await res.json();
       if (!res.ok) throw new Error();
       renderDiary(data.entries);
@@ -818,7 +828,11 @@ async function loadDiary() {
 
   async function loadChat() {
     try {
-      const res = await fetch(`/api/parent/list-messages?code=${encodeURIComponent(parentCode)}`);
+      const res = await fetch('/api/parent/list-messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: parentCode })
+    });
       const data = await res.json();
       if (!res.ok) return;
       if (!data.teacherName) {

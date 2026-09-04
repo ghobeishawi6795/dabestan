@@ -2,13 +2,13 @@ import { json, err } from '../_lib/http.js';
 
 const MAX_CODE_LEN = 128;
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestPost({ request, env }) {
   try {
-    const url = new URL(request.url);
-    const parentCode = String(url.searchParams.get('code') || '').trim();
+    const body = await request.json().catch(() => null);
+    const parentCode = String(body?.code || '').trim();
 
     if (!parentCode) {
-      return err('code query param is required', 400);
+      return err('code is required', 400);
     }
 
     if (parentCode.length > MAX_CODE_LEN) {

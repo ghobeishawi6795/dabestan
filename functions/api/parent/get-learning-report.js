@@ -4,14 +4,14 @@ const MAX_CODE_LEN = 128;
 
 // این مسیر عمومی است (بدون سشن) — والدین با parent_code وارد می‌شوند، نه ورود با رمز.
 // الگوی احراز هویت دقیقاً مطابق submit-feedback.js / get-garden-diary.js است.
-export async function onRequestGet({ request, env }) {
+export async function onRequestPost({ request, env }) {
   try {
-    const url = new URL(request.url);
-    const code = String(url.searchParams.get('code') || '').trim();
-    const studentId = Number(url.searchParams.get('student_id') || 0);
+    const body = await request.json().catch(() => null);
+    const code = String(body?.code || '').trim();
+    const studentId = Number(body?.student_id || 0);
 
     if (!code) {
-      return err('code query param is required', 400);
+      return err('code is required', 400);
     }
 
     if (code.length > MAX_CODE_LEN) {
