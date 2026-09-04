@@ -220,7 +220,7 @@ button:active, .btn:active { transform: scale(.95); }
       <li><a class="nav-item" href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span> تکالیف من</a></li>
       <li><a class="nav-item" href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span> باغچهٔ من</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDiaryModal();"><span class="ic">📔</span> دفترچهٔ باغچه</a></li>
-      <li><a class="nav-item" href="#" onclick="comingSoon(event)"><span class="ic">🏆</span> نشان‌ها</a></li>
+      <li><a class="nav-item" href="#" onclick="openAchievementsModal(); return false;"><span class="ic">🏆</span> نشان‌ها</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
     <div class="sidebar-foot">
@@ -367,6 +367,28 @@ button:active, .btn:active { transform: scale(.95); }
 </nav>
 
 <div class="toast-mini" id="toastMini"></div>
+
+
+<!-- ===== مودال نشان‌ها و دستاوردها ===== -->
+<div class="modal" id="modalAchievements">
+  <div class="modal-card" style="max-width:900px;">
+    <div class="modal-head">
+      <h3>🏆 نشان‌ها و دستاوردهای من</h3>
+      <button class="modal-close" onclick="closeModal('achievements')">×</button>
+    </div>
+
+    <div id="achievementsSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+
+    <div id="achievementsBox">
+      <div class="muted">در حال بارگذاری...</div>
+    </div>
+
+    <div style="margin-top:22px;">
+      <h4>🎁 پاداش‌های اخیر</h4>
+      <div id="achievementsRewardsBox"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ===== مودال پروفایل ===== -->
 <div class="modal-backdrop" id="modalProfile">
@@ -713,7 +735,99 @@ button:active, .btn:active { transform: scale(.95); }
     }
   }
 
-  // ===== جشن نشان جدید =====
+
+// ===== نشان‌ها و دستاوردها =====
+async function openAchievementsModal() {
+  openModal('achievements');
+
+  const summaryBox = document.getElementById('achievementsSummary');
+  const box = document.getElementById('achievementsBox');
+  const rewardsBox = document.getElementById('achievementsRewardsBox');
+
+  summaryBox.innerHTML = '';
+  box.innerHTML = '<div class="muted">در حال بارگذاری نشان‌ها...</div>';
+  rewardsBox.innerHTML = '';
+
+  try {
+    const [data, overview] = await Promise.all([
+      apiFetch('/student/get-achievements'),
+      apiFetch('/student/get-overview')
+    ]);
+
+    if (!data?.ok) {
+      throw new Error(data?.error || 'خطا در دریافت دستاوردها');
+    }
+
+    const summary = data.summary || {};
+    const badges = Array.isArray(data.badges) ? data.badges : [];
+    const rewards = Array.isArray(data.rewards) ? data.rewards : [];
+
+    summaryBox.innerHTML = `
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:24px;">🏆</div>
+        <strong>${summary.earnedBadges || 0} / ${summary.totalBadges || 0}</strong>
+        <div class="muted">نشان گرفته‌شده</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:24px;">⭐</div>
+        <strong>${overview?.stars || 0}</strong>
+        <div class="muted">امتیاز رشد</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:24px;">🔥</div>
+        <strong>${overview?.streak || 0}</strong>
+        <div class="muted">روز پیاپی</div>
+      </div>
+    `;
+
+    if (!badges.length) {
+      box.innerHTML = '<div class="muted">هنوز نشانی ثبت نشده است.</div>';
+    } else {
+      box.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+          ${badges.map(b => {
+            const earned = !!b.earned;
+            return `
+              <div class="card"
+                   style="padding:15px;text-align:center;opacity:${earned ? '1' : '.48'};${earned ? '' : 'filter:grayscale(1);'}">
+                <div style="font-size:42px;margin-bottom:8px;">${escapeHtml(b.icon || '🏆')}</div>
+                <strong>${escapeHtml(b.name || '')}</strong>
+                <div class="muted" style="font-size:13px;margin-top:6px;">
+                  ${escapeHtml(b.description || '')}
+                </div>
+                <div style="margin-top:10px;font-size:12px;">
+                  ${earned
+                    ? `✅ گرفته شده${b.earnedAt ? ` · ${escapeHtml(b.earnedAt.slice(0,10))}` : ''}`
+                    : '🔒 هنوز نگرفتی'}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    if (!rewards.length) {
+      rewardsBox.innerHTML = '<div class="muted">هنوز پاداشی دریافت نکرده‌ای.</div>';
+    } else {
+      rewardsBox.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${rewards.slice(0,10).map(r => `
+            <div class="card" style="padding:10px 14px;display:flex;justify-content:space-between;">
+              <span>🎁 ${escapeHtml(r.date || '')}</span>
+              <strong>+${Number(r.value || 0)} ⭐</strong>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+  } catch (e) {
+    box.innerHTML = `<div class="error">خطا: ${escapeHtml(e.message || 'خطای نامشخص')}</div>`;
+  }
+}
+
+// ===== جشن نشان جدید =====
   let badgeCelebrateQueue = [];
   function celebratePendingBadges() {
     const raw = sessionStorage.getItem('hw_pending_badges');
