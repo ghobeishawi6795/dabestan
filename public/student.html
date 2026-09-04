@@ -197,7 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 @keyframes sway { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
 @keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes wiggle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
 .sprout-wrap svg { animation: sway 4s ease-in-out infinite; transform-origin: 50% 90%; }
+.sprout-wrap.wiggle svg { animation: wiggle .45s ease; }
 .task-card { animation: popIn .45s ease both; }
 .task-card:nth-child(1) { animation-delay: .05s; }
 .task-card:nth-child(2) { animation-delay: .12s; }
@@ -248,7 +250,11 @@ button:active, .btn:active { transform: scale(.95); }
     <div class="festival-banner" id="festivalBanner" style="display:none;"></div>
 
     <section class="sprout-panel" id="sproutSection">
-      <div class="sprout-wrap" title="رشد یادگیری تو">
+      <div class="garden-weather" id="gardenWeather" title="حال‌وهوای این‌هفتهٔ باغچه">
+        <span class="gw-icon" id="gwIcon">🌱</span>
+        <span class="gw-label" id="gwLabel"></span>
+      </div>
+      <div class="sprout-wrap" title="نهالت رو لمس کن">
         <svg viewBox="0 0 128 128" fill="none">
           <ellipse cx="64" cy="116" rx="34" ry="7" fill="#2A5238" opacity=".25"/>
           <path d="M64 116 C64 80 64 60 64 40" stroke="#3F7A52" stroke-width="6" stroke-linecap="round"/>
@@ -262,10 +268,8 @@ button:active, .btn:active { transform: scale(.95); }
           <circle cx="76" cy="32" r="3" fill="#E8734A" opacity=".55"/>
         </svg>
       </div>
-      <div class="sprout-title" id="sproutStage">رشد یادگیری تو — 🌱</div>
-      <div class="sprout-sub" id="sproutSub">
-        هر قدمی که برای یادگیری برمی‌داری، گیاهت را رشد می‌دهد.
-      </div>
+      <div class="sprout-title" id="sproutStage">—</div>
+      <div class="sprout-sub" id="sproutSub"></div>
       <div class="sprout-progress"><div id="sproutBar" style="width:0%"></div></div>
     </section>
 
@@ -574,15 +578,15 @@ button:active, .btn:active { transform: scale(.95); }
 
   function renderGrowth(points) {
     const { current, next } = stageFor(points);
-    document.getElementById('sproutStage').textContent = `رشد یادگیری تو: «${current.name}» ${current.icon}`;
+    document.getElementById('sproutStage').textContent = `نهال تو: «${current.name}» ${current.icon}`;
     if (next) {
       const need = next.min - points;
-      document.getElementById('sproutSub').textContent = `برای رشد بعدی، ${toFa(need)} امتیاز یادگیری دیگر نیاز داری.`;
+      document.getElementById('sproutSub').textContent = `${toFa(need)} امتیاز دیگر تا مرحلهٔ «${next.name}»`;
       const span = next.min - current.min;
       const pct = Math.min(100, Math.round(((points - current.min) / span) * 100));
       document.getElementById('sproutBar').style.width = pct + '%';
     } else {
-      document.getElementById('sproutSub').textContent = 'به بالاترین مرحلهٔ رشد یادگیری رسیدی! 🎉';
+      document.getElementById('sproutSub').textContent = 'به بالاترین مرحله رسیدی! 🎉';
       document.getElementById('sproutBar').style.width = '100%';
     }
 
@@ -1025,9 +1029,18 @@ async function loadProgressChart() {
         banner.innerHTML = `<span style="font-size:1.4rem;">${overview.festival.icon}</span> <span>${escapeHtml(overview.festival.name)} شروع شده — با فرستادن تکلیف توی این بازه نشان ویژه می‌گیری!</span>`;
       }
 
+      renderGardenWeather(overview.gardenWeather);
     } catch (e) { console.error(e); }
   }
 
+  function renderGardenWeather(weather) {
+    if (!weather) return;
+    const box = document.getElementById('gardenWeather');
+    box.className = `garden-weather gw-${weather.code}`;
+    box.title = weather.label;
+    document.getElementById('gwIcon').textContent = weather.icon;
+    document.getElementById('gwLabel').textContent = weather.code === 'new' ? '' : weather.label.split('—')[0].trim();
+  }
 
   // ===== دفترچهٔ باغچه =====
   async function openDiaryModal() {
@@ -1170,6 +1183,13 @@ function aliveToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1800);
 }
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+document.querySelector('.sprout-wrap')?.addEventListener('click', () => {
+  const w = document.querySelector('.sprout-wrap');
+  w.classList.remove('wiggle'); void w.offsetWidth; w.classList.add('wiggle');
+  aliveToast(pick(['دارم بزرگ می‌شم! 🌱', 'یه تکلیف دیگه بفرست! ✨', 'داره جوانه می‌زنه! 🌿', 'به‌به! ادامه بده 🌟']));
+  navigator.vibrate?.(20);
+});
 </script>
 
 <!-- ===== مودال های‌فایو ===== -->

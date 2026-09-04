@@ -68,7 +68,7 @@ export async function onRequestGet({ request, env, data }) {
   const { results: studentRows } = await env.DB.prepare(`
     SELECT
       u.id,
-      u.name,
+      u.full_name AS name,
       u.username,
       COUNT(s.id) AS submission_count,
       ROUND(AVG(s.score), 1) AS average_score
@@ -88,9 +88,9 @@ export async function onRequestGet({ request, env, data }) {
       AND s.score IS NOT NULL
     GROUP BY
       u.id,
-      u.name,
+      u.full_name,
       u.username
-    ORDER BY average_score ASC, u.name ASC, u.id ASC
+    ORDER BY average_score ASC, u.full_name ASC, u.id ASC
   `).bind(
     teacher.school_id,
     classId,

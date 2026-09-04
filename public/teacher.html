@@ -2507,14 +2507,13 @@ async function createSmartAssignment() {
   try {
     const data = await apiFetch('/teacher/create-smart-assignment', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+      body: {
         class_id: classId,
         student_id: studentId,
         title,
         due_date: dueDate,
         limit
-      })
+      }
     });
 
     if (!data?.ok) {
