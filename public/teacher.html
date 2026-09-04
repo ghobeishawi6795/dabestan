@@ -2389,6 +2389,42 @@ ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف
 </script>
 
 <!-- ===== تحلیل یادگیری کلاس ===== -->
+
+<section id="smartAssignmentSection" class="card" style="margin-top:18px;">
+  <h3>🤖 ساخت تکلیف هوشمند</h3>
+  <p class="muted">بر اساس مهارت‌هایی که دانش‌آموز بیشتر به تمرین نیاز دارد.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+    <select id="smartAssignmentClass" class="input">
+      <option value="">انتخاب کلاس</option>
+    </select>
+
+    <select id="smartAssignmentStudent" class="input">
+      <option value="">انتخاب دانش‌آموز</option>
+    </select>
+
+    <input id="smartAssignmentTitle" class="input"
+           placeholder="عنوان تکلیف">
+
+    <input id="smartAssignmentDueDate" class="input"
+           type="date">
+
+    <select id="smartAssignmentLimit" class="input">
+      <option value="5">۵ سؤال</option>
+      <option value="10">۱۰ سؤال</option>
+      <option value="15">۱۵ سؤال</option>
+      <option value="20">۲۰ سؤال</option>
+    </select>
+  </div>
+
+  <button class="btn btn-primary" style="margin-top:12px;"
+          onclick="createSmartAssignment()">
+    🤖 ساخت تکلیف هوشمند
+  </button>
+
+  <div id="smartAssignmentResult" style="margin-top:12px;"></div>
+</section>
+
 <section id="classLearningAnalysisSection" class="card" style="margin-top:18px;">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
     <div>
@@ -2406,6 +2442,76 @@ ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف
 </section>
 
 <script>
+
+async function loadSmartAssignmentStudents() {
+  const classId = document.getElementById('smartAssignmentClass').value;
+  const studentSelect = document.getElementById('smartAssignmentStudent');
+
+  studentSelect.innerHTML = '<option value="">انتخاب دانش‌آموز</option>';
+
+  if (!classId) return;
+
+  try {
+    const data = await apiFetch('/teacher/list-students?class_id=' + encodeURIComponent(classId));
+    const students = Array.isArray(data?.students) ? data.students : [];
+
+    studentSelect.innerHTML =
+      '<option value="">انتخاب دانش‌آموز</option>' +
+      students.map(s =>
+        `<option value="${s.id}">${escapeHtml(s.full_name || s.fullName || '')}</option>`
+      ).join('');
+  } catch (e) {
+    console.error('loadSmartAssignmentStudents:', e);
+  }
+}
+
+async function createSmartAssignment() {
+  const classId = Number(document.getElementById('smartAssignmentClass').value);
+  const studentId = Number(document.getElementById('smartAssignmentStudent').value);
+  const title = document.getElementById('smartAssignmentTitle').value.trim();
+  const dueDate = document.getElementById('smartAssignmentDueDate').value || null;
+  const limit = Number(document.getElementById('smartAssignmentLimit').value || 5);
+  const resultBox = document.getElementById('smartAssignmentResult');
+
+  if (!classId || !studentId || !title) {
+    resultBox.innerHTML = '<div class="error">کلاس، دانش‌آموز و عنوان را وارد کن.</div>';
+    return;
+  }
+
+  resultBox.innerHTML = '<div class="muted">در حال ساخت تکلیف...</div>';
+
+  try {
+    const data = await apiFetch('/teacher/create-smart-assignment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        class_id: classId,
+        student_id: studentId,
+        title,
+        due_date: dueDate,
+        limit
+      })
+    });
+
+    if (!data?.ok) {
+      throw new Error(data?.error || 'ساخت تکلیف ناموفق بود');
+    }
+
+    resultBox.innerHTML = `
+      <div class="success">
+        ✅ تکلیف ساخته شد؛ ${data.questionCount} سؤال بر اساس
+        ${data.weakSkills?.length || 0} مهارت نیازمند تمرین.
+      </div>
+    `;
+
+    document.getElementById('smartAssignmentTitle').value = '';
+
+  } catch (e) {
+    resultBox.innerHTML =
+      `<div class="error">${escapeHtml(e.message || 'خطای نامشخص')}</div>`;
+  }
+}
+
 async function loadClassLearningAnalysis() {
   const select = document.getElementById('classAnalysisSelect');
   const box = document.getElementById('classLearningAnalysisBox');
