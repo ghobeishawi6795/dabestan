@@ -442,6 +442,10 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
       
       if (data.avatar) {
         document.getElementById('studentAvatar').textContent = data.avatar;
+        document.getElementById('profileAvatar').textContent = data.avatar;
+      } else {
+        document.getElementById('studentAvatar').textContent = '🧒';
+        document.getElementById('profileAvatar').textContent = '🧒';
       }
 
       if (data.xpPerLevel > 0) {
@@ -457,10 +461,16 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
       }
 
       if (data.gardenWeather) {
-        document.getElementById('plantWeather').textContent = 'آب و هوای باغچه: ' + escapeHtml(data.gardenWeather);
+        const weather = typeof data.gardenWeather === 'object' 
+          ? (data.gardenWeather.text || data.gardenWeather.weather || data.gardenWeather.toString() || 'آفتابی ☀️')
+          : data.gardenWeather;
+        document.getElementById('plantWeather').textContent = 'آب و هوای باغچه: ' + escapeHtml(weather);
       }
       if (data.festival) {
-        document.getElementById('plantFestival').textContent = '🎉 جشنواره: ' + escapeHtml(data.festival);
+        const festival = typeof data.festival === 'object'
+          ? (data.festival.name || data.festival.title || data.festival.toString() || '')
+          : data.festival;
+        document.getElementById('plantFestival').textContent = '🎉 جشنواره: ' + escapeHtml(festival);
       }
 
       const badgesContainer = document.getElementById('badgesList');
@@ -590,6 +600,7 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
 
   async function loadGoals() {
     try {
+      console.log('Loading goals...');
       const data = await apiFetch('/student/goals');
       const container = document.getElementById('goalsList');
       
@@ -615,7 +626,8 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
         </div>
       `).join('');
     } catch (e) {
-      document.getElementById('goalsList').innerHTML = '<div class="error-state">خطا در بارگذاری اهداف</div>';
+      console.error('Goals error:', e);
+      document.getElementById('goalsList').innerHTML = '<div class="error-state">خطا در بارگذاری اهداف: ' + e.message + '</div>';
     }
   }
 
