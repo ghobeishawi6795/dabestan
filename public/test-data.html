@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تست داده‌ها</title>
+<script src="/assets/auth.js"></script>
+<script src="/assets/api.js"></script>
+<style>
+body{font-family:Tahoma;padding:20px;background:#f5f5f5}
+.box{background:#fff;border:2px solid #333;border-radius:8px;padding:15px;margin:10px 0}
+.box h3{margin:0 0 10px;background:#333;color:#fff;padding:8px;border-radius:4px}
+pre{background:#f0f0f0;padding:10px;border-radius:4px;overflow-x:auto;font-size:11px;direction:ltr;text-align:left;white-space:pre-wrap;word-break:break-all}
+.error{background:#ffebee;color:#c62828;padding:10px;border-radius:4px;border:2px solid #c62828}
+.success{background:#e8f5e9;color:#2e7d32;padding:10px;border-radius:4px;border:2px solid #2e7d32}
+</style>
+</head>
+<body>
+<h1>🔍 تست داده‌های واقعی API</h1>
+<div id="content"></div>
+<script>
+const user=requireAuth(['student']);
+const content=document.getElementById('content');
+
+async function testAPI(name,endpoint){
+  const div=document.createElement('div');
+  div.className='box';
+  div.innerHTML=`<h3>${name}</h3><div>در حال بارگذاری...</div>`;
+  content.appendChild(div);
+  try{
+    const start=Date.now();
+    const data=await apiFetch(endpoint);
+    const duration=Date.now()-start;
+    div.innerHTML=`<div class="success">✅ موفقیت (${duration}ms)</div><pre>${JSON.stringify(data,null,2)}</pre>`;
+  }catch(e){
+    div.innerHTML=`<div class="error">❌ خطا: ${e.message}</div><pre>${JSON.stringify(e,null,2)}</pre>`;
+  }
+}
+
+if(user){
+  content.innerHTML=`<div class="success">کاربر لاگین است: ${user.fullName}</div>`;
+  testAPI(' Overview','/student/get-overview');
+  testAPI('🎯 اهداف','/student/goals');
+  testAPI('📚 تکالیف','/student/get-tasks');
+  testAPI('🔔 اعلان‌ها','/student/list-notifications');
+  testAPI('🎁 چالش‌ها','/student/list-daily-challenges');
+  testAPI('👋 های‌فایو','/student/list-high-fives');
+  testAPI('👨‍👦 والدین','/student/list-parent-notes');
+}else{
+  content.innerHTML='<div class="error"> کاربر لاگین نیست!</div>';
+}
+</script>
+</body>
+</html>
