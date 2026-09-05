@@ -12,39 +12,256 @@
 <style>
 body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f7f2; color: #26332b; }
 .container { max-width: 1100px; margin: auto; padding: 20px; }
-.top { background: #fff; border-radius: 24px; padding: 22px; display: flex; align-items: center; gap: 18px; box-shadow: 0 8px 25px #00000009; }
-.avatar { width: 64px; height: 64px; border-radius: 50%; background: #e3f0e6; display: grid; place-items: center; font-size: 32px; }
+
+/* نوار ناوبری */
+.navbar {
+  background: #fff;
+  border-radius: 20px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px #00000008;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.nav-brand {
+  font-size: 20px;
+  font-weight: 900;
+  color: #3F7A52;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.nav-link {
+  text-decoration: none;
+  color: #26332b;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-link:hover {
+  background: #e3f0e6;
+  color: #3F7A52;
+}
+.nav-link.active {
+  background: #3F7A52;
+  color: #fff;
+}
+.nav-link.logout {
+  color: #e2725b;
+}
+.nav-link.logout:hover {
+  background: #fdecd8;
+}
+
+/* هدر پروفایل */
+.top {
+  background: #fff;
+  border-radius: 24px;
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 8px 25px #00000009;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e3f0e6;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+}
 .top h1 { margin: 0; font-size: 22px; }
 .top p { margin: 6px 0 0; color: #718075; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
-.stat { background: #fff; border-radius: 18px; padding: 18px; text-align: center; }
-.stat b { display: block; font-size: 27px; margin-top: 8px; color: #3F7A52; }
+
+/* آمار */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+.stat {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  text-align: center;
+}
+.stat b {
+  display: block;
+  font-size: 27px;
+  margin-top: 8px;
+  color: #3F7A52;
+}
 .stat span { color: #718075; font-size: 13px; }
-.main { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-top: 16px; }
-.card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 7px 22px #00000008; }
-.card h2 { font-size: 17px; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
-.task { border: 1px solid #e6ebe6; border-radius: 15px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; }
-.task:hover { background: #f8faf9; border-color: #3F7A52; }
-.task small { color: #718075; display: block; margin-top: 4px; }
-.status { background: #e5f3e8; color: #34734b; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; }
-.status.warn { background: #fff2d7; color: #a46b00; }
+
+/* محتوای اصلی */
+.main {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 7px 22px #00000008;
+}
+.card h2 {
+  font-size: 17px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* تکالیف */
+.task {
+  border: 1px solid #e6ebe6;
+  border-radius: 15px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+  cursor: pointer;
+}
+.task:hover {
+  background: #f8faf9;
+  border-color: #3F7A52;
+}
+.task small {
+  color: #718075;
+  display: block;
+  margin-top: 4px;
+}
+.status {
+  background: #e5f3e8;
+  color: #34734b;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.status.warn {
+  background: #fff2d7;
+  color: #a46b00;
+}
+
+/* مهارت‌ها */
 .skill { margin-bottom: 15px; }
-.skill-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-.progress { height: 10px; background: #edf1ed; border-radius: 99px; overflow: hidden; }
-.progress div { height: 100%; background: #4c8b61; border-radius: 99px; transition: width 1s ease; }
-.plant { text-align: center; background: #edf6ef; border-radius: 20px; padding: 24px; }
-.plant .tree { font-size: 95px; display: block; margin-bottom: 10px; }
+.skill-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.progress {
+  height: 10px;
+  background: #edf1ed;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress div {
+  height: 100%;
+  background: #4c8b61;
+  border-radius: 99px;
+  transition: width 1s ease;
+}
+
+/* گیاه */
+.plant {
+  text-align: center;
+  background: #edf6ef;
+  border-radius: 20px;
+  padding: 24px;
+}
+.plant .tree {
+  font-size: 95px;
+  display: block;
+  margin-bottom: 10px;
+}
 .plant h3 { margin: 8px 0; font-size: 18px; }
-.plant p { color: #718075; font-size: 13px; line-height: 1.6; }
-.actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
-.action-btn { border: 1px solid #e3e9e3; border-radius: 14px; padding: 14px; background: #fafcf9; text-align: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; text-decoration: none; color: #26332b; display: block; }
-.action-btn:hover { background: #e3f0e6; border-color: #3F7A52; }
-.badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.badge { width: 70px; text-align: center; font-size: 11px; color: #718075; }
-.badge div { width: 58px; height: 58px; margin: auto; border-radius: 50%; background: #fff4cc; display: grid; place-items: center; font-size: 28px; margin-bottom: 6px; }
+.plant p {
+  color: #718075;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* دکمه‌های اکشن */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+.action-btn {
+  border: 1px solid #e3e9e3;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fafcf9;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: 0.2s;
+  text-decoration: none;
+  color: #26332b;
+  display: block;
+}
+.action-btn:hover {
+  background: #e3f0e6;
+  border-color: #3F7A52;
+}
+
+/* نشان‌ها */
+.badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.badge {
+  width: 70px;
+  text-align: center;
+  font-size: 11px;
+  color: #718075;
+}
+.badge div {
+  width: 58px;
+  height: 58px;
+  margin: auto;
+  border-radius: 50%;
+  background: #fff4cc;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+/* موبایل */
 @media(max-width: 750px) {
   .stats { grid-template-columns: repeat(2, 1fr); }
   .main { grid-template-columns: 1fr; }
+  .navbar { flex-direction: column; align-items: stretch; }
+  .nav-links { justify-content: center; }
+  .nav-link { font-size: 13px; padding: 6px 10px; }
 }
 </style>
 </head>
@@ -52,6 +269,21 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
 <body>
 <div class="container">
 
+  <!-- نوار ناوبری کامل -->
+  <nav class="navbar">
+    <div class="nav-brand"> باغچهٔ درس</div>
+    <div class="nav-links">
+      <a href="/student.html" class="nav-link active"> داشبورد</a>
+      <a href="#lessons" class="nav-link" onclick="showSection('lessons')">📚 درس‌ها</a>
+      <a href="#challenges" class="nav-link" onclick="showSection('challenges')">🎯 چالش</a>
+      <a href="#highfives" class="nav-link" onclick="showSection('highfives')"> های‌فایو</a>
+      <a href="#parent" class="nav-link" onclick="showSection('parent')">👨‍‍👦 والدین</a>
+      <a href="#profile" class="nav-link" onclick="showSection('profile')">👤 پروفایل</a>
+      <a href="#" class="nav-link logout" onclick="logout()">🚪 خروج</a>
+    </div>
+  </nav>
+
+  <!-- هدر پروفایل -->
   <header class="top">
     <div class="avatar" id="studentAvatar">🧒</div>
     <div>
@@ -60,54 +292,87 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
     </div>
   </header>
 
+  <!-- آمار -->
   <section class="stats">
     <div class="stat">📚 <b id="statOpenTasks">۰</b> <span>تکلیف باز</span></div>
-    <div class="stat">📈 <b id="statAvgScore">—</b> <span>میانگین نمرات</span></div>
-    <div class="stat">🧠 <b id="statMastery">۰٪</b> <span>تسلط کلی</span></div>
+    <div class="stat"> <b id="statAvgScore">—</b> <span>میانگین نمرات</span></div>
+    <div class="stat">🧠 <b id="statMastery">٪</b> <span>تسلط کلی</span></div>
     <div class="stat">🏆 <b id="statBadges">۰</b> <span>دستاورد</span></div>
   </section>
 
-  <section class="main">
-    <div>
-      <div class="card">
-        <h2>📚 تکالیف من</h2>
-        <div id="tasksList">
-          <div style="text-align:center; padding:20px; color:#718075;">در حال دریافت تکالیف...</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h2>🧠 تحلیل یادگیری</h2>
-        <p style="color:#718075;font-size:13px; margin-bottom:16px;">وضعیت کلی: در حال پیشرفت 📈</p>
-        
-        <div id="skillsList">
-          <div class="skill">
-            <div class="skill-head"><b>در حال بارگذاری...</b><span>۰٪</span></div>
-            <div class="progress"><div style="width:0%"></div></div>
+  <!-- بخش‌های داینامیک -->
+  <div id="dynamicContent">
+    <section class="main">
+      <div>
+        <!-- تکالیف -->
+        <div class="card">
+          <h2>📚 تکالیف من</h2>
+          <div id="tasksList">
+            <div style="text-align:center; padding:20px; color:#718075;">در حال دریافت تکالیف...</div>
           </div>
         </div>
 
-        <div class="actions">
-          <a href="/student.html#challenges" class="action-btn">🎯 چالش روزانه</a>
-          <a href="/student.html#practice" class="action-btn">🤖 تمرین پیشنهادی</a>
+        <!-- تحلیل یادگیری -->
+        <div class="card" style="margin-top:16px">
+          <h2>🧠 تحلیل یادگیری</h2>
+          <p style="color:#718075;font-size:13px; margin-bottom:16px;">وضعیت کلی: در حال پیشرفت 📈</p>
+          
+          <div id="skillsList">
+            <div class="skill">
+              <div class="skill-head"><b>در حال بارگذاری...</b><span>۰٪</span></div>
+              <div class="progress"><div style="width:0%"></div></div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <a href="#challenges" class="action-btn" onclick="showSection('challenges')">🎯 چالش روزانه</a>
+            <a href="#practice" class="action-btn" onclick="showSection('practice')">🤖 تمرین پیشنهادی</a>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div>
-      <div class="plant">
-        <span class="tree" id="plantIcon">🌱</span>
-        <h3 id="plantStage">رشد یادگیری تو: «جوانه»</h3>
-        <p>با تمرین و پیشرفت، باغچهٔ یادگیریت رشد می‌کند.</p>
-      </div>
+      <div>
+        <!-- گیاه -->
+        <div class="plant">
+          <span class="tree" id="plantIcon"></span>
+          <h3 id="plantStage">رشد یادگیری تو: «جوانه»</h3>
+          <p>با تمرین و پیشرفت، باغچهٔ یادگیریت رشد می‌کند.</p>
+        </div>
 
-      <div class="card" style="margin-top:16px">
-        <h2>🏆 دستاوردها</h2>
-        <div class="badges" id="badgesList">
+        <!-- دستاوردها -->
+        <div class="card" style="margin-top:16px">
+          <h2> دستاوردها</h2>
+          <div class="badges" id="badgesList"></div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
+
+  <!-- بخش‌های دیگر (مخفی در ابتدا) -->
+  <div id="lessonsSection" style="display:none" class="card" style="margin-top:16px">
+    <h2>📚 درس‌های من</h2>
+    <div id="lessonsList">در حال بارگذاری...</div>
+  </div>
+
+  <div id="challengesSection" style="display:none" class="card" style="margin-top:16px">
+    <h2>🎯 چالش روزانه</h2>
+    <div id="challengesList">در حال بارگذاری...</div>
+  </div>
+
+  <div id="highfivesSection" style="display:none" class="card" style="margin-top:16px">
+    <h2>👋 های‌فایو</h2>
+    <div id="highfivesList">در حال بارگذاری...</div>
+  </div>
+
+  <div id="parentSection" style="display:none" class="card" style="margin-top:16px">
+    <h2>👨‍👩‍👦 یادداشت والدین</h2>
+    <div id="parentNotesList">در حال بارگذاری...</div>
+  </div>
+
+  <div id="profileSection" style="display:none" class="card" style="margin-top:16px">
+    <h2>👤 پروفایل من</h2>
+    <div id="profileContent">در حال بارگذاری...</div>
+  </div>
 
 </div>
 
@@ -120,7 +385,41 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
     if (user.avatar) document.getElementById('studentAvatar').textContent = user.avatar;
   }
 
-  function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۴۵۶۷۸'[d]); }
+  function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+  function showSection(sectionName) {
+    // مخفی کردن همه بخش‌ها
+    document.getElementById('dynamicContent').style.display = 'none';
+    document.getElementById('lessonsSection').style.display = 'none';
+    document.getElementById('challengesSection').style.display = 'none';
+    document.getElementById('highfivesSection').style.display = 'none';
+    document.getElementById('parentSection').style.display = 'none';
+    document.getElementById('profileSection').style.display = 'none';
+
+    // نمایش بخش انتخاب شده
+    if (sectionName === 'dashboard') {
+      document.getElementById('dynamicContent').style.display = 'block';
+    } else if (sectionName === 'lessons') {
+      document.getElementById('lessonsSection').style.display = 'block';
+      loadLessons();
+    } else if (sectionName === 'challenges') {
+      document.getElementById('challengesSection').style.display = 'block';
+      loadChallenges();
+    } else if (sectionName === 'highfives') {
+      document.getElementById('highfivesSection').style.display = 'block';
+      loadHighFives();
+    } else if (sectionName === 'parent') {
+      document.getElementById('parentSection').style.display = 'block';
+      loadParentNotes();
+    } else if (sectionName === 'profile') {
+      document.getElementById('profileSection').style.display = 'block';
+      loadProfile();
+    }
+
+    // به‌روزرسانی لینک فعال
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    event.target.classList.add('active');
+  }
 
   async function loadTasks() {
     try {
@@ -129,7 +428,7 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
       document.getElementById('statOpenTasks').textContent = toFa(data.openCount || 0);
 
       if (!data.tasks || data.tasks.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#718075;">آفرین! تکلیف بازی نداری </div>';
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#718075;">آفرین! تکلیف بازی نداری 🎉</div>';
         return;
       }
 
@@ -202,6 +501,121 @@ body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f
     }
   }
 
+  async function loadLessons() {
+    try {
+      const data = await apiFetch('/student/list-lessons');
+      const container = document.getElementById('lessonsList');
+      if (!data.lessons || data.lessons.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#718075;">هنوز درسی اضافه نشده</div>';
+        return;
+      }
+      container.innerHTML = data.lessons.map(lesson => `
+        <div class="task">
+          <div>
+            <b>${lesson.icon} ${lesson.title}</b>
+            <small>${lesson.subject}</small>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      document.getElementById('lessonsList').innerHTML = '<div style="color:red;">خطا در بارگذاری درس‌ها</div>';
+    }
+  }
+
+  async function loadChallenges() {
+    try {
+      const data = await apiFetch('/student/list-daily-challenges');
+      const container = document.getElementById('challengesList');
+      if (!data.challenges || data.challenges.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#718075;">چالش امروز هنوز تعریف نشده</div>';
+        return;
+      }
+      container.innerHTML = data.challenges.map(ch => `
+        <div class="task">
+          <div>
+            <b>${ch.title}</b>
+            <small>${ch.description || ''}</small>
+          </div>
+          <span class="status ${ch.completed ? '' : 'warn'}">${ch.completed ? '✅ انجام شد' : '⏳ در انتظار'}</span>
+        </div>
+      `).join('');
+    } catch (e) {
+      document.getElementById('challengesList').innerHTML = '<div style="color:red;">خطا در بارگذاری چالش‌ها</div>';
+    }
+  }
+
+  async function loadHighFives() {
+    try {
+      const data = await apiFetch('/student/list-high-fives');
+      const container = document.getElementById('highfivesList');
+      if (!data.highFives || data.highFives.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#718075;">هنوز های‌فایویی دریافت نکردی 👋</div>';
+        return;
+      }
+      container.innerHTML = data.highFives.map(hf => `
+        <div class="task">
+          <div>
+            <b>👋 از طرف: ${hf.fromName}</b>
+            <small>${hf.message || 'یک های‌فایو فرستاد!'}</small>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      document.getElementById('highfivesList').innerHTML = '<div style="color:red;">خطا در بارگذاری های‌فایوها</div>';
+    }
+  }
+
+  async function loadParentNotes() {
+    try {
+      const data = await apiFetch('/student/list-parent-notes');
+      const container = document.getElementById('parentNotesList');
+      if (!data.notes || data.notes.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#718075;">هنوز یادداشتی از والدین نداری</div>';
+        return;
+      }
+      container.innerHTML = data.notes.map(note => `
+        <div class="task">
+          <div>
+            <b>📝 ${note.parent_name}</b>
+            <small>${note.note}</small>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      document.getElementById('parentNotesList').innerHTML = '<div style="color:red;">خطا در بارگذاری یادداشت‌ها</div>';
+    }
+  }
+
+  async function loadProfile() {
+    try {
+      const data = await apiFetch('/account/get-profile');
+      const container = document.getElementById('profileContent');
+      container.innerHTML = `
+        <div style="text-align:center; padding:20px;">
+          <div style="font-size:80px; margin-bottom:10px;">${data.avatar || '🧒'}</div>
+          <h3>${data.full_name}</h3>
+          <p style="color:#718075;">${data.username}</p>
+          <div style="margin-top:20px;">
+            <div class="stat" style="display:inline-block; margin:5px;">
+              <b>${toFa(data.growth_points || 0)}</b>
+              <span>امتیاز رشد</span>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (e) {
+      document.getElementById('profileContent').innerHTML = '<div style="color:red;">خطا در بارگذاری پروفایل</div>';
+    }
+  }
+
+  function logout() {
+    if (confirm('آیا مطمئن هستید که می‌خواهید خارج شوید؟')) {
+      localStorage.removeItem('auth_token');
+      window.location.href = '/login.html';
+    }
+  }
+
+  // بارگذاری اولیه
   loadTasks();
   loadAnalytics();
 </script>
