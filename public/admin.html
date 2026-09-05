@@ -710,6 +710,11 @@ body{
       </div>
       <p style="margin-top:12px; font-size:.78rem;" id="repWeekNote"></p>
     </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div style="font-weight:800; margin-bottom:10px;">⚠️ هشدارهای مدرسه</div>
+      <div id="repAlertsBox"><div class="muted">در حال بارگذاری...</div></div>
+    </div>
   </main>
 </div>
 
@@ -921,7 +926,7 @@ body{
   function scrollToId(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
   async function loadAll() {
-    await Promise.all([loadOverview(), loadClasses(), loadTeachers(), loadStudents()]);
+    await Promise.all([loadOverview(), loadClasses(), loadTeachers(), loadStudents(), loadAlerts()]);
   }
 
   async function loadOverview() {
@@ -942,6 +947,23 @@ body{
       document.getElementById('repSatisfactionBar').style.width = (data.satisfactionPct || 0) + '%';
       document.getElementById('repWeekNote').textContent = `این هفته ${toFa(data.weekSubmittedCount)} تکلیف تحویل داده شده — از ${toFa(data.activeTaskCount)} تکلیف فعال.`;
     } catch (e) { console.error(e); }
+  }
+
+  async function loadAlerts() {
+    const box = document.getElementById('repAlertsBox');
+    try {
+      const data = await apiFetch('/admin/list-alerts');
+      const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+      box.innerHTML = alerts.length ? alerts.map(a => `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);">
+          <div>
+            <b>${a.studentName || '—'}</b>
+            <span class="muted"> · ${a.className || '—'}</span>
+          </div>
+          <span style="font-size:.8rem; font-weight:700; color:${a.level === 'danger' ? 'var(--coral-dark)' : '#8a6d1f'};">${a.message}</span>
+        </div>
+      `).join('') : '<div class="muted">هشدار فعالی وجود ندارد. همه‌چیز روبه‌راهه. ✅</div>';
+    } catch (e) { box.innerHTML = '<div class="muted">خطا در دریافت هشدارها.</div>'; console.error(e); }
   }
 
   let classesCache = [];

@@ -48,7 +48,7 @@ export async function onRequestPost({ request, env }) {
       return err('access denied', 403);
     }
 
-    const [scores, skills, badges, rewards] = await Promise.all([
+    const [scores, skills, badges] = await Promise.all([
       env.DB.prepare(`
         SELECT
           id,
@@ -98,17 +98,6 @@ export async function onRequestPost({ request, env }) {
         JOIN badges b ON b.code = ub.badge_code
         WHERE ub.user_id = ?
         ORDER BY ub.earned_at DESC
-      `).bind(studentId).all(),
-
-      env.DB.prepare(`
-        SELECT
-          reward_date,
-          reward_type,
-          reward_value
-        FROM daily_rewards
-        WHERE user_id = ?
-        ORDER BY reward_date DESC
-        LIMIT 10
       `).bind(studentId).all()
     ]);
 
@@ -187,8 +176,7 @@ export async function onRequestPost({ request, env }) {
 
       scores: scoreRows,
       skills: skillRows,
-      badges: badges.results || [],
-      rewards: rewards.results || []
+      badges: badges.results || []
     });
   } catch (e) {
     console.error('parent get-learning-report error:', e);

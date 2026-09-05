@@ -2,403 +2,2129 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>داشبورد دانش‌آموز | باغچهٔ درس</title>
-<link rel="stylesheet" href="/assets/style.css">
-<script src="/assets/auth.js"></script>
-<script src="/assets/api.js"></script>
-<script src="/assets/date-fa.js"></script>
-<script src="/assets/line-chart.js"></script>
-<style>
-* { box-sizing: border-box; }
-body { margin: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; background: #f3f7f2; color: #26332b; }
-.container { max-width: 1200px; margin: auto; padding: 20px; }
-.topbar { background: #fff; border-radius: 20px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px #00000008; flex-wrap: wrap; gap: 10px; }
-.brand { font-size: 20px; font-weight: 900; color: #3F7A52; display: flex; align-items: center; gap: 8px; }
-.topbar-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.nav-link { text-decoration: none; color: #26332b; padding: 8px 14px; border-radius: 10px; font-size: 14px; font-weight: 600; transition: all 0.2s; cursor: pointer; }
-.nav-link:hover { background: #e3f0e6; color: #3F7A52; }
-.btn-logout { background: #fdecd8; color: #e2725b; border: none; padding: 8px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-family: inherit; font-size: 14px; }
-.profile-header { background: linear-gradient(135deg, #3F7A52 0%, #5B9E6E 100%); border-radius: 24px; padding: 24px; display: flex; align-items: center; gap: 18px; color: #fff; margin-bottom: 20px; position: relative; flex-wrap: wrap; }
-.avatar { width: 70px; height: 70px; border-radius: 50%; background: rgba(255,255,255,0.2); display: grid; place-items: center; font-size: 36px; cursor: pointer; }
-.profile-info h1 { margin: 0; font-size: 22px; }
-.profile-info p { margin: 6px 0 0; opacity: 0.9; font-size: 14px; }
-.profile-stats { margin-right: auto; display: flex; gap: 24px; flex-wrap: wrap; }
-.profile-stat { text-align: center; }
-.profile-stat b { display: block; font-size: 24px; font-weight: 900; }
-.profile-stat span { font-size: 12px; opacity: 0.9; }
-.dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
-.card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 7px 22px #00000008; margin-bottom: 20px; }
-.card h2 { font-size: 17px; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; color: #3F7A52; }
-.daily-reward { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: #fff; border-radius: 20px; padding: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.2s; }
-.daily-reward:hover { transform: scale(1.02); }
-.daily-reward.claimed { background: linear-gradient(135deg, #90EE90 0%, #32CD32 100%); cursor: default; }
-.daily-reward h3 { margin: 0; font-size: 18px; }
-.daily-reward p { margin: 4px 0 0; font-size: 14px; opacity: 0.9; }
-.reward-btn { background: #fff; color: #FFA500; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: inherit; }
-.reward-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.notifications-list { max-height: 300px; overflow-y: auto; }
-.notification-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; background: #f8faf9; border-right: 4px solid #3F7A52; cursor: pointer; transition: all 0.2s; }
-.notification-item:hover { background: #e3f0e6; }
-.notification-item.unread { background: #fff4cc; border-right-color: #FFD700; }
-.notification-item small { color: #718075; display: block; margin-top: 4px; font-size: 12px; }
-.challenge-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-.challenge-card h3 { margin: 0 0 8px; font-size: 18px; }
-.challenge-card p { margin: 0 0 16px; font-size: 14px; opacity: 0.9; }
-.challenge-btn { background: #fff; color: #764ba2; border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; font-family: inherit; }
-.challenge-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.parent-note, .highfive-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; background: #f8faf9; }
-.parent-note { border-right: 4px solid #FFD700; }
-.highfive-item { display: flex; align-items: center; gap: 12px; }
-.highfive-avatar { width: 40px; height: 40px; border-radius: 50%; background: #e3f0e6; display: grid; place-items: center; font-size: 20px; }
-.highfive-content { flex: 1; }
-.highfive-content b { font-size: 14px; }
-.highfive-content small { color: #718075; font-size: 12px; display: block; margin-top: 2px; }
-.send-highfive-btn { background: #3F7A52; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
-.task { border: 1px solid #e6ebe6; border-radius: 15px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; }
-.task:hover { background: #f8faf9; border-color: #3F7A52; }
-.task small { color: #718075; display: block; margin-top: 4px; font-size: 12px; }
-.status { background: #e5f3e8; color: #34734b; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; }
-.status.warn { background: #fff2d7; color: #a46b00; }
-.status.excused { background: #e3e8e0; color: #6b7a6f; }
-.skill { margin-bottom: 15px; }
-.skill-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-.progress { height: 10px; background: #edf1ed; border-radius: 99px; overflow: hidden; }
-.progress div { height: 100%; background: #4c8b61; border-radius: 99px; transition: width 1s ease; }
-.plant { text-align: center; background: #edf6ef; border-radius: 20px; padding: 24px; }
-.plant .tree { font-size: 95px; display: block; margin-bottom: 10px; }
-.plant h3 { margin: 8px 0; font-size: 18px; }
-.plant p { color: #718075; font-size: 13px; line-height: 1.6; }
-.badges { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-.badge { width: 70px; text-align: center; font-size: 11px; color: #718075; }
-.badge div { width: 58px; height: 58px; margin: auto; border-radius: 50%; background: #fff4cc; display: grid; place-items: center; font-size: 28px; margin-bottom: 6px; }
-.badge.locked { opacity: 0.4; filter: grayscale(1); }
-.actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
-.action-btn { border: 1px solid #e3e9e3; border-radius: 14px; padding: 14px; background: #fafcf9; text-align: center; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; text-decoration: none; color: #26332b; display: block; }
-.action-btn:hover { background: #e3f0e6; border-color: #3F7A52; }
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-.modal.active { display: flex; }
-.modal-content { background: #fff; border-radius: 20px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.modal-header h3 { margin: 0; color: #3F7A52; }
-.close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #718075; }
-.loading-state { text-align: center; padding: 20px; color: #718075; }
-.error-state { text-align: center; padding: 20px; color: #e2725b; background: #fdecd8; border-radius: 12px; }
-@media(max-width: 750px) {
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .profile-stats { margin-right: 0; margin-top: 16px; width: 100%; justify-content: space-around; }
-  .topbar { flex-direction: column; align-items: stretch; }
-  .topbar-actions { justify-content: center; }
+<script src="assets/theme.js">
+
+async function loadLearningAnalysis() {
+  const box = document.getElementById('learningAnalysisBox');
+  const hint = document.getElementById('learningAnalysisHint');
+
+  if (!box) return;
+
+  try {
+    hint.textContent = 'در حال دریافت تحلیل...';
+
+    const response = await apiFetch('/student/get-learning-analysis');
+
+    if (!response.ok) {
+      throw new Error('analysis request failed');
+    }
+
+    const data = response;
+    const summary = data.summary || {};
+
+    const avg = summary.averageScore == null
+      ? '—'
+      : `${summary.averageScore}٪`;
+
+    const mastery = Number(summary.overallMastery || 0);
+
+    let levelIcon = '🌱';
+
+    if (mastery >= 80) {
+      levelIcon = '🏆';
+    } else if (mastery >= 60) {
+      levelIcon = '📈';
+    } else if (mastery > 0) {
+      levelIcon = '💪';
+    }
+
+    hint.textContent =
+      `${levelIcon} وضعیت کلی: ${summary.level || 'شروع نشده'}`;
+
+    box.innerHTML = `
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+        gap:10px;
+      ">
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">میانگین نمرات</div>
+          <strong style="font-size:24px;">${avg}</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">تسلط کلی</div>
+          <strong style="font-size:24px;">${mastery}٪</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">مهارت‌های قوی</div>
+          <strong style="font-size:24px;">${Number(summary.masteredSkills || 0)}</strong>
+        </div>
+
+        <div style="padding:14px;border:1px solid #e5e7eb;border-radius:14px;">
+          <div style="font-size:13px;color:#64748b;">نیازمند تمرین</div>
+          <strong style="font-size:24px;">${Number(summary.weakSkills || 0)}</strong>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <h3 style="margin-bottom:10px;">🎯 مهارت‌های نیازمند توجه</h3>
+        <div id="analysisWeakSkills"></div>
+      </div>
+    `;
+
+    const weakBox = document.getElementById('analysisWeakSkills');
+    const weakSkills = Array.isArray(data.weakSkills)
+      ? data.weakSkills
+      : [];
+
+    if (!weakSkills.length) {
+      weakBox.innerHTML = `
+        <div style="padding:14px;border-radius:12px;background:#f8fafc;">
+          🎉 فعلاً مهارتی با تسلط کمتر از ۶۰٪ وجود ندارد.
+        </div>
+      `;
+    } else {
+      weakBox.innerHTML = weakSkills.map(skill => `
+        <div style="
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid #e5e7eb;
+          border-radius:12px;
+        ">
+          <div style="display:flex;justify-content:space-between;gap:10px;">
+            <strong>${skill.name}</strong>
+            <span>${Number(skill.mastery || 0)}٪</span>
+          </div>
+
+          <div style="
+            height:8px;
+            background:#e5e7eb;
+            border-radius:99px;
+            margin-top:8px;
+            overflow:hidden;
+          ">
+            <div style="
+              width:${Math.max(0, Math.min(100, Number(skill.mastery || 0)))}%;
+              height:100%;
+              background:#f59e0b;
+            "></div>
+          </div>
+
+          <div style="font-size:12px;color:#64748b;margin-top:6px;">
+            ${skill.correctCount || 0} پاسخ درست از ${skill.answerCount || 0}
+          </div>
+
+          <a
+            href="practice.html?skill_id=${encodeURIComponent(skill.id)}"
+            style="display:inline-block;margin-top:8px;"
+          >
+            تمرین این مهارت →
+          </a>
+        </div>
+      `).join('');
+    }
+
+  } catch (error) {
+    console.error('loadLearningAnalysis:', error);
+
+    hint.textContent = 'دریافت تحلیل با خطا مواجه شد.';
+
+    box.innerHTML = `
+      <div style="padding:14px;border-radius:12px;background:#fef2f2;color:#991b1b;">
+        امکان دریافت تحلیل یادگیری وجود ندارد.
+      </div>
+    `;
+  }
 }
+
+async function loadStudentSkills() {
+  try {
+    const r = await fetch('/api/student/get-progress');
+    const data = await r.json();
+
+    if (!r.ok) throw new Error(data.error || 'خطا در دریافت مهارت‌ها');
+
+    renderStudentSkills(data.skills || [], data.summary || {});
+  } catch (e) {
+    const box = document.getElementById('studentSkillsBox');
+    if (box) {
+      box.innerHTML = `<div style="color:#b42318;text-align:center;padding:20px;">${String(e.message || 'خطا')}</div>`;
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('studentSkillsBox')) {
+    loadStudentSkills();
+  }
+});
+
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد دانش‌آموز — باغچهٔ درس</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3F7A52">
+<link rel="icon" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="باغچهٔ درس">
+<script src="assets/pwa.js" defer></script>
+<script src="assets/date-fa.js"></script>
+<script src="assets/photo-upload.js"></script>
+<script src="assets/line-chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .toast-mini { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: .82rem; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 60; }
+  .toast-mini.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+  @media (max-width: 900px) { .toast-mini { bottom: 84px; } }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(33,53,31,.45); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; overflow-y: auto; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; max-width: 420px; width: 100%; box-shadow: var(--shadow); margin: auto; }
+  .avatar-circle { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; font-size: 2rem; }
+.avatar-circle img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+  .notif-item { padding: 10px 12px; border-radius: 10px; margin-bottom: 8px; background: var(--bg-soft); font-size: .85rem; }
+  .notif-item.unread { border-right: 3px solid var(--coral); font-weight: 700; }
+  .avatar-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .avatar-grid button { font-size: 1.4rem; width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); cursor: pointer; }
+  .avatar-grid button.active { border-color: var(--leaf); background: var(--leaf-pale); }
+
+/* ===== janbakhshi: جان‌بخشی 🌿 ===== */
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes sway { 0%,100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+@keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+.sprout-wrap svg { animation: sway 4s ease-in-out infinite; transform-origin: 50% 90%; }
+.task-card { animation: popIn .45s ease both; }
+.task-card:nth-child(1) { animation-delay: .05s; }
+.task-card:nth-child(2) { animation-delay: .12s; }
+.task-card:nth-child(3) { animation-delay: .19s; }
+.task-card:nth-child(4) { animation-delay: .26s; }
+button, .btn { transition: transform .12s ease; }
+button:active, .btn:active { transform: scale(.95); }
+
+/* ===== رشد واقعی گیاه بر اساس پیشرفت یادگیری ===== */
+.sprout-wrap {
+  position: relative;
+  transition: transform .55s ease, filter .55s ease, opacity .55s ease;
+}
+
+.sprout-wrap svg {
+  transition: filter .55s ease;
+}
+
+.sprout-wrap[data-growth-stage="0"] {
+  transform: scale(.68);
+  opacity: .68;
+  filter: saturate(.72);
+}
+
+.sprout-wrap[data-growth-stage="1"] {
+  transform: scale(.82);
+  opacity: .86;
+  filter: saturate(.86);
+}
+
+.sprout-wrap[data-growth-stage="2"] {
+  transform: scale(.98);
+  opacity: 1;
+  filter: saturate(1);
+}
+
+.sprout-wrap[data-growth-stage="3"] {
+  transform: scale(1.08);
+  opacity: 1;
+  filter: saturate(1.08);
+}
+
+.sprout-wrap[data-growth-stage="4"] {
+  transform: scale(1.16);
+  opacity: 1;
+  filter: saturate(1.14);
+}
+
+.sprout-wrap[data-growth-stage="0"] svg {
+  filter: grayscale(.18);
+}
+
+.sprout-wrap[data-growth-stage="1"] svg {
+  filter: brightness(.97);
+}
+
+.sprout-wrap[data-growth-stage="3"]::after,
+.sprout-wrap[data-growth-stage="4"]::after {
+  content: "🌸";
+  position: absolute;
+  top: 2px;
+  right: 7px;
+  font-size: 1.45rem;
+  animation: plantFlower .9s ease both;
+  pointer-events: none;
+}
+
+.sprout-wrap.sprout-stage-change {
+  animation: plantStageChange .9s ease;
+}
+
+@keyframes plantStageChange {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.18); }
+  65% { transform: scale(.98); }
+  100% { transform: scale(1); }
+}
+
+.sprout-wrap[data-growth-stage="4"]::before {
+  content: "🍎  🍎";
+  position: absolute;
+  top: 40px;
+  left: 2px;
+  font-size: 1rem;
+  animation: plantFruit 1s ease both;
+  pointer-events: none;
+}
+
+@keyframes plantFlower {
+  from { opacity: 0; transform: scale(.4) rotate(-15deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+@keyframes plantFruit {
+  from { opacity: 0; transform: translateY(5px) scale(.7); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 </style>
+<script src="/assets/install-pwa.js" defer></script>
+
+<style>
+
+/* =========================================================
+   STAGE 20 — DASHBOARD REDESIGN
+   UI/UX polish only — no data/API behavior changes
+   ========================================================= */
+
+:root {
+  --dash-radius: 18px;
+  --dash-radius-sm: 14px;
+  --dash-gap: 14px;
+  --dash-shadow: 0 8px 26px rgba(38,51,43,.07);
+  --dash-shadow-hover: 0 12px 30px rgba(38,51,43,.11);
+}
+
+/* ---------- عمومی ---------- */
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.main {
+  scroll-behavior: smooth;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.card {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  box-shadow: var(--dash-shadow);
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+}
+
+.card:hover {
+  box-shadow: var(--dash-shadow-hover);
+}
+
+.section-head {
+  margin-top: 24px;
+  margin-bottom: 10px;
+}
+
+.section-head h2 {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: -.01em;
+}
+
+.section-head .see-all {
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.card-stat {
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-stat .num {
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.card-stat .label {
+  margin-top: 7px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.btn,
+.primary-btn,
+.secondary-btn {
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.simple-table {
+  width: 100%;
+}
+
+.simple-table th {
+  white-space: nowrap;
+  font-weight: 900;
+  font-size: .73rem;
+}
+
+.simple-table td {
+  font-size: .78rem;
+  vertical-align: middle;
+}
+
+.progress-bar {
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+/* ---------- موبایل ---------- */
+
+@media (max-width: 900px) {
+  .main {
+    padding-bottom: 90px;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+  }
+
+  .section-head {
+    margin-top: 20px;
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+
+  .simple-table {
+    min-width: 620px;
+  }
+
+  .card:has(.simple-table) {
+    overflow-x: auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    gap: 8px;
+    align-items: center;
+  }
+
+  .greeting {
+    min-width: 0;
+  }
+
+  .greeting h1 {
+    font-size: 1rem;
+  }
+
+  .greeting p {
+    font-size: .7rem;
+  }
+
+  .grid.grid-4,
+  .grid.grid-3,
+  .grid.grid-2 {
+    gap: 9px;
+  }
+
+  .card {
+    padding: 13px;
+  }
+
+  .card-stat {
+    min-height: 82px;
+  }
+
+  .card-stat .num {
+    font-size: 1.25rem;
+  }
+
+  .card-stat .label {
+    font-size: .66rem;
+  }
+
+  .section-head h2 {
+    font-size: .9rem;
+  }
+
+  .btn,
+  .primary-btn,
+  .secondary-btn {
+    font-size: .74rem;
+  }
+}
+
+/* ---------- حالت لمس ---------- */
+
+@media (hover: none) {
+  .card:hover {
+    box-shadow: var(--dash-shadow);
+  }
+
+  button,
+  .btn,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* =========================================================
+   دانش‌آموز
+   ========================================================= */
+
+#top > .section-head:first-of-type {
+  margin-top: 18px;
+}
+
+#tasksSection + .task-scroll {
+  margin-bottom: 4px;
+}
+
+.task-scroll {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.task-card {
+  border-radius: var(--dash-radius);
+  border: 1px solid var(--line);
+  box-shadow: var(--dash-shadow);
+}
+
+.sprout-panel {
+  border-radius: 22px;
+  box-shadow: var(--dash-shadow);
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+}
+
+#learningSection + *,
+#mySkillsSection + * {
+  border-radius: var(--dash-radius);
+}
+
+#progressChartCard {
+  min-height: 190px;
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    z-index: 40;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+    padding: 7px 8px;
+  }
+
+  .sidebar .brand,
+  .sidebar-foot {
+    display: none;
+  }
+
+  .sidebar .nav-list {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sidebar .nav-list li {
+    min-width: 0;
+  }
+
+  .sidebar .nav-item {
+    min-height: 48px;
+    padding: 5px 2px;
+    border-radius: 11px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    font-size: .58rem;
+    text-align: center;
+  }
+
+  .sidebar .nav-item .ic {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
+
+  .main {
+    margin-right: 0 !important;
+    padding-bottom: 82px;
+  }
+
+  .topbar {
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+</style>
+
+<!-- ===== REAL DASHBOARD REDESIGN ===== -->
+<style id="real-dashboard-redesign">
+
+:root{
+  --rd-bg:#f4f7f4;
+  --rd-card:#ffffff;
+  --rd-text:#26332b;
+  --rd-muted:#718075;
+  --rd-line:#e3e9e3;
+  --rd-green:#3f7a52;
+  --rd-green-soft:#edf5ef;
+  --rd-radius:20px;
+  --rd-shadow:0 8px 28px rgba(30,55,38,.08);
+}
+
+/* ---------- پایه ---------- */
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  background:var(--rd-bg) !important;
+  color:var(--rd-text);
+}
+
+button,
+input,
+select,
+textarea{
+  font-family:inherit;
+}
+
+/* ---------- کارت‌های اصلی ---------- */
+
+.card,
+.stat-card,
+.dashboard-card,
+.panel,
+.section-card,
+.report-card{
+  border-radius:var(--rd-radius) !important;
+  border-color:var(--rd-line) !important;
+  box-shadow:var(--rd-shadow);
+}
+
+/* ---------- تیتر بخش ---------- */
+
+section > h2,
+section > h3{
+  letter-spacing:-.2px;
+}
+
+/* ---------- دکمه‌ها ---------- */
+
+.btn,
+.primary-btn,
+.secondary-btn,
+button{
+  border-radius:11px;
+}
+
+/* ---------- جدول ---------- */
+
+table{
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+}
+
+th{
+  background:#f7faf7;
+}
+
+th,
+td{
+  border-bottom:1px solid var(--rd-line);
+}
+
+/* ---------- موبایل ---------- */
+
+@media(max-width:760px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  .card,
+  .stat-card,
+  .dashboard-card,
+  .panel,
+  .section-card,
+  .report-card{
+    border-radius:17px !important;
+  }
+
+  button,
+  .btn{
+    min-height:40px;
+  }
+}
+
+
+/* ==================================================
+   STUDENT
+   ================================================== */
+
+body[data-dashboard="student"] .rd-student-only{
+  display:block;
+}
+
+/* باغچه باید قهرمان صفحه باشد */
+
+.sprout-wrap{
+  position:relative;
+  transition:transform .25s ease,filter .25s ease;
+}
+
+.sprout-wrap:hover{
+  transform:translateY(-2px);
+}
+
+
+/* ==================================================
+   TEACHER
+   ================================================== */
+
+body[data-dashboard="teacher"] .rd-teacher-only{
+  display:block;
+}
+
+/* مرکز اقدامات */
+
+#actionCenterSection,
+#teacherActionCenter,
+#actionCenter{
+  border-radius:22px !important;
+}
+
+/* کارت‌های اقدام */
+
+#actionCenterSection .card,
+#teacherActionCenter .card,
+#actionCenter .card{
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+
+#actionCenterSection .card:hover,
+#teacherActionCenter .card:hover,
+#actionCenter .card:hover{
+  transform:translateY(-2px);
+}
+
+
+/* ==================================================
+   PARENT
+   ================================================== */
+
+body[data-dashboard="parent"] .rd-parent-only{
+  display:block;
+}
+
+
+/* ==================================================
+   ADMIN
+   ================================================== */
+
+body[data-dashboard="admin"] .rd-admin-only{
+  display:block;
+}
+
+
+/* ==================================================
+   SUPER ADMIN
+   ================================================== */
+
+body[data-dashboard="super"] .rd-super-only{
+  display:block;
+}
+
+
+/* ==================================================
+   GLOBAL RESPONSIVE GRID
+   ================================================== */
+
+@media(max-width:900px){
+
+  [style*="grid-template-columns:repeat(4"],
+  [style*="grid-template-columns: repeat(4"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+
+  [style*="grid-template-columns:repeat(5"],
+  [style*="grid-template-columns: repeat(5"]{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+}
+
+@media(max-width:560px){
+
+  [style*="grid-template-columns:repeat(3"],
+  [style*="grid-template-columns: repeat(3"],
+  [style*="grid-template-columns:repeat(4"],
+  [style*="grid-template-columns: repeat(4"],
+  [style*="grid-template-columns:repeat(5"],
+  [style*="grid-template-columns: repeat(5"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+
+</style>
+
+<style id="real-student-dashboard">
+
+/* صفحه دانش‌آموز */
+
+body{
+  background:
+    radial-gradient(circle at 90% 0%,#e9f5ec 0,transparent 30%),
+    var(--rd-bg) !important;
+}
+
+/* ناحیه بالای صفحه */
+
+.student-dashboard-header,
+.dashboard-header,
+.topbar{
+  border-radius:22px !important;
+}
+
+/* باغچه */
+
+.sprout-wrap{
+  border-radius:24px;
+}
+
+/* تکالیف */
+
+.task-card{
+  border-radius:17px !important;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+.task-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 25px rgba(30,55,38,.10);
+}
+
+/* آمار */
+
+#statStreak,
+#statDone,
+#statScore,
+#streakNum{
+  font-variant-numeric:tabular-nums;
+}
+
+/* نمودار */
+
+#progressChartCard,
+#progressChart{
+  border-radius:20px;
+}
+
+/* مهارت‌ها */
+
+.skill-card,
+.skill-item{
+  border-radius:16px !important;
+}
+
+.icon-btn{
+  border:none;
+  background:var(--bg-soft);
+  border-radius:8px;
+  width:30px;
+  height:30px;
+  font-size:.9rem;
+  cursor:pointer;
+}
+.icon-btn:hover{
+  background:var(--leaf-pale);
+}
+
+/* موبایل */
+
+@media(max-width:760px){
+
+  .task-card{
+    min-width:220px;
+  }
+}
+
+</style>
+
 </head>
 <body>
-<div class="container">
-  <nav class="topbar">
-    <div class="brand">🌱 باغچهٔ درس</div>
-    <div class="topbar-actions">
-      <span class="nav-link" onclick="scrollToSection('goals')">🎯 اهداف</span>
-      <span class="nav-link" onclick="scrollToSection('tasks')">📚 تکالیف</span>
-      <span class="nav-link" onclick="scrollToSection('highfives')">👋 های‌فایو</span>
-      <span class="nav-link" onclick="openProfileModal()">👤 پروفایل</span>
-      <button class="btn-logout" onclick="logout()">🚪 خروج</button>
-    </div>
-  </nav>
+<div class="app-shell">
 
-  <header class="profile-header">
-    <div class="avatar" id="studentAvatar" onclick="openProfileModal()">🧒</div>
-    <div class="profile-info">
-      <h1 id="studentName">در حال بارگذاری...</h1>
-      <p id="studentClass">...</p>
+  <aside class="sidebar">
+    <div class="brand"><span class="leaf-badge">🌱</span> باغچهٔ درس</div>
+    <ul class="nav-list">
+      <li><a class="nav-item active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span> خانه</a></li>
+      <li><a class="nav-item" href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span> تکالیف من</a></li>
+      <li><a class="nav-item" href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span> باغچهٔ من</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDiaryModal();"><span class="ic">📔</span> دفترچهٔ باغچه</a></li>
+      <li><a class="nav-item" href="#" onclick="openAchievementsModal(); return false;"><span class="ic">🏆</span> نشان‌ها</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
+    </ul>
+    <div class="sidebar-foot">
+      <div class="role-switch">
+        <span id="whoami"></span>
+        <a href="#" onclick="logout()">خروج از حساب ←</a>
+      </div>
     </div>
-    <div class="profile-stats">
-      <div class="profile-stat"><b id="statStars">۰</b><span>امتیاز رشد</span></div>
-      <div class="profile-stat"><b id="statLevel">۱</b><span>سطح</span></div>
-      <div class="profile-stat"><b id="statStreak">۰</b><span>روز متوالی</span></div>
+  </aside>
+
+  <main class="main" id="top">
+    <div class="topbar">
+      <div class="greeting">
+        <div class="avatar-circle" id="avatarCircle" onclick="openProfileModal()" style="cursor:pointer;">🐣</div>
+        <div><h1 id="greetTitle">سلام!</h1><p id="greetSub"></p></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" title="حالت تاریک/روشن">🌙</button>
+        <button id="notifBellBtn" onclick="openNotifPanel()" style="position:relative; background:var(--surface); border:1px solid var(--line); border-radius:12px; width:42px; height:42px; font-size:1.1rem; cursor:pointer;">
+          🔔<span id="notifBadge" style="display:none; position:absolute; top:-4px; left:-4px; background:var(--coral); color:#fff; font-size:.62rem; font-weight:800; border-radius:999px; min-width:16px; height:16px; align-items:center; justify-content:center; padding:0 3px;"></span>
+        </button>
+        <button type="button" class="help-icon-btn" onclick="openModal('help')" title="راهنما">❓</button>
+        <div class="streak-chip">🔥 <span id="streakNum">۰</span> روز پیاپی</div>
+      </div>
     </div>
-  </header>
 
-  <div class="daily-reward" id="dailyRewardCard" onclick="claimDailyReward()">
-    <div><h3>🎁 جایزه روزانه</h3><p id="rewardStatus">برای دریافت جایزه کلیک کن</p></div>
-    <button class="reward-btn" id="rewardBtn">دریافت</button>
-  </div>
+    <div class="festival-banner" id="festivalBanner" style="display:none;"></div>
 
-  <div class="dashboard-grid">
+    <section class="sprout-panel" id="sproutSection">
+      <div class="sprout-wrap" title="رشد یادگیری تو">
+        <svg viewBox="0 0 128 128" fill="none">
+          <ellipse cx="64" cy="116" rx="34" ry="7" fill="#2A5238" opacity=".25"/>
+          <path d="M64 116 C64 80 64 60 64 40" stroke="#3F7A52" stroke-width="6" stroke-linecap="round"/>
+          <path d="M64 70 C40 68 34 50 40 34 C58 40 64 54 64 70Z" fill="#5B9E6E"/>
+          <path d="M64 58 C88 54 96 36 90 20 C70 28 62 44 64 58Z" fill="#3F7A52"/>
+          <circle cx="64" cy="30" r="17" fill="#F6C453"/>
+          <circle cx="58" cy="27" r="2.6" fill="#21351F"/>
+          <circle cx="70" cy="27" r="2.6" fill="#21351F"/>
+          <path d="M58 35 Q64 40 70 35" stroke="#21351F" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+          <circle cx="52" cy="32" r="3" fill="#E8734A" opacity=".55"/>
+          <circle cx="76" cy="32" r="3" fill="#E8734A" opacity=".55"/>
+        </svg>
+      </div>
+      <div class="sprout-title" id="sproutStage">رشد یادگیری تو — 🌱</div>
+      <div class="sprout-sub" id="sproutSub">هر قدمی که برای یادگیری برمی‌داری، گیاهت را رشد می‌دهد.</div>
+      <div class="sprout-progress"><div id="sproutBar" style="width:0%"></div></div>
+    </section>
+
+
+    <!-- چالش روزانه -->
+    <section class="card" id="dailyChallengeSection" style="margin-top:14px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <span style="font-size:1.4rem;">☀️</span>
+        <h3 style="margin:0; font-size:.95rem;">چالش امروز</h3>
+      </div>
+      <div id="dailyChallengeContent">در حال بارگذاری...</div>
+    </section>
+
+    <div class="section-head" id="tasksSection"><h2>کارهای امروز</h2><a class="see-all" href="#tasksSection">همه ↓</a></div>
+    <div class="task-scroll" id="taskScroll">
+      <div class="task-card">در حال بارگذاری...</div>
+    </div>
+
+    <div class="section-head"><h2>پیشرفت این هفته</h2></div>
+    <div class="grid grid-3" id="statsGrid">
+      <div class="card card-stat"><div class="num" id="statDone">۰</div><div class="label">تکلیف انجام‌شده</div></div>
+      <div class="card card-stat"><div class="num" id="statScore">—</div><div class="label">میانگین درصد</div></div>
+      <div class="card card-stat"><div class="num" id="statStreak">۰</div><div class="label">روز پیاپی</div></div>
+    </div>
+
+
+
+<!-- ===== تمرین هوشمند ===== -->
+<section id="smartPracticeSection" class="card" style="margin-top:16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
     <div>
-      <div class="card" id="goalsSection"><h2>🎯 هدف‌های یادگیری من</h2><div id="goalsList" class="loading-state">در حال بارگذاری...</div></div>
-      <div class="card" id="tasksSection"><h2>📚 تکالیف من</h2><div id="tasksList" class="loading-state">در حال دریافت تکالیف...</div></div>
-      <div class="card">
-        <h2>🧠 تحلیل یادگیری و پیشرفت</h2>
-        <div id="progressChart" style="height: 200px; margin-bottom: 20px;" class="loading-state">در حال بارگذاری نمودار...</div>
-        <div id="skillsList" class="loading-state">در حال بارگذاری مهارت‌ها...</div>
-        <div class="actions">
-          <a href="#practice" class="action-btn">🤖 تمرین پیشنهادی</a>
-          <a href="#diary" class="action-btn" onclick="openDiaryModal()">📔 دفترچه باغچه</a>
-        </div>
-      </div>
+      <h2 style="margin:0;">🧠 تمرین هوشمند</h2>
+      <p id="smartPracticeHint" style="margin:6px 0 0;color:var(--ink-soft);font-size:.84rem;">
+        بر اساس مهارت‌هایی که نیاز به تمرین بیشتری دارند.
+      </p>
     </div>
+
+    <a
+      href="practice.html"
+      class="btn btn-primary">
+      شروع تمرین
+    </a>
+  </div>
+
+  <div id="smartPracticeBox" style="margin-top:14px;">
+    <div style="color:var(--ink-soft);font-size:.84rem;">
+      در حال بررسی پیشنهادهای تمرینی...
+    </div>
+  </div>
+</section>
+
+
+<!-- ===== تحلیل پیشرفته یادگیری ===== -->
+<section id="learningAnalysisSection" class="card" style="margin-top:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
     <div>
-      <div class="challenge-card" id="challengesSection">
-        <h3 id="challengeTitle">🎯 چالش امروز</h3>
-        <p id="challengeDesc">در حال بارگذاری...</p>
-        <button class="challenge-btn" id="challengeBtn" onclick="completeChallenge()">انجام دادم ✓</button>
-      </div>
-      <div class="card"><h2>🔔 اعلان‌ها <span id="notifCount" style="background:#e2725b;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;margin-right:8px;">۰</span></h2><div class="notifications-list" id="notificationsList">در حال بارگذاری...</div></div>
-      <div class="card"><h2>👨‍👩‍👦 یادداشت والدین</h2><div id="parentNotesList" class="loading-state">در حال بارگذاری...</div></div>
-      <div class="card" id="highfivesSection"><h2>👋 های‌فایو</h2><div id="highfivesList" class="loading-state">در حال بارگذاری...</div><button class="action-btn" style="margin-top:12px;" onclick="openHighFiveModal()">ارسال های‌فایو</button></div>
-      <div class="plant">
-        <span class="tree" id="plantIcon">🌱</span>
-        <h3 id="plantStage">رشد یادگیری تو: «جوانه»</h3>
-        <p id="plantWeather">آب و هوای باغچه: آفتابی ☀️</p>
-        <p id="plantFestival" style="margin-top:8px; font-weight:bold; color:#3F7A52;"></p>
-      </div>
-      <div class="card"><h2>🏆 دستاوردها</h2><div class="badges" id="badgesList">در حال بارگذاری...</div></div>
+      <h2 style="margin:0;">📊 تحلیل یادگیری من</h2>
+      <p id="learningAnalysisHint" style="margin:6px 0 0;color:#64748b;">
+        در حال دریافت تحلیل...
+      </p>
+    </div>
+    <button type="button" onclick="loadLearningAnalysis()">
+      🔄 بروزرسانی
+    </button>
+  </div>
+
+  <div id="learningAnalysisBox" style="margin-top:15px;"></div>
+</section>
+
+<!-- ===== هدف‌های یادگیری من ===== -->
+<section id="studentGoalsSection" class="card" style="margin-top:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin:0;">🎯 هدف‌های یادگیری من</h2>
+      <p style="margin:6px 0 0;color:#64748b;">
+        برای هر مهارت، یک هدف مشخص برای بهتر شدن تعیین کن.
+      </p>
+    </div>
+    <button type="button" onclick="loadStudentGoals()">
+      🔄 بروزرسانی
+    </button>
+  </div>
+
+  <div id="studentGoalForm" style="margin-top:15px;padding:14px;border:1px solid #e2e8f0;border-radius:14px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+      <select id="studentGoalSkill" class="input">
+        <option value="">انتخاب مهارت</option>
+      </select>
+
+      <input id="studentGoalTitle" class="input"
+             placeholder="عنوان هدف">
+
+      <input id="studentGoalTarget" class="input"
+             type="number"
+             min="1"
+             max="100"
+             value="80"
+             placeholder="درصد هدف">
+
+      <input id="studentGoalDueDate" class="input"
+             type="date">
+    </div>
+
+    <textarea id="studentGoalDescription"
+              class="input"
+              rows="2"
+              style="margin-top:10px;width:100%;box-sizing:border-box;"
+              placeholder="توضیح کوتاه درباره این هدف (اختیاری)"></textarea>
+
+    <button type="button"
+            class="btn btn-primary"
+            style="margin-top:10px;"
+            onclick="createStudentGoal()">
+      🎯 ثبت هدف
+    </button>
+  </div>
+
+  <div id="studentGoalsList" style="margin-top:15px;">
+    <div style="text-align:center;color:var(--ink-soft);padding:20px;">
+      در حال بارگذاری هدف‌ها...
+    </div>
+  </div>
+</section>
+
+<!-- ===== درس‌های من (فصل‌ها) ===== -->
+<section id="lessonsSection" class="card" style="margin-top:18px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h2 style="margin:0;">📖 درس‌های من</h2>
+      <p style="margin:6px 0 0;color:#64748b;">
+        فصل‌ها را به‌ترتیب کامل کن تا فصل بعدی باز شود.
+      </p>
+    </div>
+    <button type="button" onclick="loadLessons()">
+      🔄 بروزرسانی
+    </button>
+  </div>
+
+  <div id="lessonsBox" style="margin-top:15px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+    <div style="text-align:center;color:var(--ink-soft);padding:20px;">
+      در حال بارگذاری درس‌ها...
+    </div>
+  </div>
+</section>
+
+<!-- ===== مهارت‌های من ===== -->
+<div class="section-head" id="mySkillsSection" style="margin-top:24px;">
+  <h2>🧠 مهارت‌های من</h2>
+</div>
+
+<div class="card">
+  <div id="studentSkillSummary" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;"></div>
+  <div id="studentSkillsBox">
+    <div style="text-align:center;color:var(--ink-soft);padding:20px;">در حال بارگذاری...</div>
+  </div>
+</div>
+
+<div class="section-head"><h2>📈 روند نمره‌ها</h2></div>
+    <div class="card" id="progressChartCard">
+      <div id="progressChartBox" style="min-height:140px; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:.85rem;">در حال بارگذاری...</div>
+    </div>
+  </main>
+</div>
+
+<nav class="bottom-nav">
+  <a class="active" href="#top" onclick="scrollToId('top')"><span class="ic">🏠</span>خانه</a>
+  <a href="#tasksSection" onclick="scrollToId('tasksSection')"><span class="ic">📋</span>تکالیف</a>
+  <a href="#sproutSection" onclick="scrollToId('sproutSection')"><span class="ic">🌻</span>باغچه</a>
+  <a href="#" onclick="event.preventDefault(); openModal('more');"><span class="ic">⋯</span>بیشتر</a>
+  <a href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span>پروفایل</a>
+</nav>
+
+<div class="toast-mini" id="toastMini"></div>
+
+
+<!-- ===== مودال نشان‌ها و دستاوردها ===== -->
+<div class="modal" id="modalAchievements">
+  <div class="modal-card" style="max-width:900px;">
+    <div class="modal-head">
+      <h3>🏆 نشان‌ها و دستاوردهای من</h3>
+      <button class="modal-close" onclick="closeModal('achievements')">×</button>
+    </div>
+
+    <div id="achievementsSummary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+
+    <div id="achievementsBox">
+      <div class="muted">در حال بارگذاری...</div>
     </div>
   </div>
 </div>
 
-<div class="modal" id="profileModal">
-  <div class="modal-content">
-    <div class="modal-header"><h3>👤 پروفایل من</h3><button class="close-modal" onclick="closeModal('profileModal')">×</button></div>
-    <div id="profileContent" style="text-align:center;">
-      <div style="font-size:80px; margin-bottom:10px;" id="profileAvatar">🧒</div>
-      <h3 id="profileName">-</h3>
-      <div style="margin-top:20px;">
-        <label style="display:block; margin-bottom:10px; font-weight:bold;">تغییر آواتار:</label>
-        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-          <button onclick="changeAvatar('🦊')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🦊</button>
-          <button onclick="changeAvatar('🐼')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🐼</button>
-          <button onclick="changeAvatar('🐱')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🐱</button>
-          <button onclick="changeAvatar('🐶')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🐶</button>
-          <button onclick="changeAvatar('🐰')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🐰</button>
-          <button onclick="changeAvatar('🦁')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🦁</button>
-          <button onclick="changeAvatar('🐯')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🐯</button>
-          <button onclick="changeAvatar('🐨')" style="font-size:30px; padding:10px; border:2px solid #e3e9e3; border-radius:12px; background:#fff; cursor:pointer;">🐨</button>
-        </div>
-      </div>
+<!-- ===== مودال پروفایل ===== -->
+<div class="modal-backdrop" id="modalProfile">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">👤 پروفایل من</h3>
+    <div style="text-align:center; margin-bottom:14px;">
+      <div class="avatar-circle" id="profileAvatarPreview" style="width:84px; height:84px; font-size:2.2rem; margin:0 auto 10px;">🐣</div>
+      <label class="btn btn-ghost" style="display:inline-block; cursor:pointer; font-size:.82rem;">
+        📷 آپلود عکس
+        <input type="file" accept="image/*" id="profilePhotoInput" style="display:none;">
+      </label>
+      <button type="button" class="btn btn-ghost" style="font-size:.82rem;" onclick="removeProfilePhoto()">حذف عکس</button>
     </div>
-  </div>
-</div>
-<div class="modal" id="highfiveModal">
-  <div class="modal-content">
-    <div class="modal-header"><h3>👋 ارسال های‌فایو</h3><button class="close-modal" onclick="closeModal('highfiveModal')">×</button></div>
-    <div id="classmatesList" class="loading-state">در حال بارگذاری...</div>
-  </div>
-</div>
-<div class="modal" id="diaryModal">
-  <div class="modal-content">
-    <div class="modal-header"><h3>📔 دفترچه باغچه</h3><button class="close-modal" onclick="closeModal('diaryModal')">×</button></div>
-    <div id="diaryContent" class="loading-state">در حال بارگذاری...</div>
+    <div class="field"><label>یا یک شخصیت انتخاب کن</label>
+      <div class="avatar-grid" id="avatarGrid"></div>
+    </div>
+    <div id="msgProfile"></div>
+    <button type="button" class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="closeModal('profile')">بستن</button>
   </div>
 </div>
 
+<!-- ===== مودال اعلان‌ها ===== -->
+<div class="modal-backdrop" id="modalNotif">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;">🔔 اعلان‌ها</h3>
+    <div id="notifList"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('notif')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال جشن نشان جدید ===== -->
+<div class="modal-backdrop" id="modalBadgeCelebrate">
+  <div class="modal" style="text-align:center;">
+    <div id="badgeCelebrateIcon" style="font-size:3.4rem; margin-bottom:6px;">🏅</div>
+    <h3 style="margin-bottom:6px;">نشان جدید گرفتی!</h3>
+    <div id="badgeCelebrateBody" style="color:var(--ink-soft); font-size:.9rem; margin-bottom:16px;"></div>
+    <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeModal('badgeCelebrate'); showNextBadgeCelebration();">عالیه! 🎉</button>
+  </div>
+</div>
+
+<!-- ===== مودال «بیشتر» (فقط موبایل — چون سایدبار اونجا مخفیه) ===== -->
+<div class="modal-backdrop" id="modalMore">
+  <div class="modal" style="max-width:340px; text-align:center;">
+    <h3 style="margin-bottom:14px;">بیشتر</h3>
+    <button type="button" id="logoutMoreBtn" class="btn btn-ghost" onclick="logout()" style="width:100%;margin-top:10px;">🚪 خروج از حساب</button>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); scrollToId('lessonsSection');">📖 درس‌های من</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openDiaryModal();">📔 دفترچهٔ باغچه</button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openHighFivesModal();">🙌 های‌فایو به همکلاسی‌ها</button>
+      <button type="button" class="btn btn-ghost" onclick="closeModal('more'); openParentNotesModal();">💌 یادداشت والدین</button>
+    </div>
+
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:14px;" onclick="closeModal('more')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال دفترچهٔ باغچه ===== -->
+<div class="modal-backdrop" id="modalDiary">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="margin-bottom:4px;">📔 دفترچهٔ باغچه</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">خلاصهٔ ۳۰ روز اخیرت</div>
+    <div id="diaryList" style="display:flex; flex-direction:column; gap:10px; max-height:55vh; overflow-y:auto;">در حال بارگذاری...</div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('diary')">بستن</button>
+  </div>
+</div>
+
+<!-- ===== مودال راهنما ===== -->
+<div class="modal-backdrop" id="modalHelp">
+  <div class="modal" style="max-width:600px;">
+    <h3 style="margin-bottom:4px;">❓ راهنما</h3>
+    <p style="font-size:.8rem; color:var(--ink-soft); margin-bottom:14px;">هر بخش رو باز کن تا توضیحش رو ببینی.</p>
+
+    <details class="help-section" open>
+      <summary>🌱 باغچهٔ من</summary>
+      <div class="help-body">
+        <p>نهال بالای صفحه هرچی تکلیف بیشتری انجام بدی، رشد می‌کنه: دانه 🌰 ← جوانه‌زن 🌱 ← غنچه 🌿 ← شکوفا 🌸 ← درخت پربار 🌳.</p>
+        <p>آیکون کوچیک بالای نهال (☀️/⛅/☁️/🌧️) <b>حال‌وهوای باغچه</b>ست — نشون می‌ده چند وقته سر زدی؛ هرچی بیشتر فعال باشی، آفتابی‌تره.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📋 تکالیف من</summary>
+      <div class="help-body">
+        <p>تکلیف‌هایی که معلمت فرستاده اینجا میان — هرکدوم یه آیکون داره که نشون می‌ده چه‌جور تکلیفیه (نوشتنی، صوتی، نقاشی، رنگ‌آمیزی، چندگزینه‌ای و...).</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>📔 دفترچهٔ باغچه</summary>
+      <div class="help-body">
+        <p>یه خلاصهٔ روزانه از کارهایی که این ماه انجام دادی (تکلیف، نشان) — والدینت هم می‌تونن همینو از صفحهٔ خودشون ببینن.</p>
+      </div>
+    </details>
+
+    <details class="help-section">
+      <summary>🏅 نشان‌ها و جشنواره‌ها</summary>
+      <div class="help-body">
+        <p>با کارهای مختلف (اولین تکلیف، نمرهٔ کامل، فعالیت پیاپی، تکلیف صوتی/نقاشی و...) نشان می‌گیری. بعضی وقت‌ها هم جشنوارهٔ فصلی (مثل مهرگان) فعال می‌شه که نشان و دکور مخصوص خودشو داره.</p>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" style="width:100%;" onclick="closeModal('help')">متوجه شدم</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/api.js"></script>
 <script>
   const user = requireAuth(['student']);
-  function escapeHtml(unsafe) { if (unsafe == null) return ''; return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-  function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
-  function safeString(val, fallback = '') {
-    if (!val) return fallback;
-    if (typeof val === 'string') return val;
-    if (typeof val === 'object') return val.text || val.weather || val.name || val.title || JSON.stringify(val);
-    return String(val);
+  if (user) {
+    document.getElementById('whoami').textContent = `${user.fullName} (دانش‌آموز)`;
+    document.getElementById('greetTitle').textContent = `سلام ${user.fullName}!`;
+    loadAll();
+    loadProfile();
+    loadNotifications();
+    celebratePendingBadges();
+    loadProgressChart();
+    loadFestival();
+    loadDailyChallenge();
+    loadSmartPracticePreview();
+    loadLearningAnalysis();
+    loadStudentGoals();
+    loadLessons();
   }
-  function scrollToSection(id) { const el = document.getElementById(id + 'Section'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-  function openModal(id) { document.getElementById(id).classList.add('active'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-  function openProfileModal() { loadProfile(); openModal('profileModal'); }
-  function openHighFiveModal() { loadClassmates(); openModal('highfiveModal'); }
-  function openDiaryModal() { loadDiary(); openModal('diaryModal'); }
 
-  async function changeAvatar(avatar) {
+
+  function logout() { try { Auth.clear(); } catch(e) { console.error('logout error:', e); } window.location.href = 'login.html'; }
+
+  function scrollToId(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  let toastTimer;
+  function comingSoon(e) {
+    e.preventDefault();
+    const t = document.getElementById('toastMini');
+    t.textContent = 'این بخش به‌زودی اضافه می‌شه 🌱';
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // مراحل رشد نهال بر اساس امتیاز — صرفاً برای نمایش
+  const STAGES = [
+    { min: 0, name: 'دانه', icon: '🌰' },
+    { min: 30, name: 'جوانه‌زن', icon: '🌱' },
+    { min: 80, name: 'غنچه', icon: '🌿' },
+    { min: 150, name: 'شکوفا', icon: '🌸' },
+    { min: 250, name: 'درخت پربار', icon: '🌳' },
+  ];
+  function stageFor(points) {
+    let current = STAGES[0], next = STAGES[1];
+    for (let i = 0; i < STAGES.length; i++) {
+      if (points >= STAGES[i].min) current = STAGES[i];
+      if (points < STAGES[i].min) { next = STAGES[i]; break; }
+      next = null;
+    }
+    return { current, next };
+  }
+
+  // نگاشت نوع سؤال به آیکون/رنگ کارت تکلیف — مطابق طرح اولیه
+  const TYPE_ICON = {
+    audio_record: '🎤', photo_upload: '📷', drawing: '✏️', coloring: '🎨',
+    matching: '🧩', ordering: '🔢', drag_connect: '🔗',
+    multiple_choice: '❓', true_false: '❓', fill_blank: '✍️', custom_html: '✨',
+  };
+  const TYPE_CLASS = {
+    audio_record: 't-audio', photo_upload: 't-photo', drawing: 't-draw', coloring: 't-color',
+    matching: 't-match', ordering: 't-match', drag_connect: 't-connect',
+    multiple_choice: 't-match', true_false: 't-match', fill_blank: 't-draw', custom_html: 't-connect',
+  };
+
+  async function loadAll() {
     try {
-      await apiFetch('/student/update-avatar', { method: 'POST', body: { avatar } });
-      document.getElementById('studentAvatar').textContent = avatar;
-      document.getElementById('profileAvatar').textContent = avatar;
-      alert('آواتار تغییر کرد! ✅');
-    } catch (e) { alert('خطا: ' + e.message); }
+      const tasksData = await apiFetch('/student/get-tasks');
+      renderGrowth(user.growthPoints ?? 0);
+      renderTasks(tasksData.assignments);
+      document.getElementById('streakNum').textContent = toFa(tasksData.streak);
+      document.getElementById('statStreak').textContent = toFa(tasksData.streak);
+      document.getElementById('statDone').textContent = toFa(tasksData.doneCount);
+      document.getElementById('statScore').textContent = tasksData.avgScore !== null ? `٪${toFa(tasksData.avgScore)}` : '—';
+      document.getElementById('greetSub').textContent = tasksData.assignments.some(a => !a.submission_status || a.submission_status === 'in_progress')
+        ? `امروز ${toFa(tasksData.assignments.filter(a => !a.submission_status || a.submission_status === 'in_progress').length)} تکلیف منتظرتن`
+        : 'همه‌چی رو تموم کردی 🎉';
+    } catch (e) { console.error(e); }
+  }
+
+  function updatePlantVisual(points) {
+    const wrap = document.querySelector('.sprout-wrap');
+    if (!wrap) return;
+
+    const { current } = stageFor(points);
+    const stageIndex = Math.max(0, STAGES.findIndex(stage => stage === current));
+    const previousStage = wrap.dataset.growthStage;
+
+    wrap.dataset.growthStage = String(stageIndex);
+
+    const stageName = current?.name || 'دانه';
+    wrap.setAttribute(
+      'aria-label',
+      `رشد یادگیری تو: ${stageName}`
+    );
+
+    if (previousStage !== undefined && previousStage !== String(stageIndex)) {
+      wrap.classList.remove('sprout-stage-change');
+      void wrap.offsetWidth;
+      wrap.classList.add('sprout-stage-change');
+
+      setTimeout(() => {
+        wrap.classList.remove('sprout-stage-change');
+      }, 900);
+    }
+  }
+
+  function renderGrowth(points) {
+    window.__studentGrowthPoints = Number(points) || 0;
+    const { current, next } = stageFor(points);
+    updatePlantVisual(points);
+    document.getElementById('sproutStage').textContent = `رشد یادگیری تو: «${current.name}» ${current.icon}`;
+    if (next) {
+      const need = next.min - points;
+      document.getElementById('sproutSub').textContent = `برای رشد بعدی، ${toFa(need)} امتیاز یادگیری دیگر نیاز داری.`;
+      const span = next.min - current.min;
+      const pct = Math.min(100, Math.round(((points - current.min) / span) * 100));
+      document.getElementById('sproutBar').style.width = pct + '%';
+    } else {
+      document.getElementById('sproutSub').textContent = 'به بالاترین مرحلهٔ رشد یادگیری رسیدی! 🎉';
+      document.getElementById('sproutBar').style.width = '100%';
+    }
+
+    const lastSeen = Number(localStorage.getItem('hw_last_points') || 0);
+    if (points > lastSeen) {
+      const wrap = document.querySelector('.sprout-wrap');
+      const diff = points - lastSeen;
+      const float = document.createElement('div');
+      float.className = 'growth-float';
+      float.textContent = `+${toFa(diff)} ⭐`;
+      wrap.appendChild(float);
+      wrap.classList.add('sprout-grow');
+      setTimeout(() => { wrap.classList.remove('sprout-grow'); float.remove(); }, 1600);
+    }
+    localStorage.setItem('hw_last_points', String(points));
+  }
+
+  function renderTasks(assignments) {
+    const box = document.getElementById('taskScroll');
+    if (!assignments.length) { box.innerHTML = '<div class="task-card">فعلاً تکلیفی نداری 🎉</div>'; return; }
+    box.innerHTML = assignments.map(a => {
+      const done = a.submission_status === 'submitted' || a.submission_status === 'reviewed';
+      const excused = !!a.excused;
+      const icon = TYPE_ICON[a.primary_type] || '📋';
+      const cls = TYPE_CLASS[a.primary_type] || 't-match';
+      const badgeLabel = excused ? 'معاف شدی' : (done ? 'انجام شد' : 'جدید');
+      const badgeClass = excused ? 'badge-done' : (done ? 'badge-done' : 'badge-new');
+      return `
+      <a class="task-card" href="task.html?id=${a.id}" style="color:inherit;">
+        <div class="task-type-icon ${cls}">${icon}</div>
+        <span class="task-badge ${badgeClass}">${badgeLabel}</span>
+        <div class="subject">${escapeHtml(a.title)}</div>
+        <div class="due">${a.due_at ? 'تا ' + formatJalali(a.due_at) : 'بدون موعد'}</div>
+      </a>`;
+    }).join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+  // ===== مودال‌های عمومی =====
+  function cap(s) { return s[0].toUpperCase() + s.slice(1); }
+  function openModal(name) { document.getElementById(`modal${cap(name)}`).classList.add('open'); }
+  function closeModal(name) { document.getElementById(`modal${cap(name)}`).classList.remove('open'); }
+
+  // ===== پروفایل: عکس / آواتار =====
+  const ALLOWED_AVATARS = ['🦊', '🐼', '🐱', '🐶', '🐰', '🦁', '🐯', '🐨'];
+  let currentProfile = { avatar: '🐣', avatarPhoto: null };
+
+  function renderAvatarEverywhere() {
+    const html = currentProfile.avatarPhoto
+      ? `<img src="${currentProfile.avatarPhoto}" alt="عکس پروفایل">`
+      : (currentProfile.avatar || '🐣');
+    document.getElementById('avatarCircle').innerHTML = html;
+    document.getElementById('profileAvatarPreview').innerHTML = html;
   }
 
   async function loadProfile() {
     try {
-      const data = await apiFetch('/account/get-profile');
-      document.getElementById('profileAvatar').textContent = data.avatar || '🧒';
-      document.getElementById('profileName').textContent = escapeHtml(data.fullName);
+      const p = await apiFetch('/account/get-profile');
+      currentProfile = { avatar: p.avatar || '🐣', avatarPhoto: p.avatarPhoto || null };
+      applySchoolThemeColor(p.schoolThemeColor);
+      renderAvatarEverywhere();
     } catch (e) { console.error(e); }
   }
 
-  async function claimDailyReward() {
+  function renderAvatarGrid() {
+    document.getElementById('avatarGrid').innerHTML = ALLOWED_AVATARS.map(a =>
+      `<button type="button" class="${!currentProfile.avatarPhoto && currentProfile.avatar === a ? 'active' : ''}" onclick="chooseAvatar('${a}')">${a}</button>`
+    ).join('');
+  }
+
+  async function chooseAvatar(a) {
     try {
-      const data = await apiFetch('/student/claim-reward', { method: 'POST' });
-      document.getElementById('rewardStatus').textContent = 'جایزه دریافت شد! 🎉';
-      document.getElementById('rewardBtn').textContent = '✓ دریافت شد';
-      document.getElementById('rewardBtn').disabled = true;
-      document.getElementById('dailyRewardCard').classList.add('claimed');
-    } catch (e) {
-      document.getElementById('rewardStatus').textContent = 'امروز جایزه گرفتی! فردا بیا 👍';
-      document.getElementById('rewardBtn').textContent = '✓ دریافت شد';
-      document.getElementById('rewardBtn').disabled = true;
-      document.getElementById('dailyRewardCard').classList.add('claimed');
+      await apiFetch('/student/update-avatar', { method: 'POST', body: { avatar: a } });
+      currentProfile.avatar = a;
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
+  }
+
+  function openProfileModal() {
+    renderAvatarGrid();
+    document.getElementById('msgProfile').textContent = '';
+    openModal('profile');
+  }
+
+  document.getElementById('profilePhotoInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file, 256, 0.72);
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: dataUrl } });
+      currentProfile.avatarPhoto = dataUrl;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (err) {
+      document.getElementById('msgProfile').textContent = err.message || 'خطا در آپلود عکس';
     }
-  }
+    e.target.value = '';
+  });
 
-  async function completeChallenge() {
+  async function removeProfilePhoto() {
     try {
-      await apiFetch('/student/complete-daily-challenge', { method: 'POST' });
-      document.getElementById('challengeBtn').textContent = '✓ انجام شد';
-      document.getElementById('challengeBtn').disabled = true;
-    } catch (e) { alert('خطا: ' + e.message); }
+      await apiFetch('/account/update-photo', { method: 'POST', body: { photo: null } });
+      currentProfile.avatarPhoto = null;
+      renderAvatarEverywhere();
+      renderAvatarGrid();
+    } catch (e) { document.getElementById('msgProfile').textContent = e.message; }
   }
 
-  async function sendHighFive(classmateId, classmateName) {
-    try {
-      await apiFetch('/student/send-high-five', { method: 'POST', body: { toStudentId: classmateId, message: 'آفرین! 👋' } });
-      alert('ارسال شد! 👋');
-      closeModal('highfiveModal');
-      loadHighFives();
-    } catch (e) { alert('خطا: ' + e.message); }
-  }
-
-  async function loadOverview() {
-    try {
-      const data = await apiFetch('/student/get-overview');
-      document.getElementById('statStars').textContent = toFa(data.stars || 0);
-      document.getElementById('statLevel').textContent = toFa(data.level || 1);
-      document.getElementById('statStreak').textContent = toFa(data.streak || 0);
-      if (data.avatar) {
-        document.getElementById('studentAvatar').textContent = data.avatar;
-        document.getElementById('profileAvatar').textContent = data.avatar;
-      }
-      if (!data.luckyBoxAvailable) {
-        document.getElementById('rewardStatus').textContent = 'امروز جایزه گرفتی! فردا بیا 👍';
-        document.getElementById('rewardBtn').textContent = '✓ دریافت شد';
-        document.getElementById('rewardBtn').disabled = true;
-        document.getElementById('dailyRewardCard').classList.add('claimed');
-      }
-      document.getElementById('plantWeather').textContent = 'آب و هوای باغچه: ' + escapeHtml(safeString(data.gardenWeather, 'آفتابی ☀️'));
-      const fest = safeString(data.festival, '');
-      if (fest) document.getElementById('plantFestival').textContent = '🎉 جشنواره: ' + escapeHtml(fest);
-
-      const badgesContainer = document.getElementById('badgesList');
-      if (data.badges && data.badges.length > 0) {
-        badgesContainer.innerHTML = data.badges.slice(0, 6).map(b => `<div class="badge ${b.earned ? '' : 'locked'}" title="${escapeHtml(b.description)}"><div>${escapeHtml(b.icon)}</div>${escapeHtml(b.name)}</div>`).join('');
-      }
-    } catch (e) { console.error('Overview error:', e); }
-  }
-
-  async function loadTasks() {
-    try {
-      const data = await apiFetch('/student/get-tasks');
-      const container = document.getElementById('tasksList');
-      if (!data.assignments || data.assignments.length === 0) { container.innerHTML = '<div class="loading-state">آفرین! تکلیف بازی نداری 🎉</div>'; return; }
-      container.innerHTML = data.assignments.map(task => {
-        if (task.excused) return `<div class="task"><div><b>${escapeHtml(task.title)}</b><small>معاف شده</small></div><span class="status excused">معاف شده</span></div>`;
-        const isDone = task.submission_status === 'submitted' || task.submission_status === 'reviewed';
-        const statusClass = isDone ? '' : (task.due_at ? 'warn' : '');
-        const statusText = isDone ? (task.score !== null ? `نمره: ${toFa(task.score)}` : 'ارسال شده') : 'در انتظار';
-        return `<div class="task" onclick="window.location.href='/task.html?id=${task.id}'"><div><b>${escapeHtml(task.title)}</b><small>مهلت: ${task.due_at ? formatJalali(task.due_at) : 'نامحدود'}</small></div><span class="status ${statusClass}">${statusText}</span></div>`;
-      }).join('');
-    } catch (e) { document.getElementById('tasksList').innerHTML = '<div class="error-state">خطا در دریافت تکالیف</div>'; }
-  }
-
-  async function loadProgress() {
-    try {
-      const data = await apiFetch('/student/get-progress');
-      const chartContainer = document.getElementById('progressChart');
-      if (data.history && data.history.length > 0) {
-        const points = data.history.map(h => ({ y: Math.round(h.score), label: escapeHtml(h.title) }));
-        if (typeof renderLineChart === 'function') renderLineChart(chartContainer, points, { color: '#3F7A52', emptyText: 'نمودار پیشرفت' });
-      } else { chartContainer.innerHTML = '<div class="loading-state">هنوز نمره‌ای ثبت نشده است</div>'; }
-      const skillsContainer = document.getElementById('skillsList');
-      if (data.skills && data.skills.length > 0) {
-        skillsContainer.innerHTML = data.skills.slice(0, 4).map(skill => {
-          let barColor = '#4c8b61';
-          if (skill.status === 'needs_support') barColor = '#e2725b';
-          else if (skill.status === 'developing') barColor = '#F6C445';
-          return `<div class="skill"><div class="skill-head"><b>${escapeHtml(skill.name)}</b><span>${toFa(skill.mastery)}٪</span></div><div class="progress"><div style="width: ${skill.mastery}%; background: ${barColor}"></div></div></div>`;
-        }).join('');
-      }
-    } catch (e) { console.error('Progress error:', e); }
-  }
-
-  async function loadGoals() {
-    try {
-      const data = await apiFetch('/student/goals');
-      const container = document.getElementById('goalsList');
-      if (!data.goals || data.goals.length === 0) { container.innerHTML = '<div class="loading-state">هنوز هدفی تعریف نکرده‌ای.</div>'; return; }
-      container.innerHTML = data.goals.map(goal => `<div class="parent-note" style="border-right-color: ${goal.completed ? '#3F7A52' : '#FFA500'}"><div style="display:flex; justify-content:space-between; align-items:center;"><b>${escapeHtml(goal.title)}</b><span style="font-size:12px; background:#fff; padding:4px 8px; border-radius:8px;">${goal.completed ? '✅ تکمیل شده' : 'در حال پیشرفت'}</span></div><div class="progress" style="margin-top:10px;"><div style="width: ${goal.progress}%; background: ${goal.completed ? '#3F7A52' : '#FFA500'}"></div></div></div>`).join('');
-    } catch (e) { document.getElementById('goalsList').innerHTML = '<div class="error-state">خطا در بارگذاری اهداف</div>'; }
-  }
+  // ===== اعلان‌ها =====
+  const NOTIF_ICON = { new_assignment: '📋', grade_ready: '🎉', parent_message: '💬', due_soon: '⏰', badge_earned: '🏅', teacher_message: '👩‍🏫' };
 
   async function loadNotifications() {
     try {
       const data = await apiFetch('/student/list-notifications');
-      const container = document.getElementById('notificationsList');
-      const count = (data.notifications || []).filter(n => !n.is_read).length;
-      document.getElementById('notifCount').textContent = toFa(count);
-      if (!data.notifications || data.notifications.length === 0) { container.innerHTML = '<div class="loading-state">اعلانی نداری 🔔</div>'; return; }
-      container.innerHTML = data.notifications.slice(0, 5).map(n => `<div class="notification-item ${!n.is_read ? 'unread' : ''}" onclick="markNotificationRead(${n.id})"><b>${escapeHtml(n.title)}</b><small>${escapeHtml(n.body)}</small></div>`).join('');
-    } catch (e) { document.getElementById('notificationsList').innerHTML = '<div class="error-state">خطا</div>'; }
+      const badge = document.getElementById('notifBadge');
+      if (data.unreadCount > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = toFa(data.unreadCount > 9 ? '9+' : data.unreadCount);
+      } else {
+        badge.style.display = 'none';
+      }
+      window.__notifCache = data.notifications;
+    } catch (e) { console.error(e); }
   }
 
-  async function markNotificationRead(id) {
-    try { await apiFetch('/student/mark-notifications-read', { method: 'POST', body: { notificationId: id } }); loadNotifications(); } catch (e) {}
+  function openNotifPanel() {
+    const list = window.__notifCache || [];
+    const box = document.getElementById('notifList');
+    box.innerHTML = list.length ? list.map(n => `
+      <div class="notif-item ${n.is_read ? '' : 'unread'}">
+        <div>${NOTIF_ICON[n.type] || '🔔'} ${escapeHtml(n.title)}</div>
+        ${n.body ? `<div style="opacity:.75; margin-top:3px;">${escapeHtml(n.body)}</div>` : ''}
+        <div style="opacity:.55; margin-top:4px; font-size:.72rem;">${formatJalali(n.created_at, { time: true })}</div>
+      </div>`).join('') : '<div style="text-align:center; opacity:.6; padding:20px 0;">اعلانی نداری.</div>';
+    openModal('notif');
+    if (list.some(n => !n.is_read)) {
+      apiFetch('/student/mark-notifications-read', { method: 'POST' }).then(() => {
+        document.getElementById('notifBadge').style.display = 'none';
+      }).catch(() => {});
+    }
   }
 
-  async function loadChallenges() {
+
+// ===== نشان‌ها و دستاوردها =====
+async function openAchievementsModal() {
+  openModal('achievements');
+
+  const summaryBox = document.getElementById('achievementsSummary');
+  const box = document.getElementById('achievementsBox');
+
+  summaryBox.innerHTML = '';
+  box.innerHTML = '<div class="muted">در حال بارگذاری نشان‌ها...</div>';
+
+  try {
+    const [data, overview] = await Promise.all([
+      apiFetch('/student/get-achievements'),
+      apiFetch('/student/get-overview')
+    ]);
+
+    if (!data?.ok) {
+      throw new Error(data?.error || 'خطا در دریافت دستاوردها');
+    }
+
+    const summary = data.summary || {};
+    const badges = Array.isArray(data.badges) ? data.badges : [];
+
+    summaryBox.innerHTML = `
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:24px;">🏆</div>
+        <strong>${summary.earnedBadges || 0} / ${summary.totalBadges || 0}</strong>
+        <div class="muted">نشان گرفته‌شده</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:24px;">⭐</div>
+        <strong>${overview?.stars || 0}</strong>
+        <div class="muted">امتیاز رشد</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px;">
+        <div style="font-size:24px;">🔥</div>
+        <strong>${overview?.streak || 0}</strong>
+        <div class="muted">روز پیاپی</div>
+      </div>
+    `;
+
+    if (!badges.length) {
+      box.innerHTML = '<div class="muted">هنوز نشانی ثبت نشده است.</div>';
+    } else {
+      box.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+          ${badges.map(b => {
+            const earned = !!b.earned;
+            return `
+              <div class="card"
+                   style="padding:15px;text-align:center;opacity:${earned ? '1' : '.48'};${earned ? '' : 'filter:grayscale(1);'}">
+                <div style="font-size:42px;margin-bottom:8px;">${escapeHtml(b.icon || '🏆')}</div>
+                <strong>${escapeHtml(b.name || '')}</strong>
+                <div class="muted" style="font-size:13px;margin-top:6px;">
+                  ${escapeHtml(b.description || '')}
+                </div>
+                <div style="margin-top:10px;font-size:12px;">
+                  ${earned
+                    ? `✅ گرفته شده${b.earnedAt ? ` · ${escapeHtml(b.earnedAt.slice(0,10))}` : ''}`
+                    : '🔒 هنوز نگرفتی'}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+  } catch (e) {
+    box.innerHTML = `<div class="error">خطا: ${escapeHtml(e.message || 'خطای نامشخص')}</div>`;
+  }
+}
+
+// ===== جشن نشان جدید =====
+  let badgeCelebrateQueue = [];
+  function celebratePendingBadges() {
+    const raw = sessionStorage.getItem('hw_pending_badges');
+    if (!raw) return;
+    sessionStorage.removeItem('hw_pending_badges');
     try {
-      const data = await apiFetch('/student/list-daily-challenges');
-      if (data.challenges && data.challenges.length > 0) {
-        const today = data.challenges[0];
-        document.getElementById('challengeTitle').textContent = '🎯 ' + escapeHtml(today.title);
-        document.getElementById('challengeDesc').textContent = escapeHtml(today.description || 'چالش امروز را کامل کن!');
-        if (today.completed) { document.getElementById('challengeBtn').textContent = '✓ انجام شد'; document.getElementById('challengeBtn').disabled = true; }
-      } else { document.getElementById('challengeDesc').textContent = 'چالش امروز هنوز تعریف نشده'; document.getElementById('challengeBtn').disabled = true; }
-    } catch (e) {}
+      const codes = JSON.parse(raw);
+      if (!codes || !codes.length) return;
+      apiFetch('/student/get-overview').then((overview) => {
+        badgeCelebrateQueue = codes.map(code => overview.badges.find(b => b.code === code)).filter(Boolean);
+        showNextBadgeCelebration();
+      }).catch(() => {});
+    } catch { /* ignore */ }
   }
 
-  async function loadParentNotes() {
+  function showNextBadgeCelebration() {
+    const b = badgeCelebrateQueue.shift();
+    if (!b) return;
+    document.getElementById('badgeCelebrateIcon').textContent = b.icon || '🏅';
+    document.getElementById('badgeCelebrateBody').innerHTML = `<b>${escapeHtml(b.name)}</b><br>${escapeHtml(b.description || '')}`;
+    openModal('badgeCelebrate');
+  }
+
+  // ===== نمودار روند نمره‌ها =====
+
+function renderStudentSkills(skills, summary) {
+  const box = document.getElementById('studentSkillsBox');
+  const summaryBox = document.getElementById('studentSkillSummary');
+  if (!box) return;
+
+  skills = Array.isArray(skills) ? skills : [];
+  summary = summary || {};
+
+  if (summaryBox) {
+    summaryBox.innerHTML = `
+      <span style="font-size:.78rem;">کل مهارت‌ها: ${Number(summary.totalSkills || 0)}</span>
+      <span style="font-size:.78rem;">شروع‌شده: ${Number(summary.startedSkills || 0)}</span>
+      <span style="font-size:.78rem;">مسلط: ${Number(summary.masteredSkills || 0)}</span>
+      <span style="font-size:.78rem;">در حال یادگیری: ${Number(summary.developingSkills || 0)}</span>
+      <span style="font-size:.78rem;">نیازمند حمایت: ${Number(summary.needsSupportSkills || 0)}</span>
+    `;
+  }
+
+  if (!skills.length) {
+    box.innerHTML = `
+      <div style="text-align:center;color:var(--ink-soft);padding:25px;">
+        هنوز مهارتی برای شما ثبت نشده است.
+      </div>`;
+    return;
+  }
+
+  const statusLabel = {
+    mastered: 'مسلط',
+    developing: 'در حال یادگیری',
+    needs_support: 'نیازمند حمایت',
+    not_started: 'شروع نشده'
+  };
+
+  box.innerHTML = skills.map(skill => {
+    const mastery = Number(skill.mastery || 0);
+    const status = statusLabel[skill.status] || skill.status || '';
+
+    return `
+      <div style="border-top:1px solid var(--line);padding:12px 0;">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+          <div>
+            <div style="font-weight:850;">${String(skill.name || '')}</div>
+            <div style="font-size:.72rem;color:var(--ink-soft);">
+              ${String(skill.subject || '')}
+              ${skill.code ? ' · ' + String(skill.code) : ''}
+            </div>
+          </div>
+          <div style="font-weight:900;">${mastery}٪</div>
+        </div>
+
+        <div style="height:8px;background:var(--bg-soft);border-radius:99px;overflow:hidden;margin-top:8px;">
+          <div style="height:100%;width:${Math.max(0, Math.min(100, mastery))}%;background:var(--leaf);border-radius:99px;"></div>
+        </div>
+
+        <div style="font-size:.72rem;color:var(--ink-soft);margin-top:5px;">
+          ${status} · ${Number(skill.answerCount || 0)} پاسخ
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+
+async function loadSmartPracticePreview() {
+  const box = document.getElementById('smartPracticeBox');
+  const hint = document.getElementById('smartPracticeHint');
+
+  if (!box) return;
+
+  try {
+    const data = await apiFetch('/student/get-practice-recommendations?limit=3');
+
+    if (!data?.ok) {
+      throw new Error(data?.error || 'practice recommendations failed');
+    }
+
+    const weakSkills = Array.isArray(data.weakSkills)
+      ? data.weakSkills
+      : [];
+
+    const recommendations = Array.isArray(data.recommendations)
+      ? data.recommendations
+      : [];
+
+    if (!recommendations.length) {
+      box.innerHTML = `
+        <div style="
+          padding:14px;
+          border-radius:12px;
+          background:var(--bg-soft);
+          color:var(--ink-soft);
+          line-height:1.9;
+          font-size:.84rem;">
+          🌱 فعلاً تمرین پیشنهادی جدیدی برایت پیدا نشد.
+          <br>
+          با انجام چند سؤال دیگر، پیشنهادهای هوشمند دقیق‌تر می‌شوند.
+        </div>`;
+      return;
+    }
+
+    if (weakSkills.length) {
+      hint.textContent =
+        'تمرکز پیشنهادی: ' +
+        weakSkills
+          .slice(0, 2)
+          .map(skill => skill.name)
+          .join('، ');
+    }
+
+    box.innerHTML = recommendations.map((item, index) => {
+      const q = item.question || {};
+      const skill = item.skill || {};
+
+      return `
+        <div style="
+          padding:13px;
+          margin-bottom:9px;
+          border:1px solid var(--line);
+          border-radius:12px;
+          background:var(--bg-soft);">
+
+          <div style="
+            font-size:.76rem;
+            color:var(--ink-soft);
+            margin-bottom:5px;">
+            ${escapeHtml(skill.name || 'مهارت پیشنهادی')}
+            · ${Number(skill.mastery || 0)}٪ تسلط
+          </div>
+
+          <div style="
+            font-weight:700;
+            line-height:1.8;">
+            ${index + 1}. ${escapeHtml(q.title || 'سؤال تمرینی')}
+          </div>
+        </div>`;
+    }).join('') + `
+      <div style="text-align:center;margin-top:12px;">
+        <a href="practice.html" class="btn btn-ghost">
+          مشاهده همه تمرین‌ها
+        </a>
+      </div>`;
+
+  } catch (error) {
+    console.error('loadSmartPracticePreview:', error);
+
+    box.innerHTML = `
+      <div style="
+        padding:14px;
+        border-radius:12px;
+        background:var(--bg-soft);
+        color:var(--ink-soft);
+        font-size:.82rem;">
+        فعلاً امکان دریافت تمرین هوشمند وجود ندارد.
+      </div>`;
+  }
+}
+
+async function loadProgressChart() {
     try {
-      const data = await apiFetch('/student/list-parent-notes');
-      const container = document.getElementById('parentNotesList');
-      if (!data.notes || data.notes.length === 0) { container.innerHTML = '<div class="loading-state">یادداشتی نداری 💝</div>'; return; }
-      container.innerHTML = data.notes.slice(0, 3).map(note => `<div class="parent-note"><b>📝 ${escapeHtml(note.parent_name)}</b><div style="margin-top:6px;">${escapeHtml(note.note)}</div></div>`).join('');
-    } catch (e) { document.getElementById('parentNotesList').innerHTML = '<div class="error-state">خطا</div>'; }
+      const data = await apiFetch('/student/get-progress');
+      const points = data.history.map(h => ({ y: Math.round(h.score), label: `${h.title}: ${Math.round(h.score)}٪` }));
+      renderLineChart(document.getElementById('progressChartBox'), points, { color: 'var(--leaf)', emptyText: 'هنوز نمره‌ای ثبت نشده — بعد از اولین تکلیف نمره‌دارت این‌جا روند رو می‌بینی.' });
+    } catch (e) { console.error(e); }
   }
 
-  async function loadHighFives() {
+  // ===== جشنواره (از get-overview) =====
+  async function loadFestival() {
     try {
-      const data = await apiFetch('/student/list-high-fives');
-      const container = document.getElementById('highfivesList');
-      if (!data.highFives || data.highFives.length === 0) { container.innerHTML = '<div class="loading-state">های‌فایویی دریافت نکردی 👋</div>'; return; }
-      container.innerHTML = data.highFives.slice(0, 5).map(hf => `<div class="highfive-item"><div class="highfive-avatar">👋</div><div class="highfive-content"><b>از طرف: ${escapeHtml(hf.fromName)}</b><small>${escapeHtml(hf.message || '')}</small></div></div>`).join('');
-    } catch (e) { document.getElementById('highfivesList').innerHTML = '<div class="error-state">خطا</div>'; }
+      const overview = await apiFetch('/student/get-overview');
+
+      if (overview.festival) {
+        const banner = document.getElementById('festivalBanner');
+        banner.style.display = 'flex';
+        banner.innerHTML = `<span style="font-size:1.4rem;">${overview.festival.icon}</span> <span>${escapeHtml(overview.festival.name)} شروع شده — با فرستادن تکلیف توی این بازه نشان ویژه می‌گیری!</span>`;
+      }
+
+    } catch (e) { console.error(e); }
   }
 
-  async function loadClassmates() {
-    try {
-      const data = await apiFetch('/student/list-classmates');
-      const container = document.getElementById('classmatesList');
-      if (!data.classmates || data.classmates.length === 0) { container.innerHTML = '<div class="loading-state">همکلاسی‌ای نداری</div>'; return; }
-      container.innerHTML = data.classmates.map(c => `<div class="highfive-item"><div class="highfive-avatar">${escapeHtml(c.avatar || '🧒')}</div><div class="highfive-content"><b>${escapeHtml(c.full_name)}</b></div><button class="send-highfive-btn" onclick="sendHighFive(${c.id}, '${escapeHtml(c.full_name)}')">ارسال 👋</button></div>`).join('');
-    } catch (e) { document.getElementById('classmatesList').innerHTML = '<div class="error-state">خطا</div>'; }
-  }
 
-  async function loadDiary() {
+  // ===== دفترچهٔ باغچه =====
+  async function openDiaryModal() {
+    openModal('diary');
+    document.getElementById('diaryList').textContent = 'در حال بارگذاری...';
     try {
       const data = await apiFetch('/student/get-garden-diary');
-      const container = document.getElementById('diaryContent');
-      if (!data.entries || data.entries.length === 0) { container.innerHTML = '<div class="loading-state">دفترچه خالی است 📔</div>'; return; }
-      container.innerHTML = data.entries.map(entry => `<div class="parent-note"><b>${escapeHtml(entry.title)}</b><div style="margin-top:6px;">${escapeHtml(entry.content)}</div></div>`).join('');
-    } catch (e) { document.getElementById('diaryContent').innerHTML = '<div class="error-state">خطا</div>'; }
+      const box = document.getElementById('diaryList');
+      if (!data.entries.length) {
+        box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز چیزی برای نوشتن توی دفترچه نیست — یه تکلیف بفرست تا شروع بشه 🌱</div>';
+        return;
+      }
+      box.innerHTML = data.entries.map(e => `
+        <div style="border-right:3px solid var(--leaf); padding-right:10px;">
+          <div style="font-size:.72rem; color:var(--ink-soft); margin-bottom:2px;">${formatJalali(e.date)}</div>
+          <div style="font-size:.86rem;">${escapeHtml(e.text)}</div>
+        </div>`).join('');
+    } catch (e) {
+      document.getElementById('diaryList').textContent = e.message;
+    }
   }
 
-  function logout() { if (confirm('خارج می‌شوید؟')) { localStorage.removeItem('auth_token'); window.location.href = '/login.html'; } }
-
-  if (user) {
-    document.getElementById('studentName').textContent = `سلام، ${escapeHtml(user.fullName)} 👋`;
-    document.getElementById('studentClass').textContent = `کلاس ${escapeHtml(user.className || 'نامشخص')} · باغچهٔ درس`;
-    Promise.all([loadOverview(), loadTasks(), loadProgress(), loadGoals(), loadNotifications(), loadChallenges(), loadParentNotes(), loadHighFives()]).catch(e => console.error(e));
+  // ===== چالش روزانه =====
+  async function loadDailyChallenge() {
+    const box = document.getElementById('dailyChallengeContent');
+    try {
+      const data = await apiFetch('/student/list-daily-challenges');
+      if (!data.challenge) {
+        box.innerHTML = '<div style="color:var(--ink-soft); font-size:.85rem;">امروز چالشی تعریف نشده — فردا سر بزن! 🌤️</div>';
+        return;
+      }
+      const c = data.challenge;
+      const desc = c.description ? `<div style="font-size:.82rem; color:var(--ink-soft); margin:4px 0 10px;">${escapeHtml(c.description)}</div>` : '';
+      if (c.my_completed) {
+        box.innerHTML = `
+          <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(c.title)}</div>
+          ${desc}
+          <div style="color:var(--leaf-dark); font-size:.85rem; font-weight:700;">تکمیل شد! ✅ +${toFa(c.reward_xp)} XP</div>`;
+      } else {
+        box.innerHTML = `
+          <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(c.title)}</div>
+          ${desc}
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <span style="font-size:.8rem; color:var(--ink-soft);">پاداش: ${toFa(c.reward_xp)} XP</span>
+            <button type="button" class="btn btn-primary" style="padding:8px 16px; font-size:.8rem;" onclick="completeDailyChallenge(${c.id})">انجامش دادم!</button>
+          </div>`;
+      }
+    } catch (e) {
+      box.innerHTML = `<div style="color:var(--coral); font-size:.82rem;">${escapeHtml(e.message)}</div>`;
+    }
   }
+
+  async function completeDailyChallenge(challengeId) {
+    try {
+      const res = await apiFetch('/student/complete-daily-challenge', { method: 'POST', body: { challengeId } });
+      aliveToast(`آفرین! XP+${toFa(res.xp)}`);
+      loadDailyChallenge();
+      loadFestival();
+    } catch (e) {
+      document.getElementById('dailyChallengeContent').insertAdjacentHTML('beforeend', `<div style="color:var(--coral); font-size:.8rem; margin-top:6px;">${escapeHtml(e.message)}</div>`);
+    }
+  }
+
+  // ===== های‌فایو همکلاسی =====
+  let hfTab = 'send';
+  function openHighFivesModal() {
+    openModal('highFives');
+    document.getElementById('msgHighFives').textContent = '';
+    switchHfTab('send');
+  }
+  function switchHfTab(tab) {
+    hfTab = tab;
+    document.getElementById('hfTabSendBtn').className = tab === 'send' ? 'btn btn-primary' : 'btn btn-ghost';
+    document.getElementById('hfTabReceivedBtn').className = tab === 'received' ? 'btn btn-primary' : 'btn btn-ghost';
+    document.getElementById('hfSendBox').style.display = tab === 'send' ? 'block' : 'none';
+    document.getElementById('hfReceivedBox').style.display = tab === 'received' ? 'block' : 'none';
+    if (tab === 'send') loadHfSend(); else loadHfReceived();
+  }
+  async function loadHfSend() {
+    const box = document.getElementById('hfSendBox');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/list-classmates');
+      if (!data.classmates.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هم‌کلاسی‌ای پیدا نشد.</div>'; return; }
+      box.innerHTML = data.classmates.map(c => `
+        <div class="classmate-row" style="align-items:center;">
+          <span>${escapeHtml(c.full_name)}</span>
+          <button type="button" class="btn btn-primary" style="padding:6px 14px; font-size:.76rem;" onclick="sendHighFive(${c.id}, this)">🙌 های‌فایو</button>
+        </div>`).join('');
+    } catch (e) { document.getElementById('msgHighFives').textContent = e.message; }
+  }
+  async function sendHighFive(toStudentId, btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'ارسال شد ✅'; }
+    try {
+      await apiFetch('/student/send-high-five', { method: 'POST', body: { toStudentId } });
+      document.getElementById('msgHighFives').textContent = '';
+    } catch (e) {
+      document.getElementById('msgHighFives').textContent = e.message;
+      if (btn) { btn.disabled = false; btn.textContent = '🙌 های‌فایو'; }
+    }
+  }
+  async function loadHfReceived() {
+    const box = document.getElementById('hfReceivedBox');
+    box.innerHTML = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/list-high-fives');
+      if (!data.received.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز های‌فایوی دریافت نکردی.</div>'; return; }
+      box.innerHTML = data.received.map(h => `
+        <div style="border-right:3px solid var(--leaf); padding-right:10px; margin-bottom:8px;">
+          <div style="font-size:.86rem;"><b>${escapeHtml(h.from_name)}</b> بهت های‌فایو زد 🙌</div>
+          ${h.message ? `<div style="font-size:.82rem; color:var(--ink-soft); margin-top:2px;">${escapeHtml(h.message)}</div>` : ''}
+        </div>`).join('');
+    } catch (e) { document.getElementById('msgHighFives').textContent = e.message; }
+  }
+
+  // ===== یادداشت والدین =====
+  function openParentNotesModal() {
+    openModal('parentNotes');
+    loadParentNotes();
+  }
+  async function loadParentNotes() {
+    const box = document.getElementById('parentNotesList');
+    box.textContent = 'در حال بارگذاری...';
+    try {
+      const data = await apiFetch('/student/list-parent-notes');
+      if (!data.notes.length) { box.innerHTML = '<div style="text-align:center; color:var(--ink-soft); font-size:.85rem; padding:16px 0;">هنوز یادداشتی از والدینت نداری.</div>'; return; }
+      box.innerHTML = data.notes.map(n => `
+        <div style="border-right:3px solid var(--sun); padding-right:10px; margin-bottom:10px;">
+          <div style="font-size:.72rem; color:var(--ink-soft); margin-bottom:2px;">${escapeHtml(n.parent_name)} — ${formatJalali(n.created_at)}</div>
+          <div style="font-size:.86rem;">${escapeHtml(n.note)}</div>
+        </div>`).join('');
+    } catch (e) { box.textContent = e.message; }
+  }
+
+async function loadStudentGoals() {
+  const list = document.getElementById("studentGoalsList");
+  const skillSelect = document.getElementById("studentGoalSkill");
+  if (!list || !skillSelect) return;
+  const [goalsData, progressData] = await Promise.all([apiFetch("/student/goals"), apiFetch("/student/get-progress")]);
+  const skills = Array.isArray(progressData.skills) ? progressData.skills : [];
+  const goals = Array.isArray(goalsData.goals) ? goalsData.goals : [];
+  window.__studentGoals = goals;
+  skillSelect.innerHTML = "<option value=\"\">انتخاب مهارت</option>" + skills.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("");
+  list.innerHTML = goals.length ? goals.map(g => `<div style="border:1px solid #e2e8f0;border-radius:14px;padding:14px;margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><b>🎯 ${escapeHtml(g.title)}</b><div style="display:flex;gap:6px;flex-shrink:0;"><button type="button" class="icon-btn" title="ویرایش" onclick="editStudentGoalById(${Number(g.id)})">✏️</button><button type="button" class="icon-btn" title="حذف" onclick="deleteStudentGoal(${Number(g.id)})">🗑️</button></div></div><div style="font-size:.8rem;color:var(--ink-soft);margin-top:4px;">مهارت: ${escapeHtml(g.skill_name || "—")}</div><div style="margin-top:8px;">پیشرفت: ${Number(g.current_mastery) || 0}٪ از هدف ${Number(g.target_mastery) || 0}٪</div><div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:${Number(g.progress) || 0}%;background:var(--leaf);"></div></div></div>`).join("") : "<div style=\"text-align:center;color:var(--ink-soft);padding:20px;\">هنوز هدفی ثبت نکرده‌ای. 🎯</div>";
+}
+
+
+async function createStudentGoal() {
+  const skillId = Number(document.getElementById("studentGoalSkill")?.value);
+  const title = document.getElementById("studentGoalTitle")?.value.trim();
+  const description = document.getElementById("studentGoalDescription")?.value.trim();
+  const target = Number(document.getElementById("studentGoalTarget")?.value || 80);
+  const dueDate = document.getElementById("studentGoalDueDate")?.value || null;
+  if (!skillId || !title) { aliveToast("مهارت و عنوان هدف را وارد کن."); return; }
+  try {
+    await apiFetch("/student/goals", { method: "POST", body: { skill_id: skillId, title, description, target_mastery: target, due_date: dueDate } });
+    document.getElementById("studentGoalTitle").value = "";
+    document.getElementById("studentGoalDescription").value = "";
+    document.getElementById("studentGoalTarget").value = "80";
+    document.getElementById("studentGoalDueDate").value = "";
+    aliveToast("🎯 هدف یادگیری ثبت شد.");
+    await loadStudentGoals();
+  } catch (e) { aliveToast(e.message || "ثبت هدف ناموفق بود."); }
+}
+
+async function deleteStudentGoal(goalId) {
+  if (!confirm("این هدف حذف شود؟")) return;
+  try {
+    await apiFetch("/student/goals?id=" + encodeURIComponent(goalId), { method: "DELETE" });
+    aliveToast("هدف حذف شد.");
+    await loadStudentGoals();
+  } catch (e) { aliveToast(e.message || "حذف هدف ناموفق بود."); }
+}
+
+
+async function editStudentGoalById(goalId) {
+  const goal = (window.__studentGoals || []).find(g => Number(g.id) === Number(goalId));
+  if (!goal) { aliveToast("هدف پیدا نشد."); return; }
+  await editStudentGoal(goal);
+}
+
+async function editStudentGoal(goal) {
+  const title = prompt("عنوان هدف:", goal.title || "");
+  if (title === null) return;
+  const target = prompt("درصد هدف (۱ تا ۱۰۰):", String(goal.target_mastery || 80));
+  if (target === null) return;
+  const dueDate = prompt("تاریخ هدف (YYYY-MM-DD، اختیاری):", goal.due_date || "");
+  if (dueDate === null) return;
+
+  try {
+    await apiFetch("/student/goals", {
+      method: "PATCH",
+      body: {
+        id: goal.id,
+        title: title.trim(),
+        description: goal.description || "",
+        target_mastery: Number(target),
+        due_date: dueDate || null
+      }
+    });
+    aliveToast("🎯 هدف ویرایش شد.");
+    await loadStudentGoals();
+  } catch (e) {
+    aliveToast(e.message || "ویرایش هدف ناموفق بود.");
+  }
+}
+
+
+// ===== درس‌های من (فصل‌ها) =====
+async function loadLessons() {
+  const box = document.getElementById("lessonsBox");
+  if (!box) return;
+  box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:20px;grid-column:1/-1;">در حال بارگذاری درس‌ها...</div>';
+  try {
+    const data = await apiFetch("/student/list-lessons");
+    const lessons = Array.isArray(data.lessons) ? data.lessons : [];
+    if (!lessons.length) {
+      box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);padding:20px;grid-column:1/-1;">هنوز درسی برای کلاس تو تعریف نشده.</div>';
+      return;
+    }
+    box.innerHTML = lessons.map(l => {
+      const locked = l.status === 'locked';
+      const done = l.status === 'done';
+      const starsStr = '⭐'.repeat(l.stars || 0) + '☆'.repeat(3 - (l.stars || 0));
+      return `<div class="card" style="padding:14px;${locked ? 'opacity:.55;filter:grayscale(.6);' : ''}">
+        <div style="font-size:28px;">${escapeHtml(l.icon || '📘')}</div>
+        <b>${escapeHtml(l.title)}</b>
+        <div style="font-size:.78rem;color:var(--ink-soft);margin-top:2px;">${escapeHtml(l.subject || '')}</div>
+        <div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:10px;">
+          <div style="height:100%;width:${Number(l.progress) || 0}%;background:var(--leaf);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:.8rem;">
+          <span>${locked ? '🔒 قفل' : done ? '✅ کامل شد' : `${Number(l.doneAssignments)||0} از ${Number(l.totalAssignments)||0}`}</span>
+          <span>${starsStr}</span>
+        </div>
+      </div>`;
+    }).join("");
+  } catch (e) {
+    box.innerHTML = `<div style="text-align:center;color:#b42318;padding:20px;grid-column:1/-1;">${escapeHtml(e.message || "خطا در دریافت درس‌ها")}</div>`;
+  }
+}
+
+// ===== janbakhshi: واکنش‌ها ⚡ =====
+function aliveToast(msg) {
+  const t = document.getElementById('toastMini');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+document.querySelector('.sprout-wrap')?.addEventListener('click', () => {
+  const w = document.querySelector('.sprout-wrap');
+  w.classList.remove('wiggle');
+  void w.offsetWidth;
+  w.classList.add('wiggle');
+
+  const points = Number(window.__studentGrowthPoints || 0);
+  const { current } = stageFor(points);
+
+  const messages = {
+    'دانه': [
+      'هر یادگیری از یک قدم کوچک شروع می‌شود. 🌱',
+      'امروز یک قدم بردار؛ باغچه‌ات منتظر توست. ✨',
+      'با هر تمرین، ریشه‌های یادگیریت قوی‌تر می‌شود. 🌰'
+    ],
+    'جوانه‌زن': [
+      'جوانه‌ات دارد رشد می‌کند؛ ادامه بده! 🌱',
+      'تلاش‌هایت کم‌کم خودش را نشان می‌دهد. 🌿',
+      'یک قدم دیگر بردار تا جوانه‌ات قوی‌تر شود. ✨'
+    ],
+    'غنچه': [
+      'یادگیریت وارد مرحلهٔ تازه‌ای شده. 🌿',
+      'مهارت‌هایت دارند شکل می‌گیرند؛ تمرین را ادامه بده. 💪',
+      'غنچه آمادهٔ شکوفایی است؛ تسلیم نشو! 🌱'
+    ],
+    'شکوفا': [
+      'نتیجهٔ تلاش‌هایت دارد شکوفا می‌شود. 🌸',
+      'آفرین! رشدت فقط یک عدد نیست؛ مهارت‌هایت هم قوی‌تر شده‌اند. ✨',
+      'همین مسیر را ادامه بده؛ شکوفایی نزدیک‌تر می‌شود. 🌸'
+    ],
+    'درخت پربار': [
+      'باغچه‌ات نتیجهٔ تلاش‌هایت را نشان می‌دهد. 🌳',
+      'تو فقط امتیاز نگرفتی؛ قدم‌به‌قدم قوی‌تر شدی. 🏆',
+      'درختت پربار شده؛ حالا وقت حفظ این مسیر است. 🌳'
+    ]
+  };
+
+  const pool = messages[current.name] || messages['دانه'];
+  const message = pool[Math.floor(Math.random() * pool.length)];
+
+  aliveToast(message);
+  navigator.vibrate?.(20);
+});
 </script>
+
+<!-- ===== مودال های‌فایو ===== -->
+<div class="modal-backdrop" id="modalHighFives">
+  <div class="modal" style="max-width:480px;">
+    <h3 style="margin-bottom:4px;">🙌 های‌فایو به همکلاسی‌ها</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">به دوستانت انرژی مثبت بده! </div>
+    <div class="tabs" style="margin-bottom:12px; display:flex; gap:8px;">
+      <button type="button" id="hfTabSendBtn" class="btn btn-primary" style="flex:1" onclick="switchHfTab('send')">ارسال های‌فایو</button>
+      <button type="button" id="hfTabReceivedBtn" class="btn btn-ghost" style="flex:1" onclick="switchHfTab('received')">های‌فایوهای دریافتی</button>
+    </div>
+    <div id="hfSendBox"></div>
+    <div id="hfReceivedBox" style="display:none;"></div>
+    <div id="msgHighFives" style="margin-top:8px; color:var(--coral); font-size:.85rem;"></div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('highFives')">بستن</button>
+  </div>
+</div>
+
+
+<!-- ===== مودال یادداشت والدین ===== -->
+<div class="modal-backdrop" id="modalParentNotes">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="margin-bottom:4px;">💌 یادداشت والدین</h3>
+    <div style="color:var(--ink-soft); font-size:.8rem; margin-bottom:12px;">پیام‌های والدین برایت</div>
+    <div id="parentNotesList">در حال بارگذاری...</div>
+    <button type="button" class="btn btn-ghost" style="width:100%; margin-top:12px;" onclick="closeModal('parentNotes')">بستن</button>
+  </div>
+</div>
+
 </body>
 </html>

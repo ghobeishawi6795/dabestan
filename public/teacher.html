@@ -419,6 +419,10 @@ async function openLearningClassReport() {
             </div>
           </div>
 
+          <div style="margin-top:10px;">
+            <button class="secondary-btn" type="button" onclick="openClassSkillAnalysis(${Number(c.id)}, '${learningEscape(c.name).replace(/'/g, "\\'")}')">📊 تحلیل مهارت‌های کلاس</button>
+          </div>
+
           <div style="margin-top:12px;">
             ${students.length ? students.map(st => `
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding:9px 0;">
@@ -497,6 +501,59 @@ async function openStudentLearningReport(studentId) {
 
   } catch (e) {
     showToast(e.message || 'خطا در دریافت پیشرفت دانش‌آموز');
+  }
+}
+
+async function openClassSkillAnalysis(classId, className) {
+  const box = document.getElementById('learningClassBox');
+  box.innerHTML = '<div style="text-align:center;color:var(--ink-soft);">در حال دریافت تحلیل...</div>';
+
+  try {
+    const r = await authFetch('/api/teacher/get-class-skill-analysis?class_id=' + encodeURIComponent(classId));
+    const data = await r.json();
+
+    if (!r.ok || !data.ok) {
+      throw new Error(data.error || 'خطا در دریافت تحلیل مهارت‌های کلاس');
+    }
+
+    const summary = data.summary || {};
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+    const statusLabel = { needs_support: '🔴 نیازمند حمایت', developing: '🟡 در حال یادگیری', mastered: '🟢 مسلط' };
+
+    box.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <button class="secondary-btn" type="button" onclick="openLearningClassReport()">← بازگشت</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">📊 تحلیل مهارت‌های کلاس ${learningEscape(className)}</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem;">
+          <span>کل مهارت‌ها: ${Number(summary.skillCount || 0)}</span>
+          <span>مسلط: ${Number(summary.mastered || 0)}</span>
+          <span>در حال یادگیری: ${Number(summary.developing || 0)}</span>
+          <span>نیازمند حمایت: ${Number(summary.needsSupport || 0)}</span>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        ${skills.length ? skills.map(s => `
+          <div class="card" style="margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+              <div>
+                <div style="font-weight:850;">${learningEscape(s.name)}</div>
+                <div style="font-size:.75rem;color:var(--ink-soft);">${learningEscape(s.subject)} · ${learningEscape(s.code)}</div>
+              </div>
+              <div style="font-weight:900;">${Number(s.mastery || 0)}٪</div>
+            </div>
+            <div style="font-size:.75rem;color:var(--ink-soft);margin-top:5px;">
+              ${statusLabel[s.status] || ''} · پاسخ: ${Number(s.answerCount || 0)}
+            </div>
+          </div>
+        `).join('') : '<div class="card" style="text-align:center;color:var(--ink-soft);">هنوز داده‌ای برای مهارت‌های این کلاس ثبت نشده است.</div>'}
+      </div>
+    `;
+  } catch (e) {
+    box.innerHTML = `<div style="color:#b42318;">${learningEscape(e.message)}</div>`;
   }
 }
 
@@ -1185,6 +1242,7 @@ body{
       <li><a class="nav-item" href="#classReportSection" onclick="scrollToId('classReportSection')"><span class="ic">📊</span> گزارش کلاس</a></li>
       <li><a class="nav-item" href="#learningSection" onclick="scrollToId('learningSection')"><span class="ic">🧠</span> سیستم یادگیری</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openDailyChallengeModal();"><span class="ic">☀️</span> چالش روزانه</a></li>
+      <li><a class="nav-item" href="#" onclick="event.preventDefault(); openLessonsModal();"><span class="ic">📘</span> فصل‌های درسی</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openParentChatList();"><span class="ic">👪</span> پیام‌های والدین</a></li>
       <li><a class="nav-item" href="#" onclick="event.preventDefault(); openProfileModal();"><span class="ic">👤</span> پروفایل</a></li>
     </ul>
@@ -1520,7 +1578,10 @@ body{
       <div class="field"><label>موعد تحویل (اختیاری)</label><input type="date" id="aDue"></div>
       <div class="field" id="templateLoadField" style="display:none;">
         <label>📦 یا از یک الگوی ذخیره‌شده شروع کن</label>
-        <select id="aTemplateSelect" onchange="applyTemplateSelection()"><option value="">— انتخاب الگو —</option></select>
+        <div style="display:flex; gap:8px;">
+          <select id="aTemplateSelect" onchange="applyTemplateSelection()" style="flex:1;"><option value="">— انتخاب الگو —</option></select>
+          <button type="button" class="icon-btn" title="حذف این الگو" onclick="deleteSelectedTemplate()">🗑️</button>
+        </div>
       </div>
       <div class="field"><label>سؤالات (از بانک انتخاب کن)</label>
         <div class="bank-list" id="aBankPicker"></div>
@@ -1792,6 +1853,44 @@ body{
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" onclick="closeModal('dailyChallenge')">انصراف</button>
       <button type="button" class="btn btn-primary" onclick="submitDailyChallenge()">ثبت برای امروز</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== مودال فصل‌های درسی ===== -->
+<div class="modal-backdrop" id="modalLessons">
+  <div class="modal" style="max-width:520px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 style="margin:0;">📘 فصل‌های درسی</h3>
+      <button type="button" class="btn btn-ghost" style="padding:6px 12px;" onclick="showLessonCreateForm()">＋ فصل جدید</button>
+    </div>
+
+    <div class="field">
+      <label>کلاس</label>
+      <select id="lessonsClassFilter" class="input" onchange="loadLessonsList()"></select>
+    </div>
+
+    <div id="lessonsListBox" style="margin-top:10px;">
+      <div class="muted">در حال بارگذاری...</div>
+    </div>
+
+    <div id="lessonCreateForm" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+      <div class="field"><label>عنوان فصل</label><input type="text" id="lessonTitle" class="input" placeholder="مثلاً: فصل اول — اعداد"></div>
+      <div class="field"><label>موضوع درس</label><input type="text" id="lessonSubject" class="input" placeholder="مثلاً: ریاضی"></div>
+      <div class="field"><label>آیکون (اختیاری)</label><input type="text" id="lessonIcon" class="input" placeholder="📘" maxlength="4"></div>
+      <div class="field">
+        <label>تکالیف این فصل (به‌ترتیب انتخاب کن)</label>
+        <div id="lessonAssignmentsPicker" style="max-height:200px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px;"></div>
+      </div>
+      <div id="msgLessons" style="margin-bottom:8px; color:var(--coral); font-size:.85rem;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="hideLessonCreateForm()">انصراف</button>
+        <button type="button" class="btn btn-primary" onclick="submitNewLesson()">ثبت فصل</button>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px;">
+      <button type="button" class="btn btn-ghost" onclick="closeModal('lessons')">بستن</button>
     </div>
   </div>
 </div>
@@ -2394,6 +2493,74 @@ ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف
     }
   }
 
+  // ===== فصل‌های درسی (lessons) =====
+  let lessonsCache = [];
+
+  function openLessonsModal() {
+    const sel = document.getElementById('lessonsClassFilter');
+    sel.innerHTML = myClasses.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('') || '<option value="">— کلاسی موجود نیست —</option>';
+    hideLessonCreateForm();
+    openModal('lessons');
+    loadLessonsList();
+  }
+
+  async function loadLessonsList() {
+    const box = document.getElementById('lessonsListBox');
+    const classId = Number(document.getElementById('lessonsClassFilter').value);
+    box.innerHTML = '<div class="muted">در حال بارگذاری...</div>';
+    try {
+      const data = await apiFetch('/teacher/list-lessons');
+      lessonsCache = Array.isArray(data.lessons) ? data.lessons : [];
+      const filtered = classId ? lessonsCache.filter(l => l.class_name === (myClasses.find(c => c.id === classId) || {}).name) : lessonsCache;
+      box.innerHTML = filtered.length ? filtered.map(l => `
+        <div class="card" style="padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <b>${escapeHtml(l.icon || '📘')} ${escapeHtml(l.title)}</b>
+            <div class="muted">${escapeHtml(l.subject || '')} · ${escapeHtml(l.class_name || '')}</div>
+          </div>
+          <span class="muted">${toFa(l.assignment_count || 0)} تکلیف</span>
+        </div>
+      `).join('') : '<div class="muted">هنوز فصلی برای این کلاس تعریف نکردی.</div>';
+    } catch (e) { box.innerHTML = `<div style="color:var(--coral);">${escapeHtml(e.message)}</div>`; }
+  }
+
+  function showLessonCreateForm() {
+    document.getElementById('lessonCreateForm').style.display = 'block';
+    document.getElementById('msgLessons').textContent = '';
+    document.getElementById('lessonTitle').value = '';
+    document.getElementById('lessonSubject').value = '';
+    document.getElementById('lessonIcon').value = '';
+    const classId = Number(document.getElementById('lessonsClassFilter').value);
+    const picker = document.getElementById('lessonAssignmentsPicker');
+    const options = assignmentsCache.filter(a => a.class_id === classId);
+    picker.innerHTML = options.length
+      ? options.map(a => `<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.85rem;"><input type="checkbox" class="lesson-assign-check" value="${a.id}"> ${escapeHtml(a.title)}</label>`).join('')
+      : '<div class="muted">این کلاس هنوز تکلیفی نداره — اول یه تکلیف بفرست.</div>';
+  }
+
+  function hideLessonCreateForm() {
+    document.getElementById('lessonCreateForm').style.display = 'none';
+  }
+
+  async function submitNewLesson() {
+    const classId = Number(document.getElementById('lessonsClassFilter').value);
+    const title = document.getElementById('lessonTitle').value.trim();
+    const subject = document.getElementById('lessonSubject').value.trim();
+    const icon = document.getElementById('lessonIcon').value.trim();
+    const assignmentIds = [...document.querySelectorAll('.lesson-assign-check:checked')].map(el => Number(el.value));
+    const msg = document.getElementById('msgLessons');
+    if (!classId) { msg.textContent = 'اول یک کلاس انتخاب کن.'; return; }
+    if (!title || !subject) { msg.textContent = 'عنوان و موضوع فصل رو بنویس.'; return; }
+    if (!assignmentIds.length) { msg.textContent = 'حداقل یک تکلیف برای این فصل انتخاب کن.'; return; }
+    try {
+      const result = await apiFetch('/teacher/create-lesson', { method: 'POST', body: { title, subject, icon: icon || undefined, classId, assignmentIds } });
+      showToast('فصل ثبت شد ✅');
+      celebrateBadges(result.newlyEarnedBadges);
+      hideLessonCreateForm();
+      await loadLessonsList();
+    } catch (e) { msg.textContent = e.message; }
+  }
+
   const VISUAL_TYPE_NOTE = {
     drawing: '🎨 برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز یه بوم نقاشی برای کشیدن می‌بینه، تنظیم اضافه‌ای لازم نیست.',
     coloring: '🖌️ برای این نوع فقط همون «متن سؤال» بالا کافیه — دانش‌آموز یه بوم برای رنگ‌آمیزی می‌بینه، تنظیم اضافه‌ای لازم نیست.',
@@ -2531,6 +2698,19 @@ ${isMine ? `<button class="del" onclick="deleteQuestion(${q.id})">🗑️ حذف
     } else {
       document.getElementById('msgAssignment').innerHTML = '';
     }
+  }
+
+  async function deleteSelectedTemplate() {
+    const select = document.getElementById('aTemplateSelect');
+    const id = Number(select.value);
+    if (!id) { showModalMsg('Assignment', 'اول یک الگو از لیست انتخاب کن.'); return; }
+    const tpl = assignmentTemplatesCache.find(t => t.id === id);
+    if (!confirm(`الگوی «${tpl ? tpl.title : ''}» حذف بشه؟`)) return;
+    try {
+      await apiFetch('/teacher/delete-assignment-template', { method: 'POST', body: { templateId: id } });
+      showToast('الگو حذف شد 🗑️');
+      await loadTemplatesIntoAssignmentModal();
+    } catch (e) { showModalMsg('Assignment', e.message); }
   }
 
   async function saveCurrentAsTemplate() {

@@ -302,6 +302,7 @@ p { margin: 0; color: var(--ink-soft); line-height: 1.9; }
 .pill-ok { background: var(--leaf-pale); color: var(--leaf-dark); }
 .pill-warn { background: #FDECD8; color: var(--coral-dark); }
 .pill-idle { background: #EDEDED; color: #6B6B6B; }
+.muted { color: var(--ink-soft); font-size: .85rem; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px; justify-content: center;
@@ -312,6 +313,28 @@ p { margin: 0; color: var(--ink-soft); line-height: 1.9; }
 .btn-primary { background: var(--leaf); color: #fff; box-shadow: var(--shadow-sm); }
 .btn-sun { background: var(--sun); color: var(--leaf-dark); box-shadow: var(--shadow-sm); }
 .btn-ghost { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+
+/* این سه کلاس در برخی صفحات (پنل مهارت، ساخت تکلیف هوشمند) استفاده شده‌اند
+   بدون این‌که در جایی تعریف شوند — این تعاریف معادل بصری .btn/.btn-primary،
+   .btn/.btn-ghost و .field input هستند تا همان‌جا رندر درست بشوند. */
+.primary-btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 12px 20px; border-radius: 14px; font-weight: 800; font-size: .9rem;
+  border: none; background: var(--leaf); color: #fff; box-shadow: var(--shadow-sm);
+  cursor: pointer; transition: transform .12s, box-shadow .12s;
+}
+.primary-btn:active { transform: scale(.97); }
+.secondary-btn {
+  display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 12px 20px; border-radius: 14px; font-weight: 800; font-size: .9rem;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink);
+  cursor: pointer; transition: transform .12s, box-shadow .12s;
+}
+.secondary-btn:active { transform: scale(.97); }
+.input {
+  width: 100%; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--line); font-family: inherit; background: var(--bg-soft);
+}
 
 .progress-bar { height: 8px; background: var(--bg-soft); border-radius: 999px; overflow: hidden; }
 .progress-bar > div { height: 100%; background: var(--leaf); border-radius: 999px; }

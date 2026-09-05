@@ -127,16 +127,6 @@ CREATE TABLE IF NOT EXISTS user_badges (
   UNIQUE (user_id, badge_code)
 );
 
-CREATE TABLE IF NOT EXISTS daily_rewards (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER NOT NULL REFERENCES users(id),
-  reward_date TEXT NOT NULL,
-  reward_type TEXT NOT NULL,
-  reward_value INTEGER NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (user_id, reward_date)
-);
-
 CREATE TABLE IF NOT EXISTS lessons (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   school_id INTEGER NOT NULL REFERENCES schools(id),
@@ -266,7 +256,6 @@ CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_assignment ON submissions(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_submission_answers_submission ON submission_answers(submission_id);
 CREATE INDEX IF NOT EXISTS idx_user_badges_user ON user_badges(user_id);
-CREATE INDEX IF NOT EXISTS idx_daily_rewards_user_date ON daily_rewards(user_id, reward_date);
 CREATE INDEX IF NOT EXISTS idx_lessons_class ON lessons(class_id);
 CREATE INDEX IF NOT EXISTS idx_lesson_assignments_lesson ON lesson_assignments(lesson_id);
 CREATE INDEX IF NOT EXISTS idx_parent_feedback_teacher ON parent_feedback(teacher_id);

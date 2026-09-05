@@ -43,7 +43,6 @@ export async function onRequestPost({ request, env, data }) {
     db.prepare(`DELETE FROM parent_messages WHERE student_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare(`DELETE FROM user_badges WHERE user_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
-    db.prepare(`DELETE FROM daily_rewards WHERE user_id IN (SELECT id FROM users WHERE school_id = ?)`).bind(schoolId),
     db.prepare('DELETE FROM messages WHERE school_id = ?').bind(schoolId),
 
     // --- mid-level tables ---

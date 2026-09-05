@@ -21,14 +21,6 @@ export async function onRequestGet({ env, data }) {
   const earnedMap = new Map(earned.map((e) => [e.badge_code, e.earned_at]));
   const badges = allBadges.map((b) => ({ ...b, earned: earnedMap.has(b.code), earnedAt: earnedMap.get(b.code) || null }));
 
-  const today = new Date().toISOString().slice(0, 10);
-  const rewardToday = await env.DB.prepare('SELECT id FROM daily_rewards WHERE user_id = ? AND reward_date = ?')
-    .bind(student.id, today).first();
-  // جعبهٔ شانسی فقط وقتی باز می‌شه که امروز حداقل یک تکلیف ارسال کرده باشه و هنوز جعبهٔ امروز رو باز نکرده باشه
-  const submittedToday = await env.DB.prepare(
-    `SELECT id FROM submissions WHERE student_id = ? AND date(submitted_at) = ? LIMIT 1`
-  ).bind(student.id, today).first();
-
   const doneCount = await env.DB.prepare(
     `SELECT COUNT(*) AS n FROM submissions WHERE student_id = ? AND status IN ('submitted','reviewed')`
   ).bind(student.id).first();
@@ -45,7 +37,6 @@ export async function onRequestGet({ env, data }) {
     streak,
     doneCount: doneCount.n,
     badges,
-    luckyBoxAvailable: !!submittedToday && !rewardToday,
     festival,
     gardenWeather,
   });
